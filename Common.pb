@@ -1,0 +1,202 @@
+; PureBasic Visual Designer v3.95 build 1485 (PB4Code)
+
+
+;- Window Constants
+;
+Enumeration
+  #Window_0
+  #Window_1
+  #Window_2
+  #Window_3
+EndEnumeration
+
+;- Gadget Constants
+;
+Enumeration
+  #Frame3D_0
+  #String_5
+  #Button_4
+  #Button_2
+  #Button_5
+  #Frame3D_2
+  #Frame3D_3
+  #String_7
+  #String_8
+  #Button_6
+  #Button_7
+  #Button_8
+  #CheckBox_4
+  #Button_9
+  #Combo_0
+  #Combo_1
+  #String_9
+  #String_10
+  #Button_kk
+  #Button_dc
+  #Button_kb
+  #Button_mu
+  #Button_um
+  #Button_ig
+  #Button_hd
+  #Button_sw
+  #Button_si
+  #Listview_0
+  #Button_dj
+  #Button_ndj
+  #Text_3
+  #String_12
+  #Button_27
+  #Button_28
+  #Button_29
+  #Frame3D_4
+  #CheckBox_6
+  #TrackBar_1
+  #ListIcon_2
+  #CheckBox_MS
+  #Text_6
+  #String_OP
+  #Frame3D_5
+  #Listview_2
+  #Button_BG
+  #Text_7
+  #Combo_3
+  #Text_8
+  #Combo_4
+  #Checkbox_BlockIni
+EndEnumeration
+
+
+Procedure BalloonTip(WindowID, Gadget, Text$ , Title$, Icon)
+  CompilerIf #PB_Compiler_OS = #PB_OS_Windows
+    Define ToolTip=0
+    Define Balloon.TOOLINFO
+    ToolTip=CreateWindowEx_(0,"ToolTips_Class32","",#WS_POPUP | #TTS_NOPREFIX | #TTS_BALLOON,0,0,0,0,WindowID,0,GetModuleHandle_(0),0)
+    SendMessage_(ToolTip,#TTM_SETTIPTEXTCOLOR,GetSysColor_(#COLOR_INFOTEXT),0)
+    SendMessage_(ToolTip,#TTM_SETTIPBKCOLOR,GetSysColor_(#COLOR_INFOBK),0)
+    SendMessage_(ToolTip,#TTM_SETMAXTIPWIDTH,0,180)
+    Balloon.TOOLINFO\cbSize=SizeOf(TOOLINFO)
+    Balloon\uFlags=#TTF_IDISHWND | #TTF_SUBCLASS
+    Balloon\hWnd=GadgetID(Gadget)
+    Balloon\uId=GadgetID(Gadget)
+    Balloon\lpszText=@Text$
+    SendMessage_(ToolTip, #TTM_ADDTOOL, 0, Balloon)
+    If Title$ > ""
+      SendMessage_(ToolTip, #TTM_SETTITLE, Icon, @Title$)
+    EndIf
+  CompilerElse
+    #TOOLTIP_NO_ICON=0
+    #TOOLTIP_INFO_ICON=0
+    #TOOLTIP_WARNING_ICON=0
+    #TOOLTIP_ERROR_ICON=0
+  CompilerEndIf
+EndProcedure
+
+Procedure Open_Window_0()
+  If OpenWindow(#Window_0   , 301, 185, 730, 339, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
+    ;If CreateGadgetList(WindowID(#Window_0   ))
+    Frame3DGadget(#Frame3D_0, 0, 0, 290, 350, "Serverside")
+    StringGadget(#String_5, 210, 15, 70, 22, "27015", #PB_String_Numeric)
+    BalloonTip(GadgetID(#String_5), #String_5, "The public port goes here", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_4, -30, 280, 100, 30, "CONFIG", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_4), #Button_4, "Opens the configuration page", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_2, 120, 15, 90, 22, "START")
+    BalloonTip(GadgetID(#Button_2), #Button_2, "Start listening for connections", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_kk, -10, 40, 80, 30, "KICK", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_kk), #Button_kk, "Send KB to the client and close the connection", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_dc, -10, 70, 80, 30, "DISCONNECT", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_dc), #Button_dc, "Disconnects this client from the server", "", #TOOLTIP_WARNING_ICON)
+    ButtonGadget(#Button_kb, -10, 100, 80, 30, "BAN", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_kb), #Button_kb, "Send KB to the client and add him to the banlist", "For this IP", #TOOLTIP_WARNING_ICON)
+    ButtonGadget(#Button_mu, 30, 190, 40, 30, "MUTE", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_mu), #Button_mu, "Send MU#-1#% to the client", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_um, 0, 190, 30, 30, "UN", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_um), #Button_um, "Send UM#-1#% to the client", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_ig, 20, 160, 50, 30, "IGNORE")
+    BalloonTip(GadgetID(#Button_ig), #Button_ig, "Ignore this clients commands", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_hd, -10, 130, 80, 30, "HDBAN", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_hd), #Button_hd, "Send KB to the client and add him to the HDbanlist", "PERMANENT", #TOOLTIP_ERROR_ICON)
+    ButtonGadget(#Button_sw, -10, 220, 80, 30, "SWITCH", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_sw), #Button_sw, "Drops this client to character selection", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_si, 0, 160, 20, 30, "S")
+    BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(1337, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
+    ;-
+    ListIconGadget(#Listview_0, 70, 40, 220, 300, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    CompilerIf #PB_Compiler_OS=#PB_OS_Windows
+      SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
+    CompilerEndIf
+    AddGadgetColumn(#Listview_0, 1, "Character", 50)
+    AddGadgetColumn(#Listview_0, 2, "PV", 60)
+    BalloonTip(GadgetID(#Listview_0), #Listview_0, "Shows all connected clients", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_dj, 40, 250, 30, 30, "DJ")
+    BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
+    ButtonGadget(#Button_ndj, -20, 250, 60, 30, "UN", #PB_Button_Right)
+    BalloonTip(GadgetID(#Button_ndj), #Button_ndj, "Stops this client from changing the music", "", #TOOLTIP_INFO_ICON)
+    Frame3DGadget(#Frame3D_4, 290, 0, 230, 340, "Log")
+    
+    ;-
+    ListIconGadget(#ListIcon_2, 520, 20, 210, 320, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    AddGadgetColumn(#ListIcon_2, 1, "Message", 100)
+    BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
+    CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
+    BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
+    Frame3DGadget(#Frame3D_5, 520, 0, 210, 340, "OOC")
+    CompilerIf #EASYLOG
+      ListViewGadget(#Listview_2, 290, 20, 230, 320)
+      AddGadgetItem(#Listview_2,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
+      AddGadgetItem(#Listview_2,0,"Check out http://www.weedlan.de/serverd/ for updates")
+      If update
+        AddGadgetItem(#Listview_2,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
+      EndIf
+    CompilerElse
+      EditorGadget(#Listview_2, 290, 20, 230, 320)
+    CompilerEndIf
+    BalloonTip(GadgetID(#Listview_2), #Listview_2, "Shows all activity", "", #TOOLTIP_NO_ICON)
+    
+    ;EndIf
+  EndIf
+EndProcedure
+
+Procedure Open_Window_1()
+  If OpenWindow(#Window_1, 303, 568, 150, 180, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
+    ; If CreateGadgetList(WindowID(#Window_1))
+    ButtonGadget(#Button_5, 0, 150, 150, 30, "DONE")
+    CheckBoxGadget(#CheckBox_4, 10, 40, 60, 20, "Logging")
+    BalloonTip(GadgetID(#CheckBox_4), #CheckBox_4, "Log all network traffic to a file", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_9, 70, 40, 70, 20, "Log file...")
+    TextGadget(#Text_6, 10, 10, 41, 20, "OP pass")
+    StringGadget(#String_OP, 60, 10, 80, 20, "", #PB_String_Password)
+    BalloonTip(GadgetID(#String_OP), #String_OP, "Enter the OOC password here", "", #TOOLTIP_NO_ICON)
+    TextGadget(#Text_7, 10, 70, 60, 20, "Mod colour:")
+    ComboBoxGadget(#Combo_3, 70, 70, 70, 20)
+    TextGadget(#Text_8, 10, 90, 50, 30, "MOTD evidence:")
+    ComboBoxGadget(#Combo_4, 60, 100, 80, 20)
+    CheckBoxGadget(#Checkbox_BlockIni,10,130,120,20,"Block Ini char swap")
+    
+    ; EndIf
+  EndIf
+EndProcedure
+
+CompilerIf #SPAM
+  Procedure Open_Window_3()
+    If OpenWindow(#Window_3, -202, 508, 150, 220, "Spam",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
+      ; If CreateGadgetList(WindowID(#Window_3))
+      TextGadget(#Text_3, 10, 10, 100, 30, "TURN DOWN FOR WHAT ?", #PB_Text_Center)
+      StringGadget(#String_12, 0, 40, 120, 35, "")
+      ButtonGadget(#Button_27, 0, 100, 120, 40, "START")
+      ButtonGadget(#Button_28, 0, 140, 120, 40, "PAUSE")
+      ButtonGadget(#Button_29, 0, 180, 120, 40, "STOP")
+      CheckBoxGadget(#CheckBox_6, 0, 80, 120, 20, "ÜBERCHARGE")
+      TrackBarGadget(#TrackBar_1, 120, 0, 30, 220, 0, 1000, #PB_TrackBar_Vertical)
+      
+      ; EndIf
+    EndIf
+  EndProcedure
+CompilerEndIf
+; IDE Options = PureBasic 5.11 (Windows - x86)
+; CursorPosition = 71
+; FirstLine = 61
+; Folding = -
+; EnableXP
+; EnableCompileCount = 0
+; EnableBuildCount = 0
