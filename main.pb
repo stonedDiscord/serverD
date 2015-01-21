@@ -1,5 +1,5 @@
 ;EnableExplicit
-
+; yes this is the legit serverD source code please report bugfixes/modifications/feature requests to sD or trtukz on skype
 CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
   #MB_ICONERROR=0
 CompilerEndIf
@@ -791,7 +791,9 @@ CompilerIf #CONSOLE=0
       Debug "clients: "+Str(i)
     Wend
     UnlockMutex(ListMutex)
-    SetGadgetState(#Listview_0,lstate)
+    If lstate<MapSize(Clients())
+      SetGadgetState(#Listview_0,lstate)
+      EndIf
   EndProcedure
   
   
@@ -2053,8 +2055,7 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2053
-; FirstLine = 1996
+; CursorPosition = 1
 ; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
