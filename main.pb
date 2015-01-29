@@ -972,8 +972,7 @@ CompilerIf #CONSOLE=0
                     
                     If loghd
                       OpenFile(8,"base/hd.txt")
-                      WriteStringN(8,*usagePointer\IP)
-                      WriteStringN(8,*usagePointer\HD)
+                      WriteStringN(8,*usagePointer\IP+","+*usagePointer\HD)
                       CloseFile(8)
                     EndIf
                     
@@ -2060,8 +2059,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2060
-; FirstLine = 2008
+; CursorPosition = 974
+; FirstLine = 960
 ; Folding = ------------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
