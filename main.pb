@@ -793,7 +793,7 @@ CompilerIf #CONSOLE=0
     UnlockMutex(ListMutex)
     If lstate<MapSize(Clients())
       SetGadgetState(#Listview_0,lstate)
-      EndIf
+    EndIf
   EndProcedure
   
   
@@ -1014,11 +1014,16 @@ CompilerIf #CONSOLE=0
                       Next
                       SendNetworkString(ClientID,"ID#"+Str(PV)+"#"+scene$+"#%")
                       players=0
-                      For i=0 To characternumber
-                        If Characters(i)\taken
+                      
+                      LockMutex(ListMutex)    
+                      ResetMap(Clients())
+                      While NextMapElement(Clients())
+                        If Clients()\CID>=0
                           players+1
                         EndIf
-                      Next
+                      Wend
+                      UnlockMutex(ListMutex)                      
+                      
                       SendNetworkString(ClientID,"PN#"+Str(players)+"#"+Str(characternumber)+"#%")
                     EndIf
                     
@@ -2055,8 +2060,9 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 1
-; Folding = ----
+; CursorPosition = 2060
+; FirstLine = 2008
+; Folding = ------------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0
