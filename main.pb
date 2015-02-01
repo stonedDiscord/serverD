@@ -1156,7 +1156,7 @@ CompilerIf #CONSOLE=0
                           msreply$=msreply$+Characters(*usagePointer\CID)\name+"#"
                         ElseIf i=7 And *usagePointer\gimp
                           If ListSize(gimp())
-                            SelectElement(gimp(),Random(ListSize(gimp())))
+                            SelectElement(gimp(),Random(ListSize(gimp()),1))
                             msreply$=msreply$+gimp()+"#"
                           Else
                             msreply$=msreply$+"<3"+"#"
@@ -2059,8 +2059,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 974
-; FirstLine = 960
+; CursorPosition = 1161
+; FirstLine = 1155
 ; Folding = ------------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
