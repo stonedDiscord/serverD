@@ -1824,10 +1824,14 @@ CompilerIf #CONSOLE=0
         If Event = #PB_Event_Gadget
           
           
-          llv=lvstate
           lvstate=GetGadgetState(#Listview_0)
-          If lvstate <> -1 And lvstate<>llv           
+          Debug lvstate
+          If lvstate>=0         
             cldata = GetGadgetItemData(#Listview_0,lvstate)
+            Debug GetGadgetItemData(#Listview_0,lvstate)
+            Debug "what"
+            Debug GetGadgetItemData(#Listview_0,0)
+            Debug cldata
             If cldata
               ;Debug "someones selected, let's find out who"
               LockMutex(ListMutex)
@@ -2025,8 +2029,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2025
-; FirstLine = 1984
+; CursorPosition = 44
+; FirstLine = 33
 ; Folding = -----------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
