@@ -1,5 +1,5 @@
 ;EnableExplicit
-; yes this is the legit serverD source code please report bugfixes/modifications/feature requests to sD or trtukz on skype
+; yes this is the legit serverD source code please report bugfixes/modifications/feature requests to sD/trtukz on skype
 CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
   #MB_ICONERROR=0
 CompilerEndIf
@@ -791,7 +791,7 @@ CompilerIf #CONSOLE=0
       Debug "clients: "+Str(i)
     Wend
     UnlockMutex(ListMutex)
-    If lstate<MapSize(Clients())
+    If lstate<CountGadgetItems(#Listview_0)
       SetGadgetState(#Listview_0,lstate)
     EndIf
   EndProcedure
@@ -805,6 +805,7 @@ CompilerIf #CONSOLE=0
     AddGadgetItem(#Combo_3,3,"Orange")
     AddGadgetItem(#Combo_3,4,"Blue")
     SetGadgetText(#String_OP,oppass$)
+    SetGadgetText(#String_AD,adminpass$)
     SetGadgetState(#CheckBox_4,Logging)
     SetGadgetState(#Checkbox_BlockIni,blockini)
     SetGadgetState(#Combo_3,modcol)
@@ -828,6 +829,8 @@ CompilerIf #CONSOLE=0
               SetGadgetText(#String_OP,"")
             EndIf
           CompilerEndIf
+        ElseIf GadgetID = #String_AD
+          adminpass$ = GetGadgetText(#String_AD)
         ElseIf GadgetID = #CheckBox_4
           If GetGadgetState(#CheckBox_4)
             If OpenFile(1,LogFile$)
@@ -859,6 +862,7 @@ CompilerIf #CONSOLE=0
     WritePreferenceString("LogFile",LogFile$)
     WritePreferenceInteger("Logging",GetGadgetState(#CheckBox_4))
     WritePreferenceString("oppass",GetGadgetText(#String_OP))
+    WritePreferenceString("adminpass",GetGadgetText(#String_AD))
     WritePreferenceInteger("ModCol",GetGadgetState(#Combo_3))
     WritePreferenceInteger("motdevi",GetGadgetState(#Combo_4))
     WritePreferenceInteger("BlockIni",GetGadgetState(#Checkbox_BlockIni))
@@ -1837,41 +1841,21 @@ CompilerIf #CONSOLE=0
               UnlockMutex(ListMutex)
             EndIf
             
-            ;If GadgetID = #Button_0
-            ;  SendNetworkString(*clickedClient\ServerID,GetGadgetText(#String_2))
-            ;ElseIf GadgetID = #Button_11
-            ;  SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),GetGadgetText(#String_2))
-            
             If GadgetID = #Button_kk ;KICK
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"KK#"+Str(*clickedClient\CID)+"#%")
-              Delay(10)        
-              LockMutex(ListMutex)
-              ResetMap(Clients())
-              While NextMapElement(Clients())
-                If Clients()\ClientID=*clickedClient\ClientID
-                  If Clients()\CID>=0
-                    Characters(Clients()\CID)\taken=0
-                  EndIf
-                  CloseNetworkConnection(Clients()\ClientID)
-                  DeleteMapElement(Clients())
-                EndIf
-              Wend     
-              UnlockMutex(ListMutex)
+              SendNetworkString(cldata,"KK#"+Str(*clickedClient\CID)+"#%")
+              CloseNetworkConnection(cldata)
+              DeleteMapElement(Clients(),Str(cldata))
+              cldata=0
               rf=1
               
-              CompilerIf #EASYLOG=0          
-              ElseIf GadgetID = #Listview_0
-                SetGadgetText(#Listview_2,*clickedClient\Log)          
-              CompilerEndIf
-              
             ElseIf GadgetID = #Button_sw ;SWITCH
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"DONE#%")
+              SendNetworkString(cldata,"DONE#%")
               
             ElseIf GadgetID = #Button_mu ;MUTE
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"MU#"+Str(*clickedClient\CID)+"#%")
+              SendNetworkString(cldata,"MU#"+Str(*clickedClient\CID)+"#%")
               
             ElseIf GadgetID = #Button_um ;UNMUTE
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"UM#"+Str(*clickedClient\CID)+"#%")
+              SendNetworkString(cldata,"UM#"+Str(*clickedClient\CID)+"#%")
               
             ElseIf GadgetID = #Button_kb ;BAN        
               AddElement(IPbans())
@@ -1880,20 +1864,14 @@ CompilerIf #CONSOLE=0
               FileSeek(2,Lof(2))
               WriteStringN(2,*clickedClient\IP)
               CloseFile(2)        
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"KB#"+Str(*clickedClient\CID)+"#%")
+              SendNetworkString(cldata,"KB#"+Str(*clickedClient\CID)+"#%")
               Delay(10)    
               If *clickedClient\CID>=0
                 Characters(*clickedClient\CID)\taken=0
               EndIf
-              CloseNetworkConnection(*clickedClient\ClientID)
-              LockMutex(ListMutex)
-              ResetMap(Clients())
-              While NextMapElement(Clients())
-                If Clients()\ClientID=*clickedClient\ClientID
-                  DeleteMapElement(Clients())
-                EndIf
-              Wend     
-              UnlockMutex(ListMutex)
+              CloseNetworkConnection(cldata)
+              DeleteMapElement(Clients(),Str(cldata))
+              cldata=0
               rf=1
               
             ElseIf GadgetID = #Button_hd ;HDBAN
@@ -1903,36 +1881,24 @@ CompilerIf #CONSOLE=0
               FileSeek(2,Lof(2))
               WriteStringN(2,*clickedClient\HD)
               CloseFile(2)
-              SendNetworkString(GetGadgetItemData(#Listview_0,GetGadgetState(#Listview_0)),"KB#"+Str(*clickedClient\CID)+"#%")
+              SendNetworkString(cldata,"KB#"+Str(*clickedClient\CID)+"#%")
               Delay(10)
               If *clickedClient\CID>=0
                 Characters(*clickedClient\CID)\taken=0
               EndIf
-              CloseNetworkConnection(*clickedClient\ClientID)
-              LockMutex(ListMutex)
-              ResetMap(Clients())
-              While NextMapElement(Clients())
-                If Clients()\ClientID=*clickedClient\ClientID
-                  DeleteMapElement(Clients())
-                EndIf
-              Wend     
-              UnlockMutex(ListMutex)
+              CloseNetworkConnection(cldata)
+              DeleteMapElement(Clients(),Str(cldata))
+              cldata=0
               rf=1
               
             ElseIf GadgetID = #Button_dc ;DISCONNECT
               If *clickedClient\CID>=0
                 Characters(*clickedClient\CID)\taken=0
               EndIf
-              CloseNetworkConnection(*clickedClient\ClientID)
-              LockMutex(ListMutex)
-              ResetMap(Clients())
-              While NextMapElement(Clients())
-                If Clients()\ClientID=*clickedClient\ClientID
-                  DeleteMapElement(Clients())
-                EndIf
-              Wend     
-              UnlockMutex(ListMutex)
-              rf=1        
+              CloseNetworkConnection(cldata)
+              DeleteMapElement(Clients(),Str(cldata))
+              cldata=0
+              rf=1       
               
             ElseIf GadgetID = #Button_ig ;IGNORE
               *clickedClient\ignore.b=1
@@ -2059,9 +2025,9 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 1161
-; FirstLine = 1155
-; Folding = ------------------------------------------
+; CursorPosition = 2025
+; FirstLine = 1984
+; Folding = -----------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0

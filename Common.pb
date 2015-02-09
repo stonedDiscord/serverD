@@ -63,6 +63,8 @@ Enumeration
   #Text_8
   #Combo_4
   #Checkbox_BlockIni
+  #String_AD
+  #Text_AD
 EndEnumeration
 
 
@@ -158,22 +160,27 @@ Procedure Open_Window_0()
 EndProcedure
 
 Procedure Open_Window_1()
-  If OpenWindow(#Window_1, 303, 568, 150, 180, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
-    ; If CreateGadgetList(WindowID(#Window_1))
-    ButtonGadget(#Button_5, 0, 150, 150, 30, "DONE")
-    CheckBoxGadget(#CheckBox_4, 10, 40, 60, 20, "Logging")
-    BalloonTip(GadgetID(#CheckBox_4), #CheckBox_4, "Log all network traffic to a file", "", #TOOLTIP_NO_ICON)
-    ButtonGadget(#Button_9, 70, 40, 70, 20, "Log file...")
-    TextGadget(#Text_6, 10, 10, 41, 20, "OP pass")
+  If OpenWindow(#Window_1, 303, 568, 150, 195, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
+
+    TextGadget(#Text_6, 10, 10, 40, 20, "OP pass")
     StringGadget(#String_OP, 60, 10, 80, 20, "", #PB_String_Password)
     BalloonTip(GadgetID(#String_OP), #String_OP, "Enter the OOC password here", "", #TOOLTIP_NO_ICON)
-    TextGadget(#Text_7, 10, 70, 60, 20, "Mod colour:")
-    ComboBoxGadget(#Combo_3, 70, 70, 70, 20)
-    TextGadget(#Text_8, 10, 90, 50, 30, "MOTD evidence:")
-    ComboBoxGadget(#Combo_4, 60, 100, 80, 20)
-    CheckBoxGadget(#Checkbox_BlockIni,10,130,120,20,"Block Ini char swap")
     
-    ; EndIf
+    TextGadget(#Text_AD, 10, 35, 40, 20, "Admin ''")
+    StringGadget(#String_AD, 60, 35, 80, 20, "", #PB_String_Password)
+    BalloonTip(GadgetID(#String_AD), #String_AD, "Enter the Admin password here", "", #TOOLTIP_NO_ICON)
+    
+        CheckBoxGadget(#CheckBox_4, 10, 55, 60, 20, "Logging")
+    BalloonTip(GadgetID(#CheckBox_4), #CheckBox_4, "Log all network traffic to a file", "", #TOOLTIP_NO_ICON)
+    ButtonGadget(#Button_9, 70, 55, 70, 20, "Log file...")
+    
+    TextGadget(#Text_7, 10, 85, 60, 20, "Mod colour:")
+    ComboBoxGadget(#Combo_3, 70, 85, 70, 20)
+    TextGadget(#Text_8, 10, 105, 50, 30, "MOTD evidence:")
+    ComboBoxGadget(#Combo_4, 60, 115, 80, 20)
+    CheckBoxGadget(#Checkbox_BlockIni,10,145,120,20,"Block Ini char swap")
+    
+    ButtonGadget(#Button_5, 0, 165, 150, 30, "DONE")
   EndIf
 EndProcedure
 
@@ -194,9 +201,9 @@ CompilerIf #SPAM
   EndProcedure
 CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 71
-; FirstLine = 61
-; Folding = -
+; CursorPosition = 168
+; FirstLine = 160
+; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0

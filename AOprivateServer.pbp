@@ -7,16 +7,16 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-01-30 00:54" user="Sven" host="SPC"/>
+    <lastopen date="2015-02-09 16:18" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="7d210c800f1e0775f0c20237bf05f371"/>
+      <fingerprint md5="b8dd055d38f534c64913efcaaed5b2e5"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="3e5564ad2d60f592545c794d16687ee1"/>
+      <fingerprint md5="bbe7ee7c566cbc0f4ff604c8b88cd78f"/>
     </file>
     <file name="gui.pbv">
       <config load="0" scan="0" panel="1" warn="1" lastopen="0" panelstate="+"/>
@@ -40,12 +40,12 @@
       <compiler version="PureBasic 5.11 (Windows - x86)"/>
       <commandline value="-auto"/>
       <executable value="build\serverD"/>
-      <options thread="1" xpskin="1" debug="1"/>
+      <options thread="1" xpskin="1"/>
       <icon enable="1">
         ../stoneddiscord.ico
       </icon>
       <format exe="default" cpu="2"/>
-      <compilecount enable="1" value="390"/>
+      <compilecount enable="1" value="397"/>
       <buildcount enable="1" value="91"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
