@@ -7,20 +7,16 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-02-09 18:12" user="Sven" host="SPC"/>
+    <lastopen date="2015-02-11 22:45" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="1ab294c1159158275918014e197e36c2"/>
+      <fingerprint md5="918d398a1d1b32e2e0712ac2c0e84b75"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
       <fingerprint md5="bbe7ee7c566cbc0f4ff604c8b88cd78f"/>
-    </file>
-    <file name="gui.pbv">
-      <config load="0" scan="0" panel="1" warn="1" lastopen="0" panelstate="+"/>
-      <fingerprint md5=""/>
     </file>
     <file name="checker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
