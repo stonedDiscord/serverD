@@ -312,7 +312,7 @@ Procedure LoadSettings(reload)
     Characters(loaddesc)\desc=ReadPreferenceString(Str(loadchars),"No description")
   Next
   ReDim Evidences(EviNumber)
-  ReDim ReadyEvidence(EviNumber-1)
+  ReDim ReadyEvidence(EviNumber)
   For loadevi=1 To EviNumber
     PreferenceGroup("evi"+Str(loadevi))
     Evidences(loadevi)\type=ReadPreferenceInteger("type",1)
@@ -320,7 +320,7 @@ Procedure LoadSettings(reload)
     Evidences(loadevi)\desc=ReadPreferenceString("desc","This is the default evidence")
     Evidences(loadevi)\image=ReadPreferenceString("image","2.png")
     
-    ReadyEvidence(loadevi-1)="EI#" + Str(loadevi)+"#"+Evidences(loadevi)\name+"&"+Evidences(loadevi)\desc+"&"+Str(Evidences(loadevi)\type)+"&"+Evidences(loadevi)\image+"&##%"
+    ReadyEvidence(loadevi)="EI#" + Str(loadevi)+"#"+Evidences(loadevi)\name+"&"+Evidences(loadevi)\desc+"&"+Str(Evidences(loadevi)\type)+"&"+Evidences(loadevi)\image+"&##%"
     
   Next
   ClosePreferences()
@@ -1043,7 +1043,7 @@ CompilerIf #CONSOLE=0
                     If start*10<characternumber
                       SendNetworkString(ClientID,ReadyChar(start))
                     ElseIf EviNumber>0
-                      SendNetworkString(ClientID,ReadyEvidence(0))
+                      SendNetworkString(ClientID,ReadyEvidence(1))
                     ElseIf tracks>0
                       SendNetworkString(ClientID,ReadyMusic(0))
                     Else ;MUSIC DONE
@@ -1056,7 +1056,7 @@ CompilerIf #CONSOLE=0
                     sentevi=Val(StringField(rawreceive$,3,"#"))
                     send=0
                     If sentevi<EviNumber            
-                      SendNetworkString(ClientID,ReadyEvidence(sentevi))
+                      SendNetworkString(ClientID,ReadyEvidence(sentevi+1))
                     ElseIf tracks>0
                       SendNetworkString(ClientID,ReadyMusic(0))
                     Else ;MUSIC DONE
@@ -1986,8 +1986,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 99
-; FirstLine = 96
+; CursorPosition = 1058
+; FirstLine = 1055
 ; Folding = ---------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
