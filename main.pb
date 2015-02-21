@@ -3,7 +3,7 @@
 CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
   #MB_ICONERROR=0
 CompilerEndIf
-
+;- Defining Structure
 Structure CharacterArray
   StructureUnion
     c.c[0]
@@ -64,7 +64,7 @@ Enumeration
   #GIMP
   #UNGIMP
 EndEnumeration
-
+;- Global Variables
 Global *Buffer = AllocateMemory(1024)
 Global NetworkMode=#PB_Network_TCP
 Global EmptyMode.b=0
@@ -108,6 +108,8 @@ Global LoginReply$="CT#SERVER#got it#%"
 Global roomc=9
 Global musicpage=0
 Global EviNumber
+Global rex_IsNumeric = CreateRegularExpression(#PB_Any,"^[[:digit:]]+$") 
+Global rex_isAlpha = CreateRegularExpression(#PB_Any,"^[[:alpha:]]+$")
 Global NewMap Clients.Client()
 Global NewList HDbans.s()
 Global NewList HDmods.s()
@@ -125,16 +127,20 @@ Global Dim Icons.l(2)
 Global Dim ReadyChar.s(10)
 Global Dim ReadyEvidence.s(50)
 Global Dim ReadyMusic.s(400)
-
+;- Initialize The Network
 If InitNetwork() = 0
   CompilerIf #CONSOLE=0
     MessageRequester("serverD", "Can't initialize the network!",#MB_ICONERROR)
   CompilerEndIf
   End
 EndIf
+;- Include window files
 CompilerIf #CONSOLE=0
   IncludeFile "Common.pb"
 CompilerEndIf
+;- Define Functions
+; yes after the network init and include code
+; many of these depend on that
 Procedure MSWait(*p)
   Define par.s
   Define roomw
@@ -162,7 +168,7 @@ Procedure WriteLog(string$,mod.b,ip$)
   EndSelect
   
   If Logging
-    WriteStringN(1,mstr$+"["+LSet(ip$,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$) 
+    WriteStringN(3,mstr$+"["+LSet(ip$,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$) 
     CompilerIf #CONSOLE=1
       PrintN(mstr$+"["+LSet(ip$,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$)
     CompilerEndIf
@@ -188,23 +194,13 @@ Procedure WriteReplay(string$)
 EndProcedure
 
 Procedure IsNumeric(in_str.s)
-  Define rex_IsNumeric
-  Define Is_Numeric.b
-  rex_IsNumeric = CreateRegularExpression(#PB_Any,"^[[:digit:]]+$") 
-  Is_Numeric.b = MatchRegularExpression(rex_IsNumeric, in_str)
-  FreeRegularExpression(rex_IsNumeric)
-  ProcedureReturn Is_Numeric
+  ProcedureReturn MatchRegularExpression(rex_IsNumeric, in_str)
 EndProcedure
 
 Procedure IsAlpha(in_str.s)
-  Define rex_isAlpha
-  Define is_Alpha.b
-  rex_isAlpha = CreateRegularExpression(#PB_Any,"^[[:alpha:]]+$") ; A-Z and a-z
-  is_Alpha.b = MatchRegularExpression(rex_isAlpha, in_str)
-  FreeRegularExpression(rex_isAlpha)
-  ProcedureReturn is_Alpha
+  ProcedureReturn MatchRegularExpression(rex_isAlpha, in_str)
 EndProcedure
-
+;- Load Settings function
 Procedure LoadSettings(reload)
   Define loadchars
   Define loadcharsettings
@@ -279,7 +275,7 @@ Procedure LoadSettings(reload)
   If Logging
     If OpenFile(1,LogFile$)
       FileSeek(1,Lof(1))
-      WriteLog("LOGGING STARTED",1,"SERVER")
+      WriteLog("LOGGING STARTED",3,"SERVER")
     Else
       Logging=0
     EndIf
@@ -402,64 +398,64 @@ Procedure LoadSettings(reload)
   EndIf
   
   
-  If ReadFile(2, "base/op.txt")   ; wenn die Datei geöffnet werden konnte, setzen wir fort...
+  If ReadFile(2, "base/op.txt")
     ClearList(HDmods())
-    While Eof(2) = 0           ; sich wiederholende Schleife bis das Ende der Datei ("end of file") erreicht ist
+    While Eof(2) = 0
       hdmod$=ReadString(2)
       If hdmod$<>""
         AddElement(HDmods())
         HDmods()=hdmod$
       EndIf
     Wend
-    CloseFile(2)               ; schließen der zuvor geöffneten Datei
+    CloseFile(2)
   EndIf
   
-  If ReadFile(2, "base/HDbanlist.txt")   ; wenn die Datei geöffnet werden konnte, setzen wir fort...
+  If ReadFile(2, "base/HDbanlist.txt")
     ClearList(HDbans())
-    While Eof(2) = 0           ; sich wiederholende Schleife bis das Ende der Datei ("end of file") erreicht ist
+    While Eof(2) = 0
       hdban$=ReadString(2)
       If hdban$<>""
         AddElement(HDbans())
         HDbans()=hdban$
       EndIf
     Wend
-    CloseFile(2)               ; schließen der zuvor geöffneten Datei
+    CloseFile(2)
   EndIf
   
-  If ReadFile(2, "serverd.txt")   ; wenn die Datei geöffnet werden konnte, setzen wir fort...
+  If ReadFile(2, "serverd.txt")
     ReadString(2)
     ReadString(2)
     ReadString(2)
     ClearList(SDbans())
-    While Eof(2) = 0           ; sich wiederholende Schleife bis das Ende der Datei ("end of file") erreicht ist
+    While Eof(2) = 0
       hdban$=ReadString(2)
       If hdban$<>""
         AddElement(SDbans())
         SDbans()=hdban$
       EndIf
     Wend
-    CloseFile(2)               ; schließen der zuvor geöffneten Datei
+    CloseFile(2)
   EndIf
   
-  If ReadFile(2, "base/banlist.txt")   ; wenn die Datei geöffnet werden konnte, setzen wir fort...
+  If ReadFile(2, "base/banlist.txt")
     ClearList(IPbans())
-    While Eof(2) = 0           ; sich wiederholende Schleife bis das Ende der Datei ("end of file") erreicht ist
+    While Eof(2) = 0
       ipban$=ReadString(2)
       If ipban$<>""
         AddElement(IPbans())
         IPbans()=ipban$
       EndIf
     Wend
-    CloseFile(2)               ; schließen der zuvor geöffneten Datei
+    CloseFile(2)
   EndIf
   
-  If ReadFile(2, "base/gimp.txt")   ; wenn die Datei geöffnet werden konnte, setzen wir fort...
+  If ReadFile(2, "base/gimp.txt")
     ClearList(gimp())
-    While Eof(2) = 0           ; sich wiederholende Schleife bis das Ende der Datei ("end of file") erreicht ist
+    While Eof(2) = 0
       AddElement(gimp())
       gimp()=ReadString(2)
     Wend
-    CloseFile(2)               ; schließen der zuvor geöffneten Datei
+    CloseFile(2)
   EndIf
   
 EndProcedure
@@ -471,7 +467,7 @@ Procedure SendToAll(*p)
   LockMutex(ListMutex)
   ResetMap(Clients())
   While NextMapElement(Clients())
-    SendNetworkString(Clients()\ClientID,reply$)    ;;;;; SERVER REPLY
+    SendNetworkString(Clients()\ClientID,reply$)
   Wend
   UnlockMutex(ListMutex)
 EndProcedure
@@ -491,11 +487,16 @@ Procedure ListIP(ClientID)
         charname$="HACKER"    ; OBVIUOSLY
         Clients()\hack=1
       Else
-        If Clients()\perm
-          charname$=Characters(char)\name+"(mod)"
-        Else
-          charname$=Characters(char)\name
-        EndIf
+        Select Clients()\perm
+          Case 1
+            charname$=Characters(char)\name+"(mod)"
+          Case 2
+            charname$=Characters(char)\name+"(admin)"
+          Case 3
+            charname$=Characters(char)\name+"(server)"
+          Default
+            charname$=Characters(char)\name
+        EndSelect
       EndIf
     Else
       charname$="nobody"     
@@ -692,7 +693,7 @@ ProcedureDLL.s DecryptStr(S.s, Key.u)
 EndProcedure
 
 ProcedureDLL MasterAdvert(msport)
-  WriteLog("Masterserver adverter thread started",1,"SERVER")
+  WriteLog("Masterserver adverter thread started",3,"SERVER")
   msID=0
   mstick=0
   *null=AllocateMemory(100)
@@ -725,7 +726,7 @@ ProcedureDLL MasterAdvert(msport)
       EndIf
       
       If tick>=200
-        WriteLog("Masterserver adverter timer exceeded, reconnecting",1,"SERVER")
+        WriteLog("Masterserver adverter timer exceeded, reconnecting",3,"SERVER")
         CloseNetworkConnection(msID)
         msID=OpenNetworkConnection(master$,27016)
         
@@ -748,7 +749,7 @@ ProcedureDLL MasterAdvert(msport)
     tick+1
   Until public=0
   
-  WriteLog("Masterserver adverter thread stopped",1,"SERVER")
+  WriteLog("Masterserver adverter thread stopped",3,"SERVER")
   If msID
     CloseNetworkConnection(msID)
   EndIf
@@ -787,10 +788,17 @@ CompilerIf #CONSOLE=0
     lstate=GetGadgetState(#Listview_0)
     ClearGadgetItems(#Listview_0)
     i=0
+    listicon=0
     LockMutex(ListMutex)    
     ResetMap(Clients())
     While NextMapElement(Clients())
-      AddGadgetItem(#Listview_0,i,Clients()\IP+Chr(10)+Str(Clients()\CID)+Chr(10)+Str(Clients()\AID),Icons(Clients()\perm))
+      If Clients()\perm
+        listicon=1
+      EndIf
+      If Clients()\hack
+        listicon=2
+      EndIf
+      AddGadgetItem(#Listview_0,i,Clients()\IP+Chr(10)+Str(Clients()\CID)+Chr(10)+Str(Clients()\AID),listicon)
       SetGadgetItemData(#Listview_0,i,Clients()\ClientID)
       ;SetGadgetItemColor(#Listview_0,i,#PB_Gadget_BackColor,$EEEEEE/(Clients()\icon+1))
       i+1
@@ -842,7 +850,7 @@ CompilerIf #CONSOLE=0
             If OpenFile(1,LogFile$)
               Logging = 1
               FileSeek(1,Lof(1))
-              WriteLog("LOGGING STARTED",1,"SERVER")
+              WriteLog("LOGGING STARTED",3,"SERVER")
             Else
               SetGadgetState(#CheckBox_4,0)
             EndIf
@@ -874,7 +882,7 @@ CompilerIf #CONSOLE=0
     WritePreferenceInteger("BlockIni",GetGadgetState(#Checkbox_BlockIni))
     ClosePreferences()
   EndProcedure 
-  
+  ;- Network Thread
   Procedure Network(var)
   CompilerElse
     start:
@@ -909,9 +917,6 @@ CompilerIf #CONSOLE=0
       EndIf
     CompilerEndIf
     Quit=0
-    
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CLIENT
-    
     
     Repeat
       
@@ -1223,7 +1228,7 @@ CompilerIf #CONSOLE=0
                         WriteLog("[HACKER] tried changing music to "+StringField(rawreceive$,3,"#"),*usagePointer\perm,*usagePointer\IP)
                       EndIf 
                     EndIf
-                    ;------- ooc commands
+                    ; ooc commands
                   Case "CT"
                     send=0
                     *usagePointer\last.s=""
@@ -1498,7 +1503,7 @@ CompilerIf #CONSOLE=0
                                 song$=Right(ctparam$,Len(ctparam$)-6)
                               EndIf
                               
-                              reply$="MC#"+song$+"#"+mcid$+"#%"
+                              SendTarget("*",*usagePointer\room,"MC#"+song$+"#"+mcid$+"#%")
                               
                             EndIf
                             
@@ -2011,8 +2016,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2011
-; FirstLine = 1970
+; CursorPosition = 2016
+; FirstLine = 1975
 ; Folding = ----------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
