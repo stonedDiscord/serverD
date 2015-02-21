@@ -102,6 +102,7 @@ Global replayopen.b
 Global modcol=0
 Global blockini.b=0
 Global MOTDevi=0
+Global ExpertLog=0
 Global tracks=0
 Global LoginReply$="CT#SERVER#got it#%"
 Global roomc=9
@@ -149,11 +150,16 @@ EndProcedure
 Procedure WriteLog(string$,mod.b,ip$)
   Define mstr$
   ; [23:21:05] David Skoland: (If mod)[M][IP][Timestamp, YYYYMMDDHHMM][Character]:[Message]
-  If mod
-    mstr$="[M]"
-  Else
-    mstr$="[U]"
-  EndIf
+  Select mod
+    Case 1
+      mstr$="[M]"
+    Case 2
+      mstr$="[A]"
+    Case 3
+      mstr$="[S]"
+    Default
+      mstr$="[U]"
+  EndSelect
   
   If Logging
     WriteStringN(1,mstr$+"["+LSet(ip$,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$) 
@@ -966,7 +972,9 @@ CompilerIf #CONSOLE=0
               If length>=0 And Left(rawreceive$,1)="#"
                 comm$=DecryptStr(HexToString(StringField(rawreceive$,2,"#")),key)
                 Debug rawreceive$
-                
+                If ExpertLog
+                  WriteLog(rawreceive$,*usagePointer\perm,*usagePointer\IP)
+                EndIf
                 Select comm$                
                   Case "HI" ;what is this server
                     hdbanned=0
@@ -1101,15 +1109,18 @@ CompilerIf #CONSOLE=0
                         AddGadgetItem(#Listview_2,-1,Characters(*usagePointer\CID)\name+" set bar "+StringField(rawreceive$,3,"#")+" to "+StringField(rawreceive$,4,"#"))
                         SetGadgetItemData(#Listview_2,CountGadgetItems(#Listview_2)-1,ClientID)
                       CompilerEndIf
+                      bar=Val(StringField(rawreceive$,4,"#"))
                       WriteLog("["+Characters(*usagePointer\CID)\name+"] changed the bars",*usagePointer\perm,*usagePointer\IP)
-                      If StringField(rawreceive$,3,"#")="1"
-                        defbar$=StringField(rawreceive$,4,"#")
-                        reply$="HP#1#"+defbar$+"#%"
-                      ElseIf StringField(rawreceive$,3,"#")="2"
-                        probar$=StringField(rawreceive$,4,"#")
-                        reply$="HP#2#"+probar$+"#%"
+                      If bar>=0
+                        If StringField(rawreceive$,3,"#")="1"
+                          defbar$=Str(bar)
+                          reply$="HP#1#"+defbar$+"#%"
+                        ElseIf StringField(rawreceive$,3,"#")="2"
+                          probar$=Str(bar)
+                          reply$="HP#2#"+probar$+"#%"
+                        EndIf
+                        send=1
                       EndIf
-                      
                     EndIf
                     
                   Case "RT"
@@ -1181,36 +1192,36 @@ CompilerIf #CONSOLE=0
                   Case "MC"
                     music=0
                     If *usagePointer\CID
-                    Debug Right(rawreceive$,length-6)
-                    ForEach Music()
-                      If StringField(rawreceive$,3,"#")=Music()
-                        music=1
-                        Break
-                      EndIf
-                    Next
-                    
-                    If Not (music=0 Or *usagePointer\CID <> Val(StringField(rawreceive$,4,"#")))
-                      If Left(StringField(rawreceive$,3,"#"),1)=">"
-                        Rooms(*usagePointer\room)\bg=Right(StringField(rawreceive$,3,"#"),Len(StringField(rawreceive$,3,"#"))-1)
-                        Sendtarget("*",*usagePointer\room,"BN#"+Right(rawreceive$,length-7))
-                        
-                      Else
-                        If *usagePointer\ignoremc=0
-                          If Characters(*usagePointer\CID)\dj
-                            Sendtarget("*",*usagePointer\room,"MC#"+Right(rawreceive$,length-6))
-                            WriteReplay(rawreceive$)
+                      Debug Right(rawreceive$,length-6)
+                      ForEach Music()
+                        If StringField(rawreceive$,3,"#")=Music()
+                          music=1
+                          Break
+                        EndIf
+                      Next
+                      
+                      If Not (music=0 Or *usagePointer\CID <> Val(StringField(rawreceive$,4,"#")))
+                        If Left(StringField(rawreceive$,3,"#"),1)=">"
+                          Rooms(*usagePointer\room)\bg=Right(StringField(rawreceive$,3,"#"),Len(StringField(rawreceive$,3,"#"))-1)
+                          Sendtarget("*",*usagePointer\room,"BN#"+Right(rawreceive$,length-7))
+                          
+                        Else
+                          If *usagePointer\ignoremc=0
+                            If Characters(*usagePointer\CID)\dj
+                              Sendtarget("*",*usagePointer\room,"MC#"+Right(rawreceive$,length-6))
+                              WriteReplay(rawreceive$)
+                            EndIf
                           EndIf
                         EndIf
-                      EndIf
-                      WriteLog("["+Characters(*usagePointer\CID)\name+"] changed music to "+StringField(rawreceive$,3,"#"),*usagePointer\perm,*usagePointer\IP)
-                      CompilerIf #EASYLOG
-                        AddGadgetItem(#Listview_2,-1,Characters(*usagePointer\CID)\name+" changed music to "+StringField(rawreceive$,3,"#"))
-                        SetGadgetItemData(#Listview_2,CountGadgetItems(#Listview_2)-1,ClientID)  
-                      CompilerEndIf
-                    Else
-                      *usagePointer\hack=1
-                      WriteLog("[HACKER] tried changing music to "+StringField(rawreceive$,3,"#"),*usagePointer\perm,*usagePointer\IP)
-                    EndIf 
+                        WriteLog("["+Characters(*usagePointer\CID)\name+"] changed music to "+StringField(rawreceive$,3,"#"),*usagePointer\perm,*usagePointer\IP)
+                        CompilerIf #EASYLOG
+                          AddGadgetItem(#Listview_2,-1,Characters(*usagePointer\CID)\name+" changed music to "+StringField(rawreceive$,3,"#"))
+                          SetGadgetItemData(#Listview_2,CountGadgetItems(#Listview_2)-1,ClientID)  
+                        CompilerEndIf
+                      Else
+                        *usagePointer\hack=1
+                        WriteLog("[HACKER] tried changing music to "+StringField(rawreceive$,3,"#"),*usagePointer\perm,*usagePointer\IP)
+                      EndIf 
                     EndIf
                     ;------- ooc commands
                   Case "CT"
@@ -1219,370 +1230,384 @@ CompilerIf #CONSOLE=0
                     ctparam$=StringField(rawreceive$,4,"#")
                     If *usagePointer\CID>=0
                       WriteLog("[OOC]["+Characters(*usagePointer\CID)\name+"]["+StringField(rawreceive$,3,"#")+"]["+ctparam$+"]",*usagePointer\perm,*usagePointer\IP)
-                    
-                    Debug ctparam$
-                    If Left(ctparam$,1)="/"
-                      Select StringField(ctparam$,1," ")
-                        Case "/login"
-                          If oppass$=Mid(ctparam$,8,Len(ctparam$)-2)
-                            If oppass$<>""
-                              SendNetworkString(ClientID,LoginReply$) 
-                              *usagePointer\perm=1
-                            EndIf
-                          ElseIf adminpass$=Mid(ctparam$,8,Len(ctparam$)-2)
-                            If adminpass$<>""
-                              SendNetworkString(ClientID,LoginReply$) 
-                              SendNetworkString(ClientID,"UM#"+Str(*usagePointer\CID)+"#%")
-                              *usagePointer\perm=2
-                            EndIf
-                          EndIf
-                          send=0
-                          
-                        Case "/bg"
-                          If *usagePointer\perm                            
-                            bgcomm$=Mid(ctparam$,5,Len(ctparam$)-2)
-                            Rooms(*usagePointer\room)\bg=bgcomm$
-                            Sendtarget("*",*usagePointer\room,"BN#"+bgcomm$+"#%")                      
-                          EndIf
-                          
-                        Case "/ooc"
-                          If *usagePointer\perm
-                            CompilerIf #CONSOLE=0
-                              ooccather$=Mid(ctparam$,6,Len(ctparam$)-2)
-                              sendo$="IL#"
-                              SendNetworkString(ClientID,"FI#clients using the name "+ooccather$+"#%")
-                              items=CountGadgetItems(#ListIcon_2)
-                              LockMutex(ListMutex)
-                              For o=0 To 100
-                                If GetGadgetItemText(#ListIcon_2,items-o,0)=ooccather$
-                                  clid$=Str(GetGadgetItemData(#ListIcon_2,items-o))
-                                  If FindMapElement(Clients(),clid$)
-                                    If Clients(clid$)\CID<=100 And Clients(clid$)\CID>=0
-                                      If Clients(clid$)\perm
-                                        charname$=Characters(Clients(clid$)\CID)\name+"(mod)"
-                                      Else
-                                        charname$=Characters(Clients(clid$)\CID)\name
-                                      EndIf
-                                    Else
-                                      charname$="nobody"     
-                                    EndIf
-                                    sendo$=sendo$+Clients(clid$)\IP+"|"+charname$+"|"+GetGadgetItemText(#ListIcon_2,items-o,1)+"|*"
-                                  EndIf
-                                EndIf
-                              Next
-                              UnlockMutex(ListMutex)
-                              sendo$=sendo$+"#%"
-                              SendNetworkString(ClientID,sendo$) 
-                            CompilerElse
-                              SendNetworkString(ClientID,"FI#needs gui, sorry#%")
-                            CompilerEndIf
-                          EndIf
-                          
-                        Case "/judge"
-                          If *usagePointer\perm
-                            CompilerIf #CONSOLE=0
-                              sendo$="IL#"
-                              SendNetworkString(ClientID,"FI#clients that used WTCE#%")
-                              items=CountGadgetItems(#Listview_2)
-                              LockMutex(ListMutex)
-                              For o=0 To 100
-                                If FindString(GetGadgetItemText(#ListView_2,items-o,0)," pressed WT%CE button")
-                                  clid$=Str(GetGadgetItemData(#ListView_2,items-o))
-                                  If FindMapElement(Clients(),clid$)
-                                    If Clients(clid$)\CID<=100 And Clients(clid$)\CID>=0
-                                      If Clients(clid$)\perm
-                                        charname$=Characters(Clients(clid$)\CID)\name+"(mod)"
-                                      Else
-                                        charname$=Characters(Clients(clid$)\CID)\name
-                                      EndIf
-                                    Else
-                                      charname$="nobody"     
-                                    EndIf
-                                    sendo$=sendo$+Clients(clid$)\IP+"|"+charname$+"|"+Str(Clients(clid$)\CID)+"|*"
-                                  EndIf
-                                EndIf
-                              Next
-                              UnlockMutex(ListMutex)
-                              sendo$=sendo$+"#%"
-                              SendNetworkString(ClientID,sendo$) 
-                            CompilerElse
-                              SendNetworkString(ClientID,"FI#needs gui, sorry#%")
-                            CompilerEndIf
-                          EndIf
-                          
-                        Case "/room"
-                          nroom=Val(StringField(ctparam$,2," "))
-                          If nroom<=roomc And nroom>=0
-                            If Not Rooms(nroom)\lock Or *usagePointer\perm>Rooms(nroom)\mlock
-                              If Rooms(*usagePointer\room)\lock=ClientID
-                                Rooms(*usagePointer\room)\lock=0
-                                Rooms(*usagePointer\room)\mlock=0
+                      
+                      Debug ctparam$
+                      If Left(ctparam$,1)="/"
+                        Select StringField(ctparam$,1," ")
+                          Case "/login"
+                            If oppass$=Mid(ctparam$,8,Len(ctparam$)-2)
+                              If oppass$<>""
+                                SendNetworkString(ClientID,LoginReply$) 
+                                *usagePointer\perm=1
                               EndIf
-                              *usagePointer\room=nroom
-                              SendNetworkString(ClientID,"BN#"+Rooms(*usagePointer\room)\bg+"#%")
-                              SendNetworkString(ClientID,"FI#room "+Str(*usagePointer\room)+" selected%")
-                            Else
-                              SendNetworkString(ClientID,"FI#room locked%")
-                            EndIf
-                          ElseIf StringField(ctparam$,2," ")=""
-                            SendNetworkString(ClientID,"FI#you are in room "+*usagePointer\room+"%")
-                          Else
-                            SendNetworkString(ClientID,"FI#not a valid room%")
-                          EndIf
-                          
-                        Case "/lock"
-                          If *usagePointer\room
-                            locks$=StringField(ctparam$,2," ")
-                            Select locks$
-                              Case "0"
-                                Rooms(*usagePointer\room)\lock=0
-                                Rooms(*usagePointer\room)\mlock=0
-                                SendNetworkString(ClientID,"FI#room unlocked%")
-                              Case "1"
-                                Rooms(*usagePointer\room)\lock=*usagePointer\ClientID
-                                Rooms(*usagePointer\room)\mlock=0
-                                SendNetworkString(ClientID,"FI#room locked%")
-                              Case "2"
-                                If *usagePointer\perm
-                                  Rooms(*usagePointer\room)\lock=*usagePointer\ClientID
-                                  Rooms(*usagePointer\room)\mlock=1
-                                  SendNetworkString(ClientID,"FI#room superlocked%")
-                                EndIf
-                              Default
-                                pr$="FI#room is "
-                                If Rooms(*usagePointer\room)\lock=0
-                                  pr$+"not "
-                                EndIf
-                                SendNetworkString(ClientID,pr$+"locked%")
-                            EndSelect
-                          Else
-                            SendNetworkString(ClientID,"FI#you can't lock the default room%")
-                          EndIf
-                          
-                        Case "/toggle"
-                          If *usagePointer\perm
-                            Select StringField(ctparam$,2," ")
-                              Case "WTCE"
-                                rt= ~ rt
-                                pr$="FI#WTCE is "
-                                If rt=1
-                                  pr$+"enabled%"
-                                Else
-                                  pr$+"disabled%"
-                                EndIf
-                                SendNetworkString(ClientID,pr$)
-                              Case "LogHD"
-                                loghd = ~ loghd
-                            EndSelect
-                          EndIf
-                          
-                        Case "/switch"
-                          Characters(*usagePointer\cid)\taken=0
-                          *usagePointer\cid=-1                    
-                          SendNetworkString(ClientID,"DONE#%")
-                          
-                        Case "/smokeweed"
-                          reply$="CT#sD#daaamn i'm high#%"
-                          WriteLog("smoke weed everyday",*usagePointer\perm,*usagePointer\IP)
-                          
-                        Case "/help"
-                          SendNetworkString(ClientID,"CT#SERVER#Check http://weedlan.de/serverd/#%")
-                          
-                        Case "/public"
-                          Debug ctparam$
-                          If StringField(ctparam$,2," ")=""
-                            pr$="FI#server is "
-                            If public=0
-                              pr$+"not "
-                            EndIf
-                            SendNetworkString(ClientID,pr$+"public%")
-                          Else
-                            If *usagePointer\perm>1
-                              public=Val(StringField(ctparam$,2," "))
-                              If public
-                                msthread=CreateThread(@Masteradvert(),port)
+                            ElseIf adminpass$=Mid(ctparam$,8,Len(ctparam$)-2)
+                              If adminpass$<>""
+                                SendNetworkString(ClientID,LoginReply$) 
+                                SendNetworkString(ClientID,"UM#"+Str(*usagePointer\CID)+"#%")
+                                *usagePointer\perm=2
                               EndIf
+                            EndIf
+                            send=0
+                            
+                          Case "/bg"
+                            If *usagePointer\perm                            
+                              bgcomm$=Mid(ctparam$,5,Len(ctparam$)-2)
+                              Rooms(*usagePointer\room)\bg=bgcomm$
+                              Sendtarget("*",*usagePointer\room,"BN#"+bgcomm$+"#%")                      
+                            EndIf
+                            
+                          Case "/ooc"
+                            If *usagePointer\perm
                               CompilerIf #CONSOLE=0
-                                SetGadgetState(#CheckBox_MS,public)
+                                ooccather$=Mid(ctparam$,6,Len(ctparam$)-2)
+                                sendo$="IL#"
+                                SendNetworkString(ClientID,"FI#clients using the name "+ooccather$+"#%")
+                                items=CountGadgetItems(#ListIcon_2)
+                                LockMutex(ListMutex)
+                                For o=0 To 100
+                                  If GetGadgetItemText(#ListIcon_2,items-o,0)=ooccather$
+                                    clid$=Str(GetGadgetItemData(#ListIcon_2,items-o))
+                                    If FindMapElement(Clients(),clid$)
+                                      If Clients(clid$)\CID<=100 And Clients(clid$)\CID>=0
+                                        If Clients(clid$)\perm
+                                          charname$=Characters(Clients(clid$)\CID)\name+"(mod)"
+                                        Else
+                                          charname$=Characters(Clients(clid$)\CID)\name
+                                        EndIf
+                                      Else
+                                        charname$="nobody"     
+                                      EndIf
+                                      sendo$=sendo$+Clients(clid$)\IP+"|"+charname$+"|"+GetGadgetItemText(#ListIcon_2,items-o,1)+"|*"
+                                    EndIf
+                                  EndIf
+                                Next
+                                UnlockMutex(ListMutex)
+                                sendo$=sendo$+"#%"
+                                SendNetworkString(ClientID,sendo$) 
+                              CompilerElse
+                                SendNetworkString(ClientID,"FI#needs gui, sorry#%")
                               CompilerEndIf
                             EndIf
-                          EndIf
-                          
-                        Case "/evi"
-                          ; Mid(ctparam$,7,Len(ctparam$)-2)                          
-                          SendNetworkString(ClientID,"MS#chat#dolannormal#Dolan#dolannormal#"+StringField(ctparam$,2," ")+"#jud#1#0#"+Str(characternumber-1)+"#0#0#"+StringField(ctparam$,2," ")+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%")                          
-                          
-                        Case "/roll"                        
-                          smes$=""
-                          smes$=ctparam$
-                          Debug smes$
-                          If smes$<>"/roll"
-                            dicemax=Val(StringField(smes$,2," "))
-                          Else
-                            dicemax=6
-                          EndIf
-                          If dicemax<0 Or dicemax>9999
-                            dicemax=6
-                          EndIf
-                          If OpenCryptRandom()
-                            random$=Str(CryptRandom(dicemax))
-                            CloseCryptRandom()
-                          Else
-                            random$=Str(Random(dicemax))
-                          EndIf
-                          
-                          Sendtarget("*",*usagePointer\room,"FI#dice rolled "+random$+"%")
-                          
-                        Case "/pm"                    
-                          sname$=StringField(rawreceive$,3,"#")
-                          Debug sname$
-                          smes$=ctparam$
-                          Debug smes$
-                          SendTarget(StringField(smes$,2," "),-1,"CT#PM "+sname$+" to You#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
-                          SendNetworkString(ClientID,"CT#PM You to "+StringField(smes$,2," ")+"#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
-                          
-                        Case "/send"  
-                          If *usagePointer\perm
-                            sname$=StringField(ctparam$,2," ")
-                            Debug sname$
-                            smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
-                            smes$=Escape(smes$)
-                            SendTarget(sname$,-1,smes$)
-                          EndIf
-                          
-                        Case "/sendall"
-                          If *usagePointer\perm
-                            reply$=Mid(ctparam$,10,Len(ctparam$)-2)
-                            reply$=Escape(reply$)
-                          EndIf
-                          
-                        Case "/reload"
-                          If *usagePointer\perm>1
-                            LoadSettings(1)
-                            SendNetworkString(ClientID,"FI#serverD reloaded%")
-                          EndIf
-                          
-                        Case "/play"
-                          If *usagePointer\perm
                             
-                            If IsNumeric(Trim(Right(ctparam$,2)))
-                              mcid$=Trim(Right(ctparam$,2))
-                              song$=Mid(ctparam$,7,Len(ctparam$)-8)
-                            Else
-                              mcid$=Str(*usagePointer\CID)
-                              song$=Right(ctparam$,Len(ctparam$)-6)
+                          Case "/judge"
+                            If *usagePointer\perm
+                              CompilerIf #CONSOLE=0
+                                sendo$="IL#"
+                                SendNetworkString(ClientID,"FI#clients that used WTCE#%")
+                                items=CountGadgetItems(#Listview_2)
+                                LockMutex(ListMutex)
+                                For o=0 To 100
+                                  If FindString(GetGadgetItemText(#ListView_2,items-o,0)," pressed WT%CE button")
+                                    clid$=Str(GetGadgetItemData(#ListView_2,items-o))
+                                    If FindMapElement(Clients(),clid$)
+                                      If Clients(clid$)\CID<=100 And Clients(clid$)\CID>=0
+                                        If Clients(clid$)\perm
+                                          charname$=Characters(Clients(clid$)\CID)\name+"(mod)"
+                                        Else
+                                          charname$=Characters(Clients(clid$)\CID)\name
+                                        EndIf
+                                      Else
+                                        charname$="nobody"     
+                                      EndIf
+                                      sendo$=sendo$+Clients(clid$)\IP+"|"+charname$+"|"+Str(Clients(clid$)\CID)+"|*"
+                                    EndIf
+                                  EndIf
+                                Next
+                                UnlockMutex(ListMutex)
+                                sendo$=sendo$+"#%"
+                                SendNetworkString(ClientID,sendo$) 
+                              CompilerElse
+                                SendNetworkString(ClientID,"FI#needs gui, sorry#%")
+                              CompilerEndIf
                             EndIf
                             
-                            reply$="MC#"+song$+"#"+mcid$+"#%"
-                            
-                          EndIf
-                          
-                        Case "/hd"
-                          If *usagePointer\perm
-                            kick$=Mid(ctparam$,5,Len(ctparam$)-2)
-                            If kick$="" Or kick$="*"
-                              everybody=1
-                            Else
-                              everybody=0
-                            EndIf
-                            hdlist$="IL#"
-                            LockMutex(ListMutex)
-                            ResetMap(Clients())
-                            While NextMapElement(Clients())                   
-                              If kick$=Str(Clients()\CID) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
-                                hdlist$=hdlist$+Clients()\IP+"|"+Str(Clients()\CID)+"|"+Clients()\HD+"|*"                        
+                          Case "/room"
+                            nroom=Val(StringField(ctparam$,2," "))
+                            If nroom<=roomc And nroom>=0
+                              If Not Rooms(nroom)\lock Or *usagePointer\perm>Rooms(nroom)\mlock
+                                If Rooms(*usagePointer\room)\lock=ClientID
+                                  Rooms(*usagePointer\room)\lock=0
+                                  Rooms(*usagePointer\room)\mlock=0
+                                EndIf
+                                *usagePointer\room=nroom
+                                SendNetworkString(ClientID,"BN#"+Rooms(*usagePointer\room)\bg+"#%")
+                                SendNetworkString(ClientID,"FI#room "+Str(*usagePointer\room)+" selected%")
+                              Else
+                                SendNetworkString(ClientID,"FI#room locked%")
                               EndIf
-                            Wend
-                            UnlockMutex(ListMutex)
-                            SendNetworkString(ClientID,hdlist$+"#%")
-                            WriteLog("["+Characters(*usagePointer\CID)\name+"] used /hd",*usagePointer\perm,*usagePointer\IP)
-                          EndIf 
-                          
-                        Case "/ip"
-                          If *usagePointer\perm
-                            CreateThread(@ListIP(),ClientID)
-                            WriteLog("["+Characters(*usagePointer\CID)\name+"] used /ip",*usagePointer\perm,*usagePointer\IP)
-                          EndIf 
-                          
-                        Case "/kick"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#KICK,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#kicked "+Str(akck)+" clients%")
+                            ElseIf StringField(ctparam$,2," ")=""
+                              SendNetworkString(ClientID,"FI#you are in room "+*usagePointer\room+"%")
+                            Else
+                              SendNetworkString(ClientID,"FI#not a valid room%")
+                            EndIf
+                            
+                          Case "/lock"
+                            If *usagePointer\room
+                              locks$=StringField(ctparam$,2," ")
+                              Select locks$
+                                Case "0"
+                                  Rooms(*usagePointer\room)\lock=0
+                                  Rooms(*usagePointer\room)\mlock=0
+                                  SendNetworkString(ClientID,"FI#room unlocked%")
+                                Case "1"
+                                  Rooms(*usagePointer\room)\lock=*usagePointer\ClientID
+                                  Rooms(*usagePointer\room)\mlock=0
+                                  SendNetworkString(ClientID,"FI#room locked%")
+                                Case "2"
+                                  If *usagePointer\perm
+                                    Rooms(*usagePointer\room)\lock=*usagePointer\ClientID
+                                    Rooms(*usagePointer\room)\mlock=1
+                                    SendNetworkString(ClientID,"FI#room superlocked%")
+                                  EndIf
+                                Default
+                                  pr$="FI#room is "
+                                  If Rooms(*usagePointer\room)\lock=0
+                                    pr$+"not "
+                                  EndIf
+                                  SendNetworkString(ClientID,pr$+"locked%")
+                              EndSelect
+                            Else
+                              SendNetworkString(ClientID,"FI#you can't lock the default room%")
+                            EndIf
+                            
+                          Case "/toggle"
+                            If *usagePointer\perm
+                              Select StringField(ctparam$,2," ")
+                                Case "WTCE"
+                                  If rt
+                                    rt=0
+                                  Else
+                                    rt=1
+                                  EndIf
+                                  pr$="FI#WTCE is "
+                                  If rt=1
+                                    pr$+"enabled%"
+                                  Else
+                                    pr$+"disabled%"
+                                  EndIf
+                                  SendNetworkString(ClientID,pr$)
+                                Case "LogHD"
+                                  If loghd
+                                    loghd=0
+                                  Else
+                                    loghd=1
+                                  EndIf
+                                Case "ExpertLog"
+                                  If ExpertLog
+                                    ExpertLog=0
+                                  Else
+                                    ExpertLog=1
+                                  EndIf
+                              EndSelect
+                            EndIf
+                            
+                          Case "/switch"
+                            Characters(*usagePointer\cid)\taken=0
+                            *usagePointer\cid=-1                    
+                            SendNetworkString(ClientID,"DONE#%")
+                            
+                          Case "/smokeweed"
+                            reply$="CT#sD#daaamn i'm high#%"
+                            WriteLog("smoke weed everyday",*usagePointer\perm,*usagePointer\IP)
+                            
+                          Case "/help"
+                            SendNetworkString(ClientID,"CT#SERVER#Check http://weedlan.de/serverd/#%")
+                            
+                          Case "/public"
+                            Debug ctparam$
+                            If StringField(ctparam$,2," ")=""
+                              pr$="FI#server is "
+                              If public=0
+                                pr$+"not "
+                              EndIf
+                              SendNetworkString(ClientID,pr$+"public%")
+                            Else
+                              If *usagePointer\perm>1
+                                public=Val(StringField(ctparam$,2," "))
+                                If public
+                                  msthread=CreateThread(@Masteradvert(),port)
+                                EndIf
+                                CompilerIf #CONSOLE=0
+                                  SetGadgetState(#CheckBox_MS,public)
+                                CompilerEndIf
+                              EndIf
+                            EndIf
+                            
+                          Case "/evi"
+                            ; Mid(ctparam$,7,Len(ctparam$)-2)                          
+                            SendNetworkString(ClientID,"MS#chat#dolannormal#Dolan#dolannormal#"+StringField(ctparam$,2," ")+"#jud#1#0#"+Str(characternumber-1)+"#0#0#"+StringField(ctparam$,2," ")+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%")                          
+                            
+                          Case "/roll"                        
+                            smes$=""
+                            smes$=ctparam$
+                            Debug smes$
+                            If smes$<>"/roll"
+                              dicemax=Val(StringField(smes$,2," "))
+                            Else
+                              dicemax=6
+                            EndIf
+                            If dicemax<0 Or dicemax>9999
+                              dicemax=6
+                            EndIf
+                            If OpenCryptRandom()
+                              random$=Str(CryptRandom(dicemax))
+                              CloseCryptRandom()
+                            Else
+                              random$=Str(Random(dicemax))
+                            EndIf
+                            
+                            Sendtarget("*",*usagePointer\room,"FI#dice rolled "+random$+"%")
+                            
+                          Case "/pm"                    
+                            sname$=StringField(rawreceive$,3,"#")
+                            Debug sname$
+                            smes$=ctparam$
+                            Debug smes$
+                            SendTarget(StringField(smes$,2," "),-1,"CT#PM "+sname$+" to You#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
+                            SendNetworkString(ClientID,"CT#PM You to "+StringField(smes$,2," ")+"#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
+                            
+                          Case "/send"  
+                            If *usagePointer\perm
+                              sname$=StringField(ctparam$,2," ")
+                              Debug sname$
+                              smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
+                              smes$=Escape(smes$)
+                              SendTarget(sname$,-1,smes$)
+                            EndIf
+                            
+                          Case "/sendall"
+                            If *usagePointer\perm
+                              reply$=Mid(ctparam$,10,Len(ctparam$)-2)
+                              reply$=Escape(reply$)
+                            EndIf
+                            
+                          Case "/reload"
+                            If *usagePointer\perm>1
+                              LoadSettings(1)
+                              SendNetworkString(ClientID,"FI#serverD reloaded%")
+                            EndIf
+                            
+                          Case "/play"
+                            If *usagePointer\perm
+                              
+                              If IsNumeric(Trim(Right(ctparam$,2)))
+                                mcid$=Trim(Right(ctparam$,2))
+                                song$=Mid(ctparam$,7,Len(ctparam$)-8)
+                              Else
+                                mcid$=Str(*usagePointer\CID)
+                                song$=Right(ctparam$,Len(ctparam$)-6)
+                              EndIf
+                              
+                              reply$="MC#"+song$+"#"+mcid$+"#%"
+                              
+                            EndIf
+                            
+                          Case "/hd"
+                            If *usagePointer\perm
+                              kick$=Mid(ctparam$,5,Len(ctparam$)-2)
+                              If kick$="" Or kick$="*"
+                                everybody=1
+                              Else
+                                everybody=0
+                              EndIf
+                              hdlist$="IL#"
+                              LockMutex(ListMutex)
+                              ResetMap(Clients())
+                              While NextMapElement(Clients())                   
+                                If kick$=Str(Clients()\CID) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
+                                  hdlist$=hdlist$+Clients()\IP+"|"+Str(Clients()\CID)+"|"+Clients()\HD+"|*"                        
+                                EndIf
+                              Wend
+                              UnlockMutex(ListMutex)
+                              SendNetworkString(ClientID,hdlist$+"#%")
+                              WriteLog("["+Characters(*usagePointer\CID)\name+"] used /hd",*usagePointer\perm,*usagePointer\IP)
+                            EndIf 
+                            
+                          Case "/ip"
+                            If *usagePointer\perm
+                              CreateThread(@ListIP(),ClientID)
+                              WriteLog("["+Characters(*usagePointer\CID)\name+"] used /ip",*usagePointer\perm,*usagePointer\IP)
+                            EndIf 
+                            
+                          Case "/kick"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#KICK,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#kicked "+Str(akck)+" clients%")
                               WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                          EndIf
-                        Case "/ban"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,6,Len(ctparam$)-2),#BAN,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#banned "+Str(akck)+" clients%")
-                          EndIf
+                              
+                            EndIf
+                          Case "/ban"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,6,Len(ctparam$)-2),#BAN,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#banned "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/mute"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#MUTE,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/mute"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#MUTE,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/unmute"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#UNMUTE,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/unmute"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#UNMUTE,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/ignore"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#CIGNORE,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/ignore"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#CIGNORE,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/unignore"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,11,Len(ctparam$)-2),#UNIGNORE,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/unignore"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,11,Len(ctparam$)-2),#UNIGNORE,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/undj"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#UNDJ,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/undj"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#UNDJ,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/dj"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,5,Len(ctparam$)-2),#DJ,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/dj"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,5,Len(ctparam$)-2),#DJ,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/gimp"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#GIMP,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#gimped "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/gimp"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#GIMP,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#gimped "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                        Case "/ungimp"
-                          If *usagePointer\perm
-                            akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#UNGIMP,*usagePointer\perm)
-                            SendNetworkString(ClientID,"FI#ungimped "+Str(akck)+" clients%")
-                          EndIf
+                            
+                          Case "/ungimp"
+                            If *usagePointer\perm
+                              akck=KickBan(Mid(ctparam$,9,Len(ctparam$)-2),#UNGIMP,*usagePointer\perm)
+                              SendNetworkString(ClientID,"FI#ungimped "+Str(akck)+" clients%")
+                            EndIf
                             WriteLog("["+Characters(*usagePointer\CID)\name+"] used "+ctparam$,*usagePointer\perm,*usagePointer\IP)
-
-                      EndSelect
-                    Else
-                      CompilerIf #CONSOLE=0
-                        AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+ctparam$)
-                        SetGadgetItemData(#ListIcon_2,CountGadgetItems(#ListIcon_2)-1,ClientID)
-                      CompilerEndIf
-                      *usagePointer\last.s=rawreceive$
-                      reply$="CT#"+Right(rawreceive$,length-6)
-                    EndIf
+                            
+                        EndSelect
+                      Else
+                        CompilerIf #CONSOLE=0
+                          AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+ctparam$)
+                          SetGadgetItemData(#ListIcon_2,CountGadgetItems(#ListIcon_2)-1,ClientID)
+                        CompilerEndIf
+                        *usagePointer\last.s=rawreceive$
+                        reply$="CT#"+Right(rawreceive$,length-6)
+                      EndIf
                     Else
                       WriteLog("[OOC][HACKER]["+StringField(rawreceive$,3,"#")+"]["+ctparam$+"]",*usagePointer\perm,*usagePointer\IP)
                       *usagePointer\hack=1
@@ -1599,29 +1624,29 @@ CompilerIf #CONSOLE=0
                       akck=KickBan(StringField(rawreceive$,3,"#"),#KICK,*usagePointer\perm)
                       SendNetworkString(ClientID,"FI#kicked "+Str(akck)+" clients%")
                     EndIf
-                      WriteLog("["+Characters(*usagePointer\CID)\name+"] used opKICK",*usagePointer\perm,*usagePointer\IP)
-
+                    WriteLog("["+Characters(*usagePointer\CID)\name+"] used opKICK",*usagePointer\perm,*usagePointer\IP)
+                    
                   Case "opBAN"
                     If *usagePointer\perm
                       akck=KickBan(StringField(rawreceive$,3,"#"),#BAN,*usagePointer\perm)
                       SendNetworkString(ClientID,"FI#banned "+Str(akck)+" clients%")
                     EndIf
-                      WriteLog("["+Characters(*usagePointer\CID)\name+"] used opBAN",*usagePointer\perm,*usagePointer\IP)
-
+                    WriteLog("["+Characters(*usagePointer\CID)\name+"] used opBAN",*usagePointer\perm,*usagePointer\IP)
+                    
                   Case "opMUTE"
                     If *usagePointer\perm
                       akck=KickBan(StringField(rawreceive$,3,"#"),#MUTE,*usagePointer\perm)
                       SendNetworkString(ClientID,"FI#muted "+Str(akck)+" clients%")
                     EndIf
-                      WriteLog("["+Characters(*usagePointer\CID)\name+"] used opMUTE",*usagePointer\perm,*usagePointer\IP)
-
+                    WriteLog("["+Characters(*usagePointer\CID)\name+"] used opMUTE",*usagePointer\perm,*usagePointer\IP)
+                    
                   Case "opunMUTE"
                     If *usagePointer\perm
                       akck=KickBan(StringField(rawreceive$,3,"#"),#UNMUTE,*usagePointer\perm)
                       SendNetworkString(ClientID,"FI#unmuted "+Str(akck)+" clients%")
                     EndIf
-                      WriteLog("["+Characters(*usagePointer\CID)\name+"] used opunMUTE",*usagePointer\perm,*usagePointer\IP)
-
+                    WriteLog("["+Characters(*usagePointer\CID)\name+"] used opunMUTE",*usagePointer\perm,*usagePointer\IP)
+                    
                   Case "VERSION"
                     SendNetworkString(ClientID,"FI#sD v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+"%")
                     
@@ -1986,9 +2011,9 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 1058
-; FirstLine = 1055
-; Folding = ---------------------------------------
+; CursorPosition = 2011
+; FirstLine = 1970
+; Folding = ----------------------------------------
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0

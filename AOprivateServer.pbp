@@ -7,12 +7,12 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-02-12 12:25" user="Sven" host="SPC"/>
+    <lastopen date="2015-02-21 02:46" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="76a9469e97cda7032c86f651b03fad1a"/>
+      <fingerprint md5="e810d9c39db41ecfccc511ec236faad9"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -29,14 +29,14 @@
       <outputfile value="build/serverD.exe"/>
       <compiler version="PureBasic 5.11 (Windows - x86)"/>
       <commandline value="-auto"/>
-      <executable value="build\serverD"/>
+      <executable value="build\serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
       <icon enable="1">
         ../stoneddiscord.ico
       </icon>
       <format exe="default" cpu="2"/>
-      <compilecount enable="1" value="408"/>
-      <buildcount enable="1" value="91"/>
+      <compilecount enable="1" value="413"/>
+      <buildcount enable="1" value="92"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
@@ -71,14 +71,14 @@
       <inputfile value="main.pb"/>
       <outputfile value="build/serverDco.exe"/>
       <compiler version="PureBasic 5.11 (Windows - x86)"/>
-      <executable value="build\serverDco"/>
+      <executable value="build\serverDco.exe"/>
       <options thread="1" debug="1"/>
       <icon enable="0">
         owner.ico
       </icon>
       <format exe="console" cpu="0"/>
-      <compilecount enable="1" value="389"/>
-      <buildcount enable="1" value="91"/>
+      <compilecount enable="1" value="390"/>
+      <buildcount enable="1" value="92"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
