@@ -7,12 +7,12 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-02-22 00:46" user="Sven" host="SPC"/>
+    <lastopen date="2015-02-23 22:26" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="5efa12daf2ed499e6212849007eed349"/>
+      <fingerprint md5="a423ca1433b69723135ab35176bde96f"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -20,23 +20,23 @@
     </file>
     <file name="checker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="5074737789affb9b830ee47f5afc9155"/>
+      <fingerprint md5="14c7e473621447fb244dcdf81bdd5105"/>
     </file>
   </section>
   <section name="targets">
     <target name="Standard-Ziel" enabled="1" default="1">
       <inputfile value="main.pb"/>
-      <outputfile value="build/serverD.exe"/>
-      <compiler version="PureBasic 5.11 (Windows - x86)"/>
+      <outputfile value="build/serverD"/>
+      <compiler version="PureBasic 5.11 (Linux - x64)"/>
       <commandline value="-auto"/>
-      <executable value="build\serverD.exe"/>
+      <executable value="build\serverD"/>
       <options thread="1" xpskin="1" debug="1"/>
       <icon enable="1">
         ../stoneddiscord.ico
       </icon>
       <format exe="default" cpu="2"/>
-      <compilecount enable="1" value="413"/>
-      <buildcount enable="1" value="92"/>
+      <compilecount enable="1" value="421"/>
+      <buildcount enable="1" value="93"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
@@ -69,16 +69,16 @@
     </target>
     <target name="console" enabled="1" default="0">
       <inputfile value="main.pb"/>
-      <outputfile value="build/serverDco.exe"/>
-      <compiler version="PureBasic 5.11 (Windows - x86)"/>
-      <executable value="build\serverDco.exe"/>
+      <outputfile value="build/serverDco"/>
+      <compiler version="PureBasic 5.11 (Linux - x64)"/>
+      <executable value="build\serverDco"/>
       <options thread="1" debug="1"/>
       <icon enable="0">
         owner.ico
       </icon>
       <format exe="console" cpu="0"/>
-      <compilecount enable="1" value="390"/>
-      <buildcount enable="1" value="92"/>
+      <compilecount enable="1" value="421"/>
+      <buildcount enable="1" value="93"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
