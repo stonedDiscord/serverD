@@ -7,12 +7,12 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-02-23 22:26" user="Sven" host="SPC"/>
+    <lastopen date="2015-03-03 18:00" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="a423ca1433b69723135ab35176bde96f"/>
+      <fingerprint md5="d005217d6b98ce094778f4132cb5eee1"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -20,7 +20,7 @@
     </file>
     <file name="checker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="14c7e473621447fb244dcdf81bdd5105"/>
+      <fingerprint md5="ba58e89a190bcd87d2feffedf5807021"/>
     </file>
   </section>
   <section name="targets">
@@ -35,7 +35,7 @@
         ../stoneddiscord.ico
       </icon>
       <format exe="default" cpu="2"/>
-      <compilecount enable="1" value="421"/>
+      <compilecount enable="1" value="434"/>
       <buildcount enable="1" value="93"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
