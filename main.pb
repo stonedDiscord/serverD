@@ -135,6 +135,7 @@ Global NewList IPbans.s()
 Global NewList SDbans.s()
 Global NewList gimp.s()
 Global NewList Music.s()
+Global Dim Characters.ACharacter(100)
 Global Dim Evidences.Evidence(100)
 Global Dim Rooms.room(roomc)
 Global Dim Icons.l(2)
@@ -317,9 +318,7 @@ Procedure LoadSettings(reload)
   background.s=oBG.s
   PreferenceGroup("chars")
   Global characternumber=ReadPreferenceInteger("number",1)
-  If reload=0
-    Global Dim Characters.ACharacter(characternumber)
-  EndIf
+  ReDim Characters.ACharacter(characternumber)
   For loadchars=0 To characternumber
     Characters(loadchars)\name=ReadPreferenceString(Str(loadchars),"zettaslow")
     If reload=0
@@ -1463,7 +1462,7 @@ CompilerIf #CONSOLE=0
       Case "AM" ;music list
         start=Val(StringField(rawreceive$,3,"#"))
         send=0
-        If start<musicpage And start>=0 
+        If start<=musicpage And start>=0 
           SendNetworkString(ClientID,ReadyMusic(start))
         Else ;MUSIC DONE
           CreateThread(@SendDone(),ClientID)
@@ -2039,9 +2038,9 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2039
-; FirstLine = 2000
-; Folding = ----------------------------------------
+; CursorPosition = 137
+; FirstLine = 96
+; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0
