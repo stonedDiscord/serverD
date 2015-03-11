@@ -1651,6 +1651,17 @@ CompilerIf #CONSOLE=0
         CompilerIf #PB_Compiler_OS = #PB_OS_Windows
           OpenConsole("serverD")
         CompilerEndIf
+
+        If ReceiveHTTPFile("http://weedlan.de/serverd/serverd.txt","serverd.txt")
+          OpenPreferences("serverd.txt")
+          PreferenceGroup("Version")
+          newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
+          If newbuild>#PB_Editor_BuildCount
+            WriteLog("UPDATE AVAILABLE",Server)
+          EndIf
+          ClosePreferences()
+        EndIf
+        
         LoadSettings(0)
         
         decryptor$="33"
@@ -1778,8 +1789,7 @@ CompilerIf #CONSOLE=0
         Icons(2)=ImageID(2)
         WindowEvent()
         Delay(500)
-        Open_Window_0() 
-        LoadSettings(0)        
+        Open_Window_0()               
         If ReceiveHTTPFile("http://weedlan.de/serverd/serverd.txt","serverd.txt")
           OpenPreferences("serverd.txt")
           PreferenceGroup("Version")
@@ -1789,6 +1799,7 @@ CompilerIf #CONSOLE=0
           EndIf
           ClosePreferences()
         EndIf
+        LoadSettings(0) 
         CloseWindow(2)
       EndIf
     EndProcedure
@@ -2042,8 +2053,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 2042
-; FirstLine = 1990
+; CursorPosition = 1653
+; FirstLine = 1631
 ; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
