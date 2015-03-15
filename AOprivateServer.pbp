@@ -7,12 +7,12 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-03-11 17:30" user="Sven" host="SPC"/>
+    <lastopen date="2015-03-15 20:22" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="cf1acfa5cc3b093b69ded92f82cb210b"/>
+      <fingerprint md5="93a4861a48cf3e7d8118e601f0a038a4"/>
     </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -24,7 +24,7 @@
     </file>
   </section>
   <section name="targets">
-    <target name="Standard-Ziel" enabled="1" default="0">
+    <target name="Standard-Ziel" enabled="1" default="1">
       <inputfile value="main.pb"/>
       <outputfile value="build/serverD"/>
       <compiler version="PureBasic 5.11 (Windows - x86)"/>
@@ -35,7 +35,7 @@
         ../stoneddiscord.ico
       </icon>
       <format exe="default" cpu="2"/>
-      <compilecount enable="1" value="467"/>
+      <compilecount enable="1" value="468"/>
       <buildcount enable="1" value="93"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -67,7 +67,7 @@
       <options thread="1"/>
       <format exe="console" cpu="0"/>
     </target>
-    <target name="console" enabled="1" default="1">
+    <target name="console" enabled="1" default="0">
       <inputfile value="main.pb"/>
       <outputfile value="build/serverDco"/>
       <compiler version="PureBasic 5.11 (Windows - x86)"/>
@@ -77,7 +77,7 @@
         owner.ico
       </icon>
       <format exe="console" cpu="0"/>
-      <compilecount enable="1" value="424"/>
+      <compilecount enable="1" value="425"/>
       <buildcount enable="1" value="93"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>

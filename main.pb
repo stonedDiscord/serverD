@@ -738,23 +738,23 @@ ProcedureDLL MasterAdvert(msport)
       If NetworkClientEvent(msID)=#PB_NetworkEvent_Data
         msinfo=ReceiveNetworkData(msID,*null,100)
         If msinfo=-1
-          tick=200
+          sr=-1
         Else
           msrec$=PeekS(*null,msinfo)
-          If Left(msrec$,7) ="CHECK#%"
-            tick=0
+          If Left(msrec$,7) ="PONG#%"
+            sr=1
           EndIf
         EndIf
       EndIf
-      
-      If tick>=200
-        WriteLog("Masterserver adverter timer exceeded, reconnecting",Server)
-        CloseNetworkConnection(msID)
+      If tick>6000
+        sr=SendNetworkString(msID,"PING#%")
+      EndIf
+      If sr=-1
         msID=OpenNetworkConnection(master$,27016)
-        
         If msID
-          SendNetworkString(msID,"SCC#"+Str(port)+"#"+name$+"#"+desc$+"#%")
-          tick=0
+          Debug "SCC#"+Str(port)+"#"+name$+"#"+desc$+"#%"
+          sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#%")
+          sr=0
         EndIf
       EndIf 
       
@@ -762,13 +762,12 @@ ProcedureDLL MasterAdvert(msport)
       msID=OpenNetworkConnection(master$,27016)
       If msID
         Debug "SCC#"+Str(port)+"#"+name$+"#"+desc$+"#%"
-        SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#%")
-        tick=0
+        sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#%")
+        sr=1
       EndIf
     EndIf
-    
-    Delay(100)
     tick+1
+    Delay(100)
   Until public=0
   
   WriteLog("Masterserver adverter thread stopped",Server)
@@ -1515,6 +1514,8 @@ Procedure HandleCommand(*usagePointer.Client)
         EndIf
       Wend
       UnlockMutex(ListMutex)
+    Default
+      WriteLog(rawreceive$,*usagePointer)
   EndSelect
   
   If reply$<>""
@@ -1531,10 +1532,10 @@ CompilerIf #CONSOLE=0
     lstate=GetGadgetState(#Listview_0)
     ClearGadgetItems(#Listview_0)
     i=0
-    listicon=0
     LockMutex(ListMutex)    
     ResetMap(Clients())
     While NextMapElement(Clients())
+      listicon=0
       If Clients()\perm
         listicon=1
       EndIf
@@ -1651,7 +1652,7 @@ CompilerIf #CONSOLE=0
         CompilerIf #PB_Compiler_OS = #PB_OS_Windows
           OpenConsole("serverD")
         CompilerEndIf
-
+        
         If ReceiveHTTPFile("http://weedlan.de/serverd/serverd.txt","serverd.txt")
           OpenPreferences("serverd.txt")
           PreferenceGroup("Version")
@@ -2053,8 +2054,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 1653
-; FirstLine = 1631
+; CursorPosition = 1534
+; FirstLine = 1521
 ; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
