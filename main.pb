@@ -748,6 +748,7 @@ ProcedureDLL MasterAdvert(msport)
       EndIf
       If tick>6000
         sr=SendNetworkString(msID,"PING#%")
+        tick=0
       EndIf
       If sr=-1
         msID=OpenNetworkConnection(master$,27016)
@@ -2054,8 +2055,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 1534
-; FirstLine = 1521
+; CursorPosition = 750
+; FirstLine = 722
 ; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
