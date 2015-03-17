@@ -50,6 +50,7 @@ Structure Client
   last.s
   cconnect.b
   gimp.b
+  ooct.b
 EndStructure
 
 Enumeration
@@ -65,6 +66,7 @@ Enumeration
   #UNGIMP
 EndEnumeration
 ;- Global Variables
+Global version$="sD v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
 Global *Buffer = AllocateMemory(1024)
 Global Server.Client
 Global NetworkMode=#PB_Network_TCP
@@ -128,6 +130,7 @@ Server\room=0
 Server\last=""
 Server\cconnect=0
 Server\gimp=0
+Server\ooct=0
 Global NewMap Clients.Client()
 Global NewList HDbans.s()
 Global NewList HDmods.s()
@@ -182,12 +185,13 @@ Procedure WriteLog(string$,*lclient.Client)
     Default
       mstr$="[U]"
   EndSelect
-  
+  logstr$=mstr$+"["+LSet(*lclient\IP,15)
+  logstr$=logstr$+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$
   If Logging
-    WriteStringN(1,mstr$+"["+LSet(*lclient\IP,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$) 
+    WriteStringN(1,logstr$) 
   EndIf
   CompilerIf #CONSOLE=1
-    PrintN(mstr$+"["+LSet(*lclient\IP,15)+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$)
+    PrintN(logstr$)
   CompilerElse
     AddGadgetItem(#Listview_2,-1,string$)
     SetGadgetItemData(#Listview_2,CountGadgetItems(#Listview_2)-1,*lclient\ClientID)
@@ -735,13 +739,16 @@ ProcedureDLL MasterAdvert(msport)
   Repeat
     
     If msID
-      If NetworkClientEvent(msID)=#PB_NetworkEvent_Data
+      NEvent=NetworkClientEvent(msID)
+      If NEvent=#PB_NetworkEvent_Disconnect
+        sr=-1
+      ElseIf NEvent=#PB_NetworkEvent_Data
         msinfo=ReceiveNetworkData(msID,*null,100)
         If msinfo=-1
           sr=-1
         Else
           msrec$=PeekS(*null,msinfo)
-          If Left(msrec$,7) ="PONG#%"
+          If Left(msrec$,6) ="PONG#%" Or Left(msrec$,7) ="CHECK#%"
             sr=1
           EndIf
         EndIf
@@ -754,8 +761,7 @@ ProcedureDLL MasterAdvert(msport)
         msID=OpenNetworkConnection(master$,27016)
         If msID
           Debug "SCC#"+Str(port)+"#"+name$+"#"+desc$+"#%"
-          sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#%")
-          sr=0
+          sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#"+version$+"#%")
         EndIf
       EndIf 
       
@@ -763,8 +769,7 @@ ProcedureDLL MasterAdvert(msport)
       msID=OpenNetworkConnection(master$,27016)
       If msID
         Debug "SCC#"+Str(port)+"#"+name$+"#"+desc$+"#%"
-        sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#%")
-        sr=1
+        sr=SendNetworkString(msID,"SCC#"+Str(msport)+"#"+name$+"#"+desc$+"#"+version$+"#%")
       EndIf
     EndIf
     tick+1
@@ -779,6 +784,17 @@ ProcedureDLL MasterAdvert(msport)
   msthread=0
 EndProcedure
 
+Procedure SendOOC(ip$,name$,mes$)
+  LockMutex(ListMutex)
+  ResetMap(Clients())
+  While NextMapElement(Clients())
+    If Clients()\ooct
+      name$=name$+"["+ip$+"]"
+    EndIf
+    SendNetworkString(Clients()\ClientID,"CT#"+name$+"#"+mes$+"#%")
+  Wend
+  UnlockMutex(ListMutex)
+EndProcedure
 
 Procedure SendDone(ClientID)
   send$="CharsCheck"
@@ -903,12 +919,14 @@ Procedure HandleCommand(*usagePointer.Client)
                 If oppass$<>""
                   SendNetworkString(ClientID,LoginReply$) 
                   *usagePointer\perm=1
+                  *usagePointer\ooct=1
                 EndIf
               ElseIf adminpass$=Mid(ctparam$,8,Len(ctparam$)-2)
                 If adminpass$<>""
                   SendNetworkString(ClientID,LoginReply$) 
                   SendNetworkString(ClientID,"UM#"+Str(*usagePointer\CID)+"#%")
                   *usagePointer\perm=2
+                  *usagePointer\ooct=1
                 EndIf
               EndIf
               send=0
@@ -922,36 +940,11 @@ Procedure HandleCommand(*usagePointer.Client)
               
             Case "/ooc"
               If *usagePointer\perm
-                CompilerIf #CONSOLE=0
-                  ooccather$=Mid(ctparam$,6,Len(ctparam$)-2)
-                  sendo$="IL#"
-                  SendNetworkString(ClientID,"FI#Clients using the name "+ooccather$+"#%")
-                  items=CountGadgetItems(#ListIcon_2)
-                  LockMutex(ListMutex)
-                  For o=0 To 100
-                    If GetGadgetItemText(#ListIcon_2,items-o,0)=ooccather$
-                      clid$=Str(GetGadgetItemData(#ListIcon_2,items-o))
-                      If FindMapElement(Clients(),clid$)
-                        If Clients(clid$)\CID<=100 And Clients(clid$)\CID>=0
-                          If Clients(clid$)\perm
-                            charname$=Characters(Clients(clid$)\CID)\name+"(mod)"
-                          Else
-                            charname$=Characters(Clients(clid$)\CID)\name
-                          EndIf
-                        Else
-                          charname$="nobody"     
-                        EndIf
-                        sendo$=sendo$+Clients(clid$)\IP+"|"+charname$+"|"+GetGadgetItemText(#ListIcon_2,items-o,1)+"|*"
-                      EndIf
-                    EndIf
-                  Next
-                  UnlockMutex(ListMutex)
-                  sendo$=sendo$+"#%"
-                  SendNetworkString(ClientID,sendo$) 
-                CompilerElse
-                  SendNetworkString(ClientID,"FI#Needs GUI, sorry#%")
-                CompilerEndIf
+                *usagePointer\ooct=1
               EndIf
+              
+            Case "/nooc"
+              *usagePointer\ooct=0
               
             Case "/judge"
               If *usagePointer\perm
@@ -1126,7 +1119,7 @@ Procedure HandleCommand(*usagePointer.Client)
               Debug sname$
               smes$=ctparam$
               Debug smes$
-              SendTarget(StringField(smes$,2," "),-1,"CT#PM "+sname$+" to You#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
+              SendTarget(StringField(smes$,2," "),0,"CT#PM "+sname$+" to You#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
               SendNetworkString(ClientID,"CT#PM You to "+StringField(smes$,2," ")+"#"+Mid(smes$,6+Len(StringField(smes$,2," ")))+"#%")
               
             Case "/send"  
@@ -1220,6 +1213,12 @@ Procedure HandleCommand(*usagePointer.Client)
                 EndIf
               EndIf
               
+            Case "/stop"
+              If *usagePointer\perm>1
+                Quit=1
+                public=0
+              EndIf
+              
             Case "/kick"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,7,Len(ctparam$)-2),#KICK,*usagePointer\perm)
@@ -1293,7 +1292,7 @@ Procedure HandleCommand(*usagePointer.Client)
           EndSelect
         Else
           *usagePointer\last.s=rawreceive$
-          reply$="CT#"+Right(rawreceive$,length-6)
+          SendOOC(*usagePointer\IP,StringField(rawreceive$,3,"#"),StringField(rawreceive$,4,"#"))
           CompilerIf #CONSOLE=0
             AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+StringField(rawreceive$,4,"#"))
             SetGadgetItemData(#ListIcon_2,CountGadgetItems(#ListIcon_2)-1,*usagePointer\ClientID)
@@ -1388,8 +1387,9 @@ Procedure HandleCommand(*usagePointer.Client)
           SendNetworkString(ClientID,"BD#%")
           Delay(10)
           CloseNetworkConnection(ClientID)                   
-          
+          LockMutex(ListMutex)
           DeleteMapElement(Clients(),Str(ClientID))
+          UnlockMutex(ListMutex)
           hdbanned=1
           
           rf=1
@@ -1402,8 +1402,10 @@ Procedure HandleCommand(*usagePointer.Client)
             WriteLog("HdId: "+*usagePointer\HD+" is banned, disconnecting",*usagePointer)
             SendNetworkString(ClientID,"BD#%")
             Delay(10)
-            CloseNetworkConnection(ClientID)                   
+            CloseNetworkConnection(ClientID)  
+            LockMutex(ListMutex)
             DeleteMapElement(Clients(),Str(ClientID))
+            UnlockMutex(ListMutex)
             hdbanned=1
             rf=1
             Break
@@ -1416,7 +1418,7 @@ Procedure HandleCommand(*usagePointer.Client)
             *usagePointer\perm=1
           EndIf
         Next
-        SendNetworkString(ClientID,"ID#"+Str(PV)+"#sD v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+"#%")
+        SendNetworkString(ClientID,"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%")
         players=0
         
         LockMutex(ListMutex)    
@@ -1496,7 +1498,7 @@ Procedure HandleCommand(*usagePointer.Client)
       WriteLog("["+GetCharacterName(*usagePointer)+"] used opunMUTE",*usagePointer)
       
     Case "VERSION"
-      SendNetworkString(ClientID,"FI#sD v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+"%")
+      SendNetworkString(ClientID,"FI#"+version$+"%")
       
     Case "ZZ"
       If *usagePointer\CID>=0
@@ -1639,7 +1641,7 @@ CompilerIf #CONSOLE=0
         public=0
         OpenFile(5,"crash.txt",#PB_File_NoBuffering)
         PrintN("it crashed at source line offset "+Str(ErrorAddress()))
-        WriteStringN(5,"it crashed at source line offset "+Str(ErrorAddress()))
+        WriteStringN(5,"it "+ErrorMessage()+"'d at this address "+Str(ErrorAddress()))
         CloseFile(5)
         LoadSettings(0)
         Delay(500)
@@ -1663,112 +1665,117 @@ CompilerIf #CONSOLE=0
           EndIf
           ClosePreferences()
         EndIf
-        
-        LoadSettings(0)
-        
-        decryptor$="33"
-        key=2
-        
-        CreateNetworkServer(0,port,#PB_Network_TCP)
-        
         If public And msthread=0
           msthread=CreateThread(@Masteradvert(),port)
         EndIf          
       EndIf
     CompilerEndIf
-    Quit=0
     
-    Repeat
-      
-      SEvent = NetworkServerEvent()
-      
-      ClientID = EventClient()  
-      
-      Select SEvent
-          
-        Case #PB_NetworkEvent_Connect
-          send=1
-          ip$=IPString(GetClientIP(ClientID))
-          LockMutex(ListMutex)
-          Clients(Str(ClientID))\ClientID = ClientID
-          Clients()\IP = ip$
-          Clients()\AID=PV
-          PV+1
-          Clients()\CID=-1
-          Clients()\hack=0
-          CLients()\perm=0
-          ForEach HDmods()
-            If ip$ = HDmods()
-              CLients()\perm=1
+    Quit=0
+    LoadSettings(0)        
+    decryptor$="33"
+    key=2        
+    success=CreateNetworkServer(0,port,#PB_Network_TCP)
+    If success
+      Repeat
+        
+        SEvent = NetworkServerEvent()
+        
+        ClientID = EventClient()  
+        
+        Select SEvent
+            
+          Case #PB_NetworkEvent_Connect
+            send=1
+            ip$=IPString(GetClientIP(ClientID))
+            LockMutex(ListMutex)
+            Clients(Str(ClientID))\ClientID = ClientID
+            Clients()\IP = ip$
+            Clients()\AID=PV
+            PV+1
+            Clients()\CID=-1
+            Clients()\hack=0
+            CLients()\perm=0
+            ForEach HDmods()
+              If ip$ = HDmods()
+                CLients()\perm=1
+              EndIf
+            Next
+            Clients()\room=0
+            Clients()\ignore=0
+            Clients()\gimp=0
+            
+            ForEach IPbans()
+              If ip$ = IPbans()
+                send=0
+                SendNetworkString(ClientID,"BD#%")
+                WriteLog("IP: "+ip$+" is banned, disconnecting",Clients())
+                CloseNetworkConnection(ClientID)                   
+                Break
+              EndIf
+            Next          
+            If send
+              WriteLog("CLIENT CONNECTED ",Clients())
+              CompilerIf #CONSOLE=0
+                AddGadgetItem(#Listview_0,-1,ip$+Chr(10)+"-1"+Chr(10)+"-1",Icons(0))
+              CompilerEndIf
+              SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
             EndIf
-          Next
-          Clients()\room=0
-          Clients()\ignore=0
-          Clients()\gimp=0
-          UnlockMutex(ListMutex)
-          ForEach IPbans()
-            If ip$ = IPbans()
-              send=0
-              SendNetworkString(ClientID,"BD#%")
-              WriteLog("IP: "+ip$+" is banned, disconnecting",Clients())
-              CloseNetworkConnection(ClientID)                   
-              Break
-            EndIf
-          Next
-          If send
-            WriteLog("CLIENT CONNECTED ",Clients())
-            CompilerIf #CONSOLE=0
-              AddGadgetItem(#Listview_0,-1,ip$+Chr(10)+"-1"+Chr(10)+"-1",Icons(0))
-            CompilerEndIf
-            SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
-          EndIf
-          
-        Case #PB_NetworkEvent_Data ;//////////////////////////Data
-          *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
-          length=ReceiveNetworkData(ClientID, *Buffer, 1024)
-          If length
-            rawreceive$=StringField(PeekS(*Buffer,length),1,"%")+"%"
-            length=Len(rawreceive$)
-            If ExpertLog
-              WriteLog(rawreceive$,*usagePointer)
-            EndIf
-            If Not *usagePointer\last.s=rawreceive$ And *usagePointer\ignore=0
-              *usagePointer\last.s=rawreceive$
-              If length>=0 And Left(rawreceive$,1)="#"
-                Debug "probably this"
-                CreateThread(@HandleCommand(),*usagePointer)
+            UnlockMutex(ListMutex)
+            
+          Case #PB_NetworkEvent_Data ;//////////////////////////Data
+            LockMutex(ListMutex)
+            *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
+            UnlockMutex(ListMutex)
+            If *usagePointer
+              length=ReceiveNetworkData(ClientID, *Buffer, 1024)
+              If length
+                rawreceive$=StringField(PeekS(*Buffer,length),1,"%")+"%"
+                length=Len(rawreceive$)
+                If ExpertLog
+                  WriteLog(rawreceive$,*usagePointer)
+                EndIf
+                If Not *usagePointer\last.s=rawreceive$ And *usagePointer\ignore=0
+                  *usagePointer\last.s=rawreceive$
+                  If length>=0 And Left(rawreceive$,1)="#"
+                    Debug "probably this"
+                    CreateThread(@HandleCommand(),*usagePointer)
+                  EndIf
+                EndIf
               EndIf
             EndIf
-          EndIf
-          send=1
-          
-        Case #PB_NetworkEvent_Disconnect          
-          FindMapElement(Clients(),Str(ClientID))
-          WriteLog("CLIENT DISCONNECTED",Clients())
-          If Clients()\CID>=0 And Clients()\CID <= characternumber
-            Characters(Clients()\CID)\taken=0
-          EndIf
-          If Rooms(Clients()\room)\lock=ClientID
-            Rooms(Clients()\room)\lock=0
-            Rooms(Clients()\room)\mlock=0
-          EndIf
-          DeleteMapElement(Clients(),Str(ClientID))              
-          rf=1
-          
-        Default
-          Delay(1)
-          
-      EndSelect
-      CompilerIf #CONSOLE=0
-        If rf
-          CreateThread(@RefreshList(),0)
-          rf=0
-        EndIf    
-      CompilerEndIf 
-    Until Quit = 1 
-    
-    
-    
+            
+          Case #PB_NetworkEvent_Disconnect 
+            LockMutex(ListMutex)
+            If FindMapElement(Clients(),Str(ClientID))
+              WriteLog("CLIENT DISCONNECTED",Clients())
+              If Clients()\CID>=0 And Clients()\CID <= characternumber
+                Characters(Clients()\CID)\taken=0
+              EndIf
+              If Rooms(Clients()\room)\lock=ClientID
+                Rooms(Clients()\room)\lock=0
+                Rooms(Clients()\room)\mlock=0
+              EndIf
+              DeleteMapElement(Clients(),Str(ClientID))
+              UnlockMutex(ListMutex)
+              rf=1
+            EndIf
+            
+          Default
+            Delay(1)
+            
+        EndSelect
+        CompilerIf #CONSOLE=0
+          If rf
+            CreateThread(@RefreshList(),0)
+            rf=0
+          EndIf    
+        CompilerEndIf 
+      Until Quit = 1 
+    Else
+      WriteLog("server creation failed",Server)
+    EndIf
+    CloseNetworkServer(0)   
     
     CompilerIf #CONSOLE=0
     EndProcedure
@@ -1801,7 +1808,6 @@ CompilerIf #CONSOLE=0
           EndIf
           ClosePreferences()
         EndIf
-        LoadSettings(0) 
         CloseWindow(2)
       EndIf
     EndProcedure
@@ -1820,7 +1826,7 @@ CompilerIf #CONSOLE=0
           lpublic=public
           public=0
           OpenFile(5,"crash.txt",#PB_File_NoBuffering)
-          WriteStringN(5,"it crashed at source line offset "+Str(ErrorAddress()))
+          WriteStringN(5,"it "+ErrorMessage()+"'d at this address "+Str(ErrorAddress()))
           CloseFile(5)
           LoadSettings(0)
           Delay(500)
@@ -1836,23 +1842,17 @@ CompilerIf #CONSOLE=0
         oldCLient.Client
         *clickedClient.Client
         
-        decryptor$="33"
-        key=2
         
         parameter$=ProgramParameter()
         If parameter$="-auto"
-          If CreateNetworkServer(0, port,#PB_Network_TCP)
-            CompilerIf #CONSOLE=0
-              SetWindowColor(0, RGB(255,255,0))
-              SetGadgetText(#Button_2,"RELOAD")
-            CompilerEndIf
-            nthread=CreateThread(@Network(),0)
-            If public And msthread=0
-              msthread=CreateThread(@Masteradvert(),port)
-            EndIf          
-          Else
-            MessageRequester("serverD","SERVER CREATION FAILED - PORT IN USE?")
-          EndIf
+          CompilerIf #CONSOLE=0
+            SetWindowColor(0, RGB(255,255,0))
+            SetGadgetText(#Button_2,"RELOAD")
+          CompilerEndIf
+          nthread=CreateThread(@Network(),0)
+          If public And msthread=0
+            msthread=CreateThread(@Masteradvert(),port)
+          EndIf          
         EndIf
         
         
@@ -1889,7 +1889,9 @@ CompilerIf #CONSOLE=0
               Case #Button_kk ;KICK
                 SendNetworkString(cldata,"KK#"+Str(*clickedClient\CID)+"#%")
                 CloseNetworkConnection(cldata)
+                LockMutex(ListMutex)
                 DeleteMapElement(Clients(),Str(cldata))
+                UnlockMutex(ListMutex)
                 cldata=0
                 rf=1
                 
@@ -1915,7 +1917,9 @@ CompilerIf #CONSOLE=0
                   Characters(*clickedClient\CID)\taken=0
                 EndIf
                 CloseNetworkConnection(cldata)
+                LockMutex(ListMutex)
                 DeleteMapElement(Clients(),Str(cldata))
+                UnlockMutex(ListMutex)
                 cldata=0
                 rf=1
                 
@@ -1932,7 +1936,9 @@ CompilerIf #CONSOLE=0
                   Characters(*clickedClient\CID)\taken=0
                 EndIf
                 CloseNetworkConnection(cldata)
+                LockMutex(ListMutex)
                 DeleteMapElement(Clients(),Str(cldata))
+                UnlockMutex(ListMutex)
                 cldata=0
                 rf=1
                 
@@ -1941,7 +1947,9 @@ CompilerIf #CONSOLE=0
                   Characters(*clickedClient\CID)\taken=0
                 EndIf
                 CloseNetworkConnection(cldata)
+                LockMutex(ListMutex)
                 DeleteMapElement(Clients(),Str(cldata))
+                UnlockMutex(ListMutex)
                 cldata=0
                 rf=1       
                 
@@ -1993,16 +2001,12 @@ CompilerIf #CONSOLE=0
               If nthread
                 LoadSettings(1)
               Else
-                If CreateNetworkServer(0, port,#PB_Network_TCP)
-                  SetWindowColor(0, RGB(0,128,0))
-                  SetGadgetText(#Button_2,"RELOAD")
-                  nthread=CreateThread(@Network(),0)
-                  If public And msthread=0
-                    msthread=CreateThread(@Masteradvert(),port)
-                  EndIf       
-                Else
-                  MessageRequester("serverD","SERVER CREATION FAILED - PORT IN USE?")
-                EndIf
+                SetWindowColor(0, RGB(0,128,0))
+                SetGadgetText(#Button_2,"RELOAD")
+                nthread=CreateThread(@Network(),0)
+                If public And msthread=0
+                  msthread=CreateThread(@Masteradvert(),port)
+                EndIf       
               EndIf
               
             Case #Button_4 ;CONFIG
@@ -2055,8 +2059,8 @@ CompilerIf #CONSOLE=0
       
     CompilerEndIf
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 750
-; FirstLine = 722
+; CursorPosition = 2059
+; FirstLine = 2007
 ; Folding = ----
 ; EnableXP
 ; EnableCompileCount = 0
