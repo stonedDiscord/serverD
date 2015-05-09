@@ -65,6 +65,8 @@ Enumeration
   #Checkbox_BlockIni
   #String_AD
   #Text_AD
+  #String_13
+  #Button_31
 EndEnumeration
 
 
@@ -97,6 +99,8 @@ Procedure Open_Window_0()
   If OpenWindow(#Window_0   , 301, 185, 730, 339, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
     ;If CreateGadgetList(WindowID(#Window_0   ))
     Frame3DGadget(#Frame3D_0, 0, 0, 290, 350, "Serverside")
+        CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
+    BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
     StringGadget(#String_5, 210, 15, 70, 22, "27015", #PB_String_Numeric)
     BalloonTip(GadgetID(#String_5), #String_5, "The public port goes here", "", #TOOLTIP_NO_ICON)
     ButtonGadget(#Button_4, -30, 280, 100, 30, "CONFIG", #PB_Button_Right)
@@ -137,11 +141,11 @@ Procedure Open_Window_0()
     Frame3DGadget(#Frame3D_4, 290, 0, 230, 340, "Log")
     
     ;-
-    ListIconGadget(#ListIcon_2, 520, 20, 210, 320, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    ListIconGadget(#ListIcon_2, 520, 20, 210, 300, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     AddGadgetColumn(#ListIcon_2, 1, "Message", 100)
+    StringGadget(#String_13,520,320,160,20,"")
+    ButtonGadget(#Button_31,680,320,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
-    CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
-    BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
     Frame3DGadget(#Frame3D_5, 520, 0, 210, 340, "OOC")
     CompilerIf #EASYLOG
       ListViewGadget(#Listview_2, 290, 20, 230, 320)
@@ -184,26 +188,11 @@ Procedure Open_Window_1()
   EndIf
 EndProcedure
 
-CompilerIf #SPAM
-  Procedure Open_Window_3()
-    If OpenWindow(#Window_3, -202, 508, 150, 220, "Spam",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
-      ; If CreateGadgetList(WindowID(#Window_3))
-      TextGadget(#Text_3, 10, 10, 100, 30, "TURN DOWN FOR WHAT ?", #PB_Text_Center)
-      StringGadget(#String_12, 0, 40, 120, 35, "")
-      ButtonGadget(#Button_27, 0, 100, 120, 40, "START")
-      ButtonGadget(#Button_28, 0, 140, 120, 40, "PAUSE")
-      ButtonGadget(#Button_29, 0, 180, 120, 40, "STOP")
-      CheckBoxGadget(#CheckBox_6, 0, 80, 120, 20, "ÜBERCHARGE")
-      TrackBarGadget(#TrackBar_1, 120, 0, 30, 220, 0, 1000, #PB_TrackBar_Vertical)
-      
-      ; EndIf
-    EndIf
-  EndProcedure
-CompilerEndIf
+
 ; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 168
-; FirstLine = 160
-; Folding = ---
+; CursorPosition = 190
+; FirstLine = 78
+; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0
