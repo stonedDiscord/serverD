@@ -1,46 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://www.purebasic.com/namespace" version="1.0" creator="PureBasic 5.11 (Windows - x86)">
+<project xmlns="http://www.purebasic.com/namespace" version="1.0" creator="PureBasic 5.31 (Windows - x86)">
   <section name="config">
     <options closefiles="1" openmode="0" name="MITMserver II"/>
   </section>
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2015-05-09 02:03" user="Sven" host="SPC"/>
+    <lastopen date="2015-06-07 16:24" user="Sven" host="SPC"/>
   </section>
   <section name="files">
-    <file name="main.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="34599549ff4596b57eeed6a3438ad912"/>
-    </file>
-    <file name="Common.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="93b3444e1e0b714b07cdf23e283e3dde"/>
-    </file>
     <file name="checker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
       <fingerprint md5="8527051c5c140a934fa2a44be3766a58"/>
     </file>
-    <file name="..\server_shared.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="0" panelstate="++"/>
-      <fingerprint md5=""/>
+    <file name="Common.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="a0bf560cc82ed5503a68ef01c2910cc1"/>
+    </file>
+    <file name="main.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="2eecc6e1f36f4e5f3ec11bdd4aa25c19"/>
+    </file>
+    <file name="server_shared.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="fb632ced8bf09cbdafc35579542700d0"/>
     </file>
   </section>
   <section name="targets">
-    <target name="serverD" enabled="1" default="0">
+    <target name="serverD" enabled="1" default="1">
       <inputfile value="main.pb"/>
       <outputfile value="build/serverD.exe"/>
-      <compiler version="PureBasic 5.11 (Windows - x86)"/>
+      <compiler version="PureBasic 5.31 (Windows - x86)"/>
       <executable value="build\serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
-      <icon enable="1">
-        ../stoneddiscord.ico
-      </icon>
+      <purifier enable="1" granularity="1,1,1,1"/>
+      <icon enable="1">../dolan.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="735"/>
-      <buildcount enable="1" value="104"/>
+      <compilecount enable="1" value="802"/>
+      <buildcount enable="1" value="110"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
@@ -62,21 +61,20 @@
         <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 0" enable="1"/>
         <constant value="#ServerSideMasking = 0" enable="1"/>
+        <constant value="#WEB=0" enable="1"/>
       </constants>
     </target>
-    <target name="serverDco" enabled="1" default="1">
+    <target name="serverDco" enabled="1" default="0">
       <inputfile value="main.pb"/>
       <outputfile value="build/serverDco.exe"/>
-      <compiler version="PureBasic 5.11 (Windows - x86)"/>
+      <compiler version="PureBasic 5.31 (Windows - x86)"/>
       <executable value="build\serverDco.exe"/>
       <options thread="1" debug="1"/>
-      <icon enable="0">
-        owner.ico
-      </icon>
+      <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="735"/>
-      <buildcount enable="1" value="104"/>
+      <compilecount enable="1" value="800"/>
+      <buildcount enable="1" value="110"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
@@ -99,6 +97,7 @@
         <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 1" enable="1"/>
         <constant value="#ServerSideMasking = 0" enable="1"/>
+        <constant value="#WEB=0" enable="1"/>
       </constants>
     </target>
   </section>

@@ -13,13 +13,13 @@ EndEnumeration
 ;- Gadget Constants
 ;
 Enumeration
-  #Frame3D_0
+  #Frame_0
   #String_5
   #Button_4
   #Button_2
   #Button_5
-  #Frame3D_2
-  #Frame3D_3
+  #Frame_2
+  #Frame_3
   #String_7
   #String_8
   #Button_6
@@ -48,14 +48,14 @@ Enumeration
   #Button_27
   #Button_28
   #Button_29
-  #Frame3D_4
+  #Frame_4
   #CheckBox_6
   #TrackBar_1
   #ListIcon_2
   #CheckBox_MS
   #Text_6
   #String_OP
-  #Frame3D_5
+  #Frame_5
   #Listview_2
   #Button_BG
   #Text_7
@@ -67,6 +67,7 @@ Enumeration
   #Text_AD
   #String_13
   #Button_31
+  #Button_About
 EndEnumeration
 
 
@@ -98,7 +99,7 @@ EndProcedure
 Procedure Open_Window_0()
   If OpenWindow(#Window_0   , 301, 185, 730, 339, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
     ;If CreateGadgetList(WindowID(#Window_0   ))
-    Frame3DGadget(#Frame3D_0, 0, 0, 290, 350, "Serverside")
+    FrameGadget(#Frame_0, 0, 0, 290, 350, "Serverside")
         CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
     BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
     StringGadget(#String_5, 210, 15, 70, 22, "27015", #PB_String_Numeric)
@@ -125,7 +126,7 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#Button_sw), #Button_sw, "Drops this client to character selection", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_si, 0, 160, 20, 30, "S")
     BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
-    ButtonGadget(1337, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
+    ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
     ;-
     ListIconGadget(#Listview_0, 70, 40, 220, 300, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
@@ -138,7 +139,7 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_ndj, -20, 250, 60, 30, "UN", #PB_Button_Right)
     BalloonTip(GadgetID(#Button_ndj), #Button_ndj, "Stops this client from changing the music", "", #TOOLTIP_INFO_ICON)
-    Frame3DGadget(#Frame3D_4, 290, 0, 230, 340, "Log")
+    FrameGadget(#Frame_4, 290, 0, 230, 340, "Log")
     
     ;-
     ListIconGadget(#ListIcon_2, 520, 20, 210, 300, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
@@ -146,7 +147,7 @@ Procedure Open_Window_0()
     StringGadget(#String_13,520,320,160,20,"")
     ButtonGadget(#Button_31,680,320,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
-    Frame3DGadget(#Frame3D_5, 520, 0, 210, 340, "OOC")
+    FrameGadget(#Frame_5, 520, 0, 210, 340, "OOC")
     CompilerIf #EASYLOG
       ListViewGadget(#Listview_2, 290, 20, 230, 320)
       AddGadgetItem(#Listview_2,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
@@ -189,9 +190,9 @@ Procedure Open_Window_1()
 EndProcedure
 
 
-; IDE Options = PureBasic 5.11 (Windows - x86)
-; CursorPosition = 190
-; FirstLine = 78
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 149
+; FirstLine = 119
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0
