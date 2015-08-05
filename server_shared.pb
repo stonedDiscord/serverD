@@ -25,6 +25,12 @@ Structure ACharacter
 EndStructure
 Global Dim Characters.ACharacter(100)
 
+Structure Track
+  TrackName.s
+  Length.i
+EndStructure
+Global NewList Music.Track()
+
 Structure Client
   ClientID.l
   IP.s
@@ -310,7 +316,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 84
-; FirstLine = 60
+; CursorPosition = 29
+; FirstLine = 25
 ; Folding = --
 ; EnableXP
