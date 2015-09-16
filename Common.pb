@@ -132,8 +132,8 @@ Procedure Open_Window_0()
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
       SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
     CompilerEndIf
-    AddGadgetColumn(#Listview_0, 1, "Character", 50)
-    AddGadgetColumn(#Listview_0, 2, "PV", 60)
+    AddGadgetColumn(#Listview_0, 1, "Character", 80)
+    AddGadgetColumn(#Listview_0, 2, "PV", 30)
     BalloonTip(GadgetID(#Listview_0), #Listview_0, "Shows all connected clients", "", #TOOLTIP_NO_ICON)
     ButtonGadget(#Button_dj, 40, 250, 30, 30, "DJ")
     BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
@@ -151,7 +151,7 @@ Procedure Open_Window_0()
     CompilerIf #EASYLOG
       ListViewGadget(#Listview_2, 290, 20, 230, 320)
       AddGadgetItem(#Listview_2,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
-      AddGadgetItem(#Listview_2,0,"Check out http://www.weedlan.de/serverd/ for updates")
+      AddGadgetItem(#Listview_2,0,"Check out http://stoned.ddns.net/serverd.html for updates")
       If update
         AddGadgetItem(#Listview_2,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
       EndIf
@@ -191,8 +191,8 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 149
-; FirstLine = 119
+; CursorPosition = 134
+; FirstLine = 122
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

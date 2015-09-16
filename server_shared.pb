@@ -82,7 +82,14 @@ Enumeration
   #DJ
   #GIMP
   #UNGIMP
+  #SWITCH
 EndEnumeration
+
+Structure Action
+  IP.s
+  type.i  
+EndStructure
+Global NewList Actions.Action()
 
 #CRLF$ = Chr(13)+Chr(10)
 
@@ -316,7 +323,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 29
-; FirstLine = 25
+; CursorPosition = 91
+; FirstLine = 77
 ; Folding = --
 ; EnableXP

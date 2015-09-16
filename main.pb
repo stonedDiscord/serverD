@@ -20,18 +20,16 @@ EndStructure
 
 #C1 = 53761
 #C2 = 32618
-Global version$="serverD v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
+Global version$="v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
 Global CommandThreading=0
 Global Logging.b=0
 Global LagShield=1
 Global public.b=0
 Global LogFile$="poker.log"
-Global decryptor$="33"
 Global oppass$=""
 Global killed=0
 Global adminpass$=""
 Global opppass$=""
-Global key=2
 Global Quit=0
 Global defbar$="10"
 Global probar$="10"
@@ -44,7 +42,7 @@ Global loghd.b=0
 Global background.s
 Global PV=1
 Global msname$="serverD"
-Global desc$="Default "+version$
+Global desc$="Default serverD "+version$
 Global www$
 Global rf.b=0
 Global msip$="127.0.0.1"
@@ -65,6 +63,7 @@ Global ChatMutex = CreateMutex()
 Global ListMutex = CreateMutex()
 Global MusicMutex = CreateMutex()
 Global RefreshMutex = CreateMutex()
+Global ActionMutex = CreateMutex()
 Global musicmode=1
 Global update=0
 Global Aareas=1
@@ -86,7 +85,7 @@ CompilerEndIf
 
 If InitNetwork() = 0
   CompilerIf #CONSOLE=0
-    MessageRequester("serverD", "Can't initialize the network!",#MB_ICONERROR)
+    MessageRequester("serverD "+version$, "Can't initialize the network!",#MB_ICONERROR)
   CompilerEndIf
   End
 EndIf
@@ -199,6 +198,8 @@ Procedure LoadSettings(reload)
       WritePreferenceInteger("BlockIni",0)
       WritePreferenceInteger("modcol",0)
       WritePreferenceInteger("motdevi",0)
+      WritePreferenceInteger("WTCE",1)
+      WritePreferenceInteger("ExpertLog",0)
       WritePreferenceString("LoginReply","CT#sD#got it#%")
       WritePreferenceString("LogFile","base/serverlog.log")
     EndIf
@@ -210,9 +211,10 @@ Procedure LoadSettings(reload)
   blockini=ReadPreferenceInteger("BlockIni",0)
   modcol=ReadPreferenceInteger("modcol",0)
   MOTDevi=ReadPreferenceInteger("motdevi",0)
+  rt=ReadPreferenceInteger("WTCE",1)
+  ExpertLog=ReadPreferenceInteger("ExpertLog",0)
   LoginReply$=ReadPreferenceString("LoginReply","CT#$HOST#Successfully connected as mod#%")
   LogFile$=ReadPreferenceString("LogFile","base/serverlog.log")
-  msip$=ReadPreferenceString("MSip","127.0.0.1")
   If Logging
     CloseFile(1)
   EndIf
@@ -249,6 +251,7 @@ Procedure LoadSettings(reload)
   PreferenceGroup("chars")
   Global characternumber=ReadPreferenceInteger("number",1)
   ReDim Characters.ACharacter(characternumber)
+  ReDim ReadyChar(characternumber/9)
   For loadchars=0 To characternumber
     Characters(loadchars)\name=Encode(ReadPreferenceString(Str(loadchars),"zettaslow"))
     If reload=0
@@ -467,7 +470,20 @@ Procedure SendTarget(user$,message$,*sender.Client)
         Websocket_SendTextFrame(Clients()\ClientID,message$)
       CompilerEndIf
     Else
-      SendNetworkString(Clients()\ClientID,message$)  
+      sresult=SendNetworkString(Clients()\ClientID,message$)  
+      If sresult=-1
+        WriteLog("CLIENT DISCONNECTED",Clients())
+        If Clients()\CID>=0 And Clients()\CID <= characternumber
+          Characters(Clients()\CID)\taken=0
+        EndIf
+        If areas(Clients()\area)\lock=ClientID
+          areas(Clients()\area)\lock=0
+          areas(Clients()\area)\mlock=0
+        EndIf
+        DeleteMapElement(Clients(),Str(ClientID))
+        UnlockMutex(ListMutex)
+        rf=1
+      EndIf
     EndIf
   Else
     ResetMap(Clients())
@@ -478,7 +494,20 @@ Procedure SendTarget(user$,message$,*sender.Client)
             Websocket_SendTextFrame(Clients()\ClientID,message$)
           CompilerEndIf
         Else
-          SendNetworkString(Clients()\ClientID,message$)  
+          sresult=SendNetworkString(Clients()\ClientID,message$)
+          If sresult=-1
+            WriteLog("CLIENT DISCONNECTED",Clients())
+            If Clients()\CID>=0 And Clients()\CID <= characternumber
+              Characters(Clients()\CID)\taken=0
+            EndIf
+            If areas(Clients()\area)\lock=ClientID
+              areas(Clients()\area)\lock=0
+              areas(Clients()\area)\mlock=0
+            EndIf
+            DeleteMapElement(Clients(),Str(ClientID))
+            UnlockMutex(ListMutex)
+            rf=1
+          EndIf
         EndIf
       EndIf
     Wend   
@@ -543,8 +572,9 @@ Procedure KickBan(kick$,action,*usagePointer.Client)
   While NextMapElement(Clients())
     kclid=Clients()\ClientID
     kcid=Clients()\CID
-    If kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
-      If Clients()\perm<*usagePointer\perm
+    If kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=GetCharacterName(Clients()) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
+      If Clients()\perm<*usagePointer\perm Or (*usagePointer\perm And Clients()=*usagePointer)
+        LockMutex(ActionMutex)
         Select action
           Case #KICK
             If Clients()\CID>=0
@@ -599,43 +629,86 @@ Procedure KickBan(kick$,action,*usagePointer.Client)
             SendNetworkString(Clients()\ClientID,"MU#"+Str(Clients()\CID)+"#%")
             actionn$="muted"
             akck+1
+            AddElement(Actions())
+            Actions()\IP=Clients()\IP
+            Actions()\type=#MUTE
             
           Case #UNMUTE
             SendNetworkString(Clients()\ClientID,"UM#"+Str(Clients()\CID)+"#%")
             actionn$="unmuted"
             akck+1
+            ResetList(Actions())
+            While NextElement(Actions())
+              If Actions()\IP=Clients()\IP And Actions()\type=#MUTE
+                DeleteElement(Actions())
+              EndIf
+            Wend
             
           Case #CIGNORE
             Clients()\ignore=1
             actionn$="ignored"
             akck+1
+            AddElement(Actions())
+            Actions()\IP=Clients()\IP
+            Actions()\type=#CIGNORE
             
           Case #UNIGNORE
             Clients()\ignore=0
             actionn$="undignored"
             akck+1
+            ResetList(Actions())
+            While NextElement(Actions())
+              If Actions()\IP=Clients()\IP And Actions()\type=#CIGNORE
+                DeleteElement(Actions())
+              EndIf
+            Wend
             
           Case #UNDJ
             Clients()\ignoremc=1
             actionn$="undj'd"
             akck+1
+            AddElement(Actions())
+            Actions()\IP=Clients()\IP
+            Actions()\type=#UNDJ
             
           Case #DJ
             Clients()\ignoremc=0
             actionn$="dj'd"
             akck+1
+            ResetList(Actions())
+            While NextElement(Actions())
+              If Actions()\IP=Clients()\IP And Actions()\type=#UNDJ
+                DeleteElement(Actions())
+              EndIf
+            Wend
             
           Case #GIMP
             Clients()\gimp=1
             actionn$="gimped"
             akck+1
+            AddElement(Actions())
+            Actions()\IP=Clients()\IP
+            Actions()\type=#GIMP
             
           Case #UNGIMP
             Clients()\gimp=0
             actionn$="ungimped"
             akck+1
+            ResetList(Actions())
+            While NextElement(Actions())
+              If Actions()\IP=Clients()\IP And Actions()\type=#GIMP
+                DeleteElement(Actions())
+              EndIf
+            Wend
             
+          Case #SWITCH
+            If Clients()\cid>=0
+              Characters(Clients()\cid)\taken=0
+            EndIf
+            Clients()\cid=-1 
+            SendNetworkString(Clients()\ClientID,"DONE#%")
         EndSelect
+        UnlockMutex(ActionMutex)
       EndIf
     EndIf
   Wend    
@@ -695,10 +768,14 @@ ProcedureDLL.s DecryptStr(S.s, Key.u)
   ProcedureReturn Result.s
 EndProcedure
 
+;- derptor
+Global decryptor$="34"
+Global key=Val(DecryptStr(HexToString(decryptor$),322))
+
 ProcedureDLL MasterAdvert(port)
   Define msID=0,msinfo,NEvent,msport=27016,retries
   Define sr=-1
-  Define  *null=AllocateMemory(100)
+  Define  *null=AllocateMemory(16)
   Define master$,msrec$
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/masterserver.ini")
@@ -712,16 +789,27 @@ ProcedureDLL MasterAdvert(port)
   If public
     Repeat
       
-      If msID And sr
+      If msID
+        
+        If tick>10
+          sr=SendNetworkString(msID,"PING#%")
+        EndIf
+        
         NEvent=NetworkClientEvent(msID)
         If NEvent=#PB_NetworkEvent_Disconnect
-          sr=-1
           msID=0
         ElseIf NEvent=#PB_NetworkEvent_Data
-          msinfo=ReceiveNetworkData(msID,*null,100)
+          msinfo=ReceiveNetworkData(msID,*null,16)
           If msinfo=-1
-            sr=-1
+            msID=0
           Else
+            msrec$=PeekS(*null,msinfo)
+            Debug msrec$
+            If msrec$="NOSERV#%"
+              WriteLog("Fell of the serverlist, fixing...",Server)
+              sr=SendNetworkString(msID,"SCC#"+Str(port)+"#"+msname$+"#"+desc$+"#"+version$+"#%"+Chr(0))
+              WriteLog("Server published!",Server)
+            EndIf
             tick=0
             retries=0
           EndIf
@@ -737,14 +825,13 @@ ProcedureDLL MasterAdvert(port)
           WriteLog("Server published!",Server)
         EndIf
       EndIf
-      If tick>10
-        sr=0
+      If tick>100
+        WriteLog("Masterserver adverter thread timed out",Server)
         Server\ClientID=0
         msID=0
-      ElseIf tick>2
-        sr=SendNetworkString(msID,"PING#%")
-        EndIf
-      Delay(30000)
+      EndIf
+      Delay(3000)
+      tick+1
     Until public=0
   EndIf
   WriteLog("Masterserver adverter thread stopped",Server)
@@ -811,7 +898,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
     ClientID=*usagePointer\ClientID
     Select comm$
       Case "CH"
-        
+        SendTarget(Str(ClientID),"CHECK#%",*usagePointer)
       Case "MS"
         WriteLog("["+GetCharacterName(*usagePointer)+"]["+StringField(rawreceive$,7,"#")+"]",*usagePointer)
         Debug areas(*usagePointer\area)\wait
@@ -959,16 +1046,32 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 EndIf
                 
               Case "/switch"
-                If *usagePointer\cid>=0
-                  Characters(*usagePointer\cid)\taken=0
+                If Mid(ctparam$,9)=""        
+                  If *usagePointer\cid>=0
+                    Characters(*usagePointer\cid)\taken=0
+                  EndIf
+                  *usagePointer\cid=-1
+                  SendTarget(Str(ClientID),"DONE#%",*usagePointer)
+                Else
+                  KickBan(Mid(ctparam$,9),#SWITCH,*usagePointer)
                 EndIf
-                *usagePointer\cid=-1                    
-                SendTarget(Str(ClientID),"DONE#%",Server)
                 
               Case "/ooc"
                 If *usagePointer\perm
                   *usagePointer\ooct=1
                 EndIf
+                
+              Case "/online"
+                players=0          
+                LockMutex(ListMutex)    
+                ResetMap(Clients())
+                While NextMapElement(Clients())
+                  If Clients()\CID>=0
+                    players+1
+                  EndIf
+                Wend
+                UnlockMutex(ListMutex)
+                SendTarget(Str(ClientID),"FI#"+Str(players)+"/"+Str(characternumber)+" characters online%",Server)
                 
               Case "/area"  
                 narea=Val(StringField(ctparam$,2," "))
@@ -1091,7 +1194,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 WriteLog("smoke weed everyday",*usagePointer)
                 
               Case "/help"
-                SendTarget(Str(ClientID),"CT#SERVER#Check http://weedlan.de/serverd/#%",Server)
+                SendTarget(Str(ClientID),"CT#SERVER#Check http://stoned.ddns.net/serverd.html#%",Server)
                 
               Case "/public"
                 Debug ctparam$
@@ -1106,6 +1209,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                     public=Val(StringField(ctparam$,2," "))
                     If public
                       msthread=CreateThread(@MasterAdvert(),port)
+                      SendTarget(Str(ClientID),"FI# published server%",Server)
                     EndIf
                     CompilerIf #CONSOLE=0
                       SetGadgetState(#CheckBox_MS,public)
@@ -1526,9 +1630,9 @@ Procedure HandleAOCommand(*usagePointer.Client)
         ResetMap(Clients())
         While NextMapElement(Clients())
           If Clients()\perm
-            SendNetworkString(Clients()\ClientID,"ZZ#"+*usagePointer\IP+"#%")  
+            SendTarget(Str(Clients()\ClientID),"ZZ#"+*usagePointer\IP+"#%",*usagePointer)  
           Else
-            SendNetworkString(Clients()\ClientID,"ZZ#someone#%")  
+            SendTarget(Str(Clients()\ClientID),"ZZ#someone#%",*usagePointer)  
           EndIf
         Wend   
         UnlockMutex(ListMutex)
@@ -1667,7 +1771,7 @@ CompilerIf #CONSOLE=0
       WindowEvent()
       Delay(500)
       Open_Window_0()  
-      If ReceiveHTTPFile("http://weedlan.de/serverd/serverd.txt","serverd.txt")
+      If ReceiveHTTPFile("http://stoned.ddns.net/serverd.txt","serverd.txt")
         OpenPreferences("serverd.txt")
         PreferenceGroup("Version")
         newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
@@ -1718,9 +1822,9 @@ Procedure Network(var)
               areas(Clients()\area)\mlock=0
             EndIf
             DeleteMapElement(Clients(),Str(ClientID))
-            UnlockMutex(ListMutex)
             rf=1
           EndIf
+          UnlockMutex(ListMutex)
           
         Case #PB_NetworkEvent_Connect
           ClientID = EventClient() 
@@ -1756,8 +1860,27 @@ Procedure Network(var)
             Clients()\ignore=0
             Clients()\judget=0
             Clients()\ooct=0
+            Clients()\gimp=0
+            Clients()\ignoremc=0
             Clients()\websocket=0
             Clients()\username=""
+            
+            LockMutex(ActionMutex)
+            ResetList(Actions())
+            While NextElement(Actions())
+              If Actions()\IP=ip$
+                Select Actions()\type
+                  Case #CIGNORE
+                    Clients()\ignore=1
+                  Case #UNDJ
+                    Clients()\ignoremc=1
+                  Case #GIMP
+                    Clients()\gimp=1
+                EndSelect
+              EndIf
+            Wend
+            UnlockMutex(ActionMutex)
+            
             UnlockMutex(ListMutex)
             WriteLog("CLIENT CONNECTED ",Clients())
             CompilerIf #CONSOLE=0
@@ -1914,6 +2037,21 @@ Procedure Network(var)
                   HandleAOCommand(*usagePointer)
                 EndIf
               EndIf
+            ElseIf length=-1
+              LockMutex(ListMutex)
+              If FindMapElement(Clients(),Str(ClientID))
+                WriteLog("CLIENT BROKE",Clients())
+                If Clients()\CID>=0 And Clients()\CID <= characternumber
+                  Characters(Clients()\CID)\taken=0
+                EndIf
+                If areas(Clients()\area)\lock=ClientID
+                  areas(Clients()\area)\lock=0
+                  areas(Clients()\area)\mlock=0
+                EndIf
+                DeleteMapElement(Clients(),Str(ClientID))
+                UnlockMutex(ListMutex)
+                rf=1
+              EndIf
             EndIf
           EndIf
           
@@ -2036,11 +2174,12 @@ CompilerIf #PB_Compiler_Debugger
             Case #Button_sw ;SWITCH
               If *clickedClient\cid>=0
                 Characters(*clickedClient\cid)\taken=0
+                *clickedClient\cid=-1    
+                SendNetworkString(cldata,"DONE#%")
               EndIf
-              *clickedClient\cid=-1    
-              SendNetworkString(cldata,"DONE#%")
               
             Case #Button_mu ;MUTE
+              Debug cldata
               KickBan(Str(cldata),#MUTE,Server)
               
             Case #Button_um ;UNMUTE
@@ -2120,7 +2259,7 @@ CompilerIf #PB_Compiler_Debugger
             CreateThread(@ConfigWindow(),0) 
             
           Case #Button_About
-            MessageRequester("serverD","This is serverD version "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+Chr(10)+"(c) stonedDiscord 2014-2015")
+            MessageRequester("serverD","This is serverD version "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+Chr(10)+"(c) stonedDiscord 2014-2015"+Chr(10)+"no one helped me with this, especially not FanatSors")
             
         EndSelect
       ElseIf Event = #PB_Event_SizeWindow
@@ -2142,13 +2281,13 @@ CompilerIf #PB_Compiler_Debugger
       EndIf
       
       If rf
-          If CommandThreading
-            CreateThread(@RefreshList(),0)
-          Else
-            RefreshList(0)
-          EndIf
-          rf=0
-        EndIf 
+        If CommandThreading
+          CreateThread(@RefreshList(),0)
+        Else
+          RefreshList(0)
+        EndIf
+        rf=0
+      EndIf 
       
     Until Event = #PB_Event_CloseWindow ; End of the event loop
     Quit=1
@@ -2181,8 +2320,8 @@ CompilerIf #PB_Compiler_Debugger
   
   End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 739
-; FirstLine = 716
+; CursorPosition = 1827
+; FirstLine = 1933
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
