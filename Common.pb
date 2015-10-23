@@ -56,7 +56,7 @@ Enumeration
   #Text_6
   #String_OP
   #Frame_5
-  #Listview_2
+  #listbox_event
   #Button_BG
   #Text_7
   #Combo_3
@@ -149,16 +149,16 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
     FrameGadget(#Frame_5, 520, 0, 210, 340, "OOC")
     CompilerIf #EASYLOG
-      ListViewGadget(#Listview_2, 290, 20, 230, 320)
-      AddGadgetItem(#Listview_2,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
-      AddGadgetItem(#Listview_2,0,"Check out http://stoned.ddns.net/serverd.html for updates")
+      ListViewGadget(#listbox_event, 290, 20, 230, 320)
+      AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
+      AddGadgetItem(#listbox_event,0,"Check out http://stoned.ddns.net/serverd.html for updates")
       If update
-        AddGadgetItem(#Listview_2,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
+        AddGadgetItem(#listbox_event,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
       EndIf
     CompilerElse
-      EditorGadget(#Listview_2, 290, 20, 230, 320)
+      EditorGadget(#listbox_event, 290, 20, 230, 320)
     CompilerEndIf
-    BalloonTip(GadgetID(#Listview_2), #Listview_2, "Shows all activity", "", #TOOLTIP_NO_ICON)
+    BalloonTip(GadgetID(#listbox_event), #listbox_event, "Shows all activity", "", #TOOLTIP_NO_ICON)
     
     ;EndIf
   EndIf
@@ -191,8 +191,8 @@ EndProcedure
 
 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 134
-; FirstLine = 122
+; CursorPosition = 160
+; FirstLine = 114
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

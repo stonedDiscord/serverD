@@ -22,6 +22,8 @@ EndStructure
 #C2 = 32618
 Global version$="v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
 Global CommandThreading=0
+Global error=0
+Global lasterror=0
 Global Logging.b=0
 Global LagShield=1
 Global public.b=0
@@ -481,7 +483,6 @@ Procedure SendTarget(user$,message$,*sender.Client)
           areas(Clients()\area)\mlock=0
         EndIf
         DeleteMapElement(Clients(),Str(ClientID))
-        UnlockMutex(ListMutex)
         rf=1
       EndIf
     EndIf
@@ -505,7 +506,6 @@ Procedure SendTarget(user$,message$,*sender.Client)
               areas(Clients()\area)\mlock=0
             EndIf
             DeleteMapElement(Clients(),Str(ClientID))
-            UnlockMutex(ListMutex)
             rf=1
           EndIf
         EndIf
@@ -827,6 +827,9 @@ ProcedureDLL MasterAdvert(port)
       EndIf
       If tick>100
         WriteLog("Masterserver adverter thread timed out",Server)
+        If msID
+          CloseNetworkConnection(msID)
+        EndIf
         Server\ClientID=0
         msID=0
       EndIf
@@ -1322,6 +1325,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 
               Case "/stop"
                 If *usagePointer\perm>1
+                  WriteLog("stopping server...",*usagePointer)
                   Quit=1
                   public=0
                 EndIf
@@ -2049,9 +2053,9 @@ Procedure Network(var)
                   areas(Clients()\area)\mlock=0
                 EndIf
                 DeleteMapElement(Clients(),Str(ClientID))
-                UnlockMutex(ListMutex)
                 rf=1
               EndIf
+              UnlockMutex(ListMutex)
             EndIf
           EndIf
           
@@ -2061,6 +2065,7 @@ Procedure Network(var)
       EndSelect
       
     Until Quit = 1
+    WriteLog("stopping server...",Server)
     LockMutex(ListMutex)
     ResetMap(Clients())
     While NextMapElement(Clients())
@@ -2085,10 +2090,9 @@ start:
 CompilerIf #PB_Compiler_Debugger
   If 1
   CompilerElse
-    
-    If ErrorAddress()          
-      
-      Quit=1
+    error=ErrorAddress()
+    If error<>lasterror
+      lasterror=error
       lpublic=public
       public=0
       OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
@@ -2118,7 +2122,6 @@ CompilerIf #PB_Compiler_Debugger
       LoadSettings(1)
       Delay(500)
       public=lpublic
-      Quit=0
       If nthread
         nthread=CreateThread(@Network(),0)
       EndIf
@@ -2224,8 +2227,8 @@ CompilerIf #PB_Compiler_Debugger
               Next
             EndIf
             
-          Case #Listview_2
-            logclid=GetGadgetItemData(#Listview_2,GetGadgetState(#Listview_2))   
+          Case #listbox_event
+            logclid=GetGadgetItemData(#listbox_event,GetGadgetState(#listbox_event))   
             If logclid
               For b=0 To CountGadgetItems(#ListView_0)
                 If GetGadgetItemData(#ListView_0,b) = logclid  
@@ -2269,8 +2272,8 @@ CompilerIf #PB_Compiler_Debugger
         ResizeGadget(#Button_2,WindowWidth(0)/6.08,15,WindowWidth(0)/8.111,22)
         ResizeGadget(#String_5,WindowWidth(0)/3.476,15,WindowWidth(0)/10.42,22)
         ResizeGadget(#Frame_4,WindowWidth(0)/2.517,0,WindowWidth(0)/3.173,WindowHeight(0))
-        ResizeGadget(#Listview_2, WindowWidth(0)/1.7, 30, WindowWidth(0)-WindowWidth(0)/1.7, WindowHeight(0)-90)
-        ResizeGadget(#Listview_2,WindowWidth(0)/2.517,20,WindowWidth(0)/3.173,WindowHeight(0)-20)
+        ResizeGadget(#listbox_event, WindowWidth(0)/1.7, 30, WindowWidth(0)-WindowWidth(0)/1.7, WindowHeight(0)-90)
+        ResizeGadget(#listbox_event,WindowWidth(0)/2.517,20,WindowWidth(0)/3.173,WindowHeight(0)-20)
         ResizeGadget(#Frame_5,WindowWidth(0)/1.4,0,WindowWidth(0)/3.476,WindowHeight(0))
         ResizeGadget(#ListIcon_2,WindowWidth(0)/1.4,20,WindowWidth(0)/3.476,WindowHeight(0)-40)  
         
@@ -2320,8 +2323,8 @@ CompilerIf #PB_Compiler_Debugger
   
   End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1827
-; FirstLine = 1933
+; CursorPosition = 2275
+; FirstLine = 2229
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

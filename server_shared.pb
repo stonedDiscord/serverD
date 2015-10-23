@@ -74,6 +74,7 @@ Enumeration
   #KICK
   #DISCO
   #BAN
+  #IDBAN
   #MUTE
   #UNMUTE
   #CIGNORE
@@ -133,8 +134,8 @@ Procedure WriteLog(string$,*lclient.Client)
   CompilerIf #CONSOLE
     PrintN(Escape(logstr$))
   CompilerElse
-    AddGadgetItem(#Listview_2,-1,string$)
-    SetGadgetItemData(#Listview_2,CountGadgetItems(#Listview_2)-1,*lclient\ClientID)
+    AddGadgetItem(#listbox_event,-1,string$)
+    SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
   CompilerEndIf   
 EndProcedure
 ;- Signal handling on linux
@@ -323,7 +324,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 91
-; FirstLine = 77
+; CursorPosition = 76
+; FirstLine = 42
 ; Folding = --
 ; EnableXP

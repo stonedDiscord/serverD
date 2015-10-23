@@ -45,5 +45,6 @@ Temporary Items
 # crap i dont need
 *.jpg
 *.log
-build
 check*
+base/
+build/
