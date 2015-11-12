@@ -33,8 +33,6 @@ Global killed=0
 Global adminpass$=""
 Global opppass$=""
 Global Quit=0
-Global defbar$="10"
-Global probar$="10"
 Global port=27016
 Global scene$="AAOPublic2"
 Global characternumber=0
@@ -133,6 +131,60 @@ Procedure WriteReplay(string$)
   EndIf
 EndProcedure
 
+ProcedureDLL.s HexToString(hex.s)
+  Define str.s="",i
+  For i = 1 To Len(hex.s) Step 2
+    str.s = str.s + Chr(Val("$"+Mid(hex.s, i, 2)))
+  Next i
+  ProcedureReturn str.s
+EndProcedure
+
+ProcedureDLL.s StringToHex(str.s)
+  Define StringToHexR.s = ""
+  Define hexchar.s = ""
+  Define x
+  For x = 1 To Len(str)
+    hexchar.s = Hex(Asc(Mid(str, x, 1)))
+    If Len(hexchar) = 1
+      hexchar = "0" + hexchar
+    EndIf
+    StringToHexR.s = StringToHexR + hexchar
+  Next x
+  ProcedureReturn StringToHexR.s
+EndProcedure
+
+Procedure.s EncryptStr(S.s, Key.u)
+  Define Result.s = S.s
+  Define I
+  Define *S.CharacterArray = @S
+  Define *Result.CharacterArray = @Result
+  
+  For I = 0 To Len(S.s)-1
+    *Result\c[I] = (*S\c[I] ! (Key >> 8))
+    Key = ((*Result\c[I] + Key) * #C1) + #C2
+  Next
+  
+  ProcedureReturn Result.s
+EndProcedure
+
+ProcedureDLL.s DecryptStr(S.s, Key.u)
+  Define Result.s = S.s
+  Define I
+  Define *S.CharacterArray = @S
+  Define *Result.CharacterArray = @Result
+  
+  For I = 0 To Len(S.s)-1
+    *Result\c[I] = (*S\c[I] ! (Key >> 8))
+    Key = ((*S\c[I] + Key) * #C1) + #C2
+  Next
+  
+  ProcedureReturn Result.s
+EndProcedure
+
+;- derptor
+Global decryptor$="34"
+Global key=Val(DecryptStr(HexToString(decryptor$),322))
+
 ;- Load Settings function
 Procedure LoadSettings(reload)
   Define loadchars
@@ -182,6 +234,8 @@ Procedure LoadSettings(reload)
   scene$=Encode(ReadPreferenceString("case","AAOPublic2"))
   msname$=Encode(ReadPreferenceString("Name","serverD"))
   desc$=Encode(ReadPreferenceString("Desc","Default serverD"))
+  decryptor$=ReadPreferenceString("decryptor","34")
+  key=Val(DecryptStr(HexToString(decryptor$),322))
   CompilerIf #CONSOLE=0
     SetWindowTitle(0,msname$)
   CompilerElse
@@ -717,60 +771,6 @@ Procedure KickBan(kick$,action,*usagePointer.Client)
   rf=1
   ProcedureReturn akck
 EndProcedure
-
-ProcedureDLL.s HexToString(hex.s)
-  Define str.s="",i
-  For i = 1 To Len(hex.s) Step 2
-    str.s = str.s + Chr(Val("$"+Mid(hex.s, i, 2)))
-  Next i
-  ProcedureReturn str.s
-EndProcedure
-
-ProcedureDLL.s StringToHex(str.s)
-  Define StringToHexR.s = ""
-  Define hexchar.s = ""
-  Define x
-  For x = 1 To Len(str)
-    hexchar.s = Hex(Asc(Mid(str, x, 1)))
-    If Len(hexchar) = 1
-      hexchar = "0" + hexchar
-    EndIf
-    StringToHexR.s = StringToHexR + hexchar
-  Next x
-  ProcedureReturn StringToHexR.s
-EndProcedure
-
-Procedure.s EncryptStr(S.s, Key.u)
-  Define Result.s = S.s
-  Define I
-  Define *S.CharacterArray = @S
-  Define *Result.CharacterArray = @Result
-  
-  For I = 0 To Len(S.s)-1
-    *Result\c[I] = (*S\c[I] ! (Key >> 8))
-    Key = ((*Result\c[I] + Key) * #C1) + #C2
-  Next
-  
-  ProcedureReturn Result.s
-EndProcedure
-
-ProcedureDLL.s DecryptStr(S.s, Key.u)
-  Define Result.s = S.s
-  Define I
-  Define *S.CharacterArray = @S
-  Define *Result.CharacterArray = @Result
-  
-  For I = 0 To Len(S.s)-1
-    *Result\c[I] = (*S\c[I] ! (Key >> 8))
-    Key = ((*S\c[I] + Key) * #C1) + #C2
-  Next
-  
-  ProcedureReturn Result.s
-EndProcedure
-
-;- derptor
-Global decryptor$="34"
-Global key=Val(DecryptStr(HexToString(decryptor$),322))
 
 ProcedureDLL MasterAdvert(port)
   Define msID=0,msinfo,NEvent,msport=27016,retries
@@ -1421,11 +1421,11 @@ Procedure HandleAOCommand(*usagePointer.Client)
           If bar>=0 And bar<=10
             WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
             If StringField(rawreceive$,3,"#")="1"
-              defbar$=Str(bar)
-              reply$="HP#1#"+defbar$+"#%"
+              Areas(*usagePointer\area)\good=bar
+              SendTarget("*","HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
             ElseIf StringField(rawreceive$,3,"#")="2"
-              probar$=Str(bar)
-              reply$="HP#2#"+probar$+"#%"
+              Areas(*usagePointer\area)\evil=bar
+              SendTarget("*","HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
             EndIf
             send=1
           EndIf
@@ -1565,8 +1565,8 @@ Procedure HandleAOCommand(*usagePointer.Client)
             *usagePointer\CID=char
             Characters(char)\taken=1                  
             WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-            SendTarget(Str(ClientID),"HP#1#"+defbar$+"#%",Server)
-            SendTarget(Str(ClientID),"HP#2#"+probar$+"#%",Server)
+            SendTarget(Str(ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
+            SendTarget(Str(ClientID),"HP#2#"+Str(Areas(0)\evil)+"#%",Server)
             If MOTDevi
               SendTarget(Str(ClientID),"MS#chat#normal#Discord#normal#Take that!#jud#1#2#"+Str(characternumber-1)+"#0#3#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
             EndIf
@@ -1839,7 +1839,6 @@ Procedure Network(var)
             If ip$ = IPbans()
               send=0
               WriteLog("IP: "+ip$+" is banned, disconnecting",Server)
-              SendNetworkString(ClientID,"BD#%")
               CloseNetworkConnection(ClientID)                   
               Break
             EndIf
@@ -2323,8 +2322,8 @@ CompilerIf #PB_Compiler_Debugger
   
   End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2275
-; FirstLine = 2229
+; CursorPosition = 185
+; FirstLine = 139
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

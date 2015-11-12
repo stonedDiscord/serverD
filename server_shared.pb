@@ -5,6 +5,9 @@
   lock.l
   mlock.w
   pw.s
+  players.w
+  good.w
+  evil.w
 EndStructure
 Global Dim areas.area(100)
 Define iniarea
@@ -52,6 +55,7 @@ Structure Client
   username.s
   RAW.b
   master.b
+  Inventory.i[100]
 EndStructure
 Global Server.Client
 Server\ClientID=0
@@ -324,7 +328,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 76
-; FirstLine = 42
+; CursorPosition = 36
+; FirstLine = 22
 ; Folding = --
 ; EnableXP
