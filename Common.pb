@@ -1,6 +1,3 @@
-; PureBasic Visual Designer v3.95 build 1485 (PB4Code)
-
-
 ;- Window Constants
 ;
 Enumeration
@@ -70,7 +67,6 @@ Enumeration
   #Button_About
 EndEnumeration
 
-
 Procedure BalloonTip(WindowID, Gadget, Text$ , Title$, Icon)
   CompilerIf #PB_Compiler_OS = #PB_OS_Windows
     Define ToolTip=0
@@ -98,9 +94,8 @@ EndProcedure
 
 Procedure Open_Window_0()
   If OpenWindow(#Window_0   , 301, 185, 730, 339, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
-    ;If CreateGadgetList(WindowID(#Window_0   ))
-    FrameGadget(#Frame_0, 0, 0, 290, 350, "Serverside")
-        CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
+    Frame3DGadget(#Frame_0, 0, 0, 290, 350, "Serverside")
+    CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
     BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
     StringGadget(#String_5, 210, 15, 70, 22, "27015", #PB_String_Numeric)
     BalloonTip(GadgetID(#String_5), #String_5, "The public port goes here", "", #TOOLTIP_NO_ICON)
@@ -127,7 +122,6 @@ Procedure Open_Window_0()
     ButtonGadget(#Button_si, 0, 160, 20, 30, "S")
     BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
-    ;-
     ListIconGadget(#Listview_0, 70, 40, 220, 300, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
       SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
@@ -139,15 +133,13 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_ndj, -20, 250, 60, 30, "UN", #PB_Button_Right)
     BalloonTip(GadgetID(#Button_ndj), #Button_ndj, "Stops this client from changing the music", "", #TOOLTIP_INFO_ICON)
-    FrameGadget(#Frame_4, 290, 0, 230, 340, "Log")
-    
-    ;-
+    Frame3DGadget(#Frame_4, 290, 0, 230, 340, "Log")
     ListIconGadget(#ListIcon_2, 520, 20, 210, 300, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     AddGadgetColumn(#ListIcon_2, 1, "Message", 100)
     StringGadget(#String_13,520,320,160,20,"")
     ButtonGadget(#Button_31,680,320,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
-    FrameGadget(#Frame_5, 520, 0, 210, 340, "OOC")
+    Frame3DGadget(#Frame_5, 520, 0, 210, 340, "OOC")
     CompilerIf #EASYLOG
       ListViewGadget(#listbox_event, 290, 20, 230, 320)
       AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
@@ -159,14 +151,12 @@ Procedure Open_Window_0()
       EditorGadget(#listbox_event, 290, 20, 230, 320)
     CompilerEndIf
     BalloonTip(GadgetID(#listbox_event), #listbox_event, "Shows all activity", "", #TOOLTIP_NO_ICON)
-    
-    ;EndIf
   EndIf
 EndProcedure
 
 Procedure Open_Window_1()
   If OpenWindow(#Window_1, 303, 568, 150, 195, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
-
+    
     TextGadget(#Text_6, 10, 10, 40, 20, "OP pass")
     StringGadget(#String_OP, 60, 10, 80, 20, "", #PB_String_Password)
     BalloonTip(GadgetID(#String_OP), #String_OP, "Enter the OOC password here", "", #TOOLTIP_NO_ICON)
@@ -175,7 +165,7 @@ Procedure Open_Window_1()
     StringGadget(#String_AD, 60, 35, 80, 20, "", #PB_String_Password)
     BalloonTip(GadgetID(#String_AD), #String_AD, "Enter the Admin password here", "", #TOOLTIP_NO_ICON)
     
-        CheckBoxGadget(#CheckBox_4, 10, 55, 60, 20, "Logging")
+    CheckBoxGadget(#CheckBox_4, 10, 55, 60, 20, "Logging")
     BalloonTip(GadgetID(#CheckBox_4), #CheckBox_4, "Log all network traffic to a file", "", #TOOLTIP_NO_ICON)
     ButtonGadget(#Button_9, 70, 55, 70, 20, "Log file...")
     
@@ -189,10 +179,74 @@ Procedure Open_Window_1()
   EndIf
 EndProcedure
 
-
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 160
-; FirstLine = 114
+Procedure ConfigWindow(var)
+  Define loadevi
+  Define Event,WindowID,GadgetID,EventType
+  Open_Window_1()
+  AddGadgetItem(#Combo_3,0,"None")
+  AddGadgetItem(#Combo_3,1,"Green")
+  AddGadgetItem(#Combo_3,2,"Red")
+  AddGadgetItem(#Combo_3,3,"Orange")
+  AddGadgetItem(#Combo_3,4,"Blue")
+  SetGadgetText(#String_OP,oppass$)
+  SetGadgetText(#String_AD,adminpass$)
+  SetGadgetState(#CheckBox_4,Logging)
+  SetGadgetState(#Checkbox_BlockIni,blockini)
+  SetGadgetState(#Combo_3,modcol)
+  AddGadgetItem(#Combo_4,0,"NONE")
+  For loadevi=1 To EviNumber
+    AddGadgetItem(#Combo_4,loadevi,Evidences(loadevi)\name)
+  Next
+  SetGadgetState(#Combo_4,MOTDevi)
+  Repeat ; Start of the event loop
+    Event = WaitWindowEvent() ; This line waits until an event is received from Windows
+    WindowID = EventWindow()  ; The Window where the event is generated, can be used in the gadget procedures
+    GadgetID = EventGadget()  ; Is it a gadget event?
+    EventType = EventType()   ; The event type
+    If Event = #PB_Event_Gadget
+      If GadgetID = #String_OP
+        oppass$ = GetGadgetText(#String_OP)
+      ElseIf GadgetID = #String_AD
+        adminpass$ = GetGadgetText(#String_AD)
+      ElseIf GadgetID = #CheckBox_4
+        If GetGadgetState(#CheckBox_4)
+          If OpenFile(1,LogFile$,#PB_File_SharedRead | #PB_File_NoBuffering)
+            Logging = 1
+            FileSeek(1,Lof(1))
+          Else
+            SetGadgetState(#CheckBox_4,0)
+          EndIf
+        Else
+          CloseFile(1)
+          Logging = 0          
+        EndIf
+      ElseIf GadgetID = #Button_5        
+        Event = #PB_Event_CloseWindow
+      ElseIf GadgetID = #Combo_3       
+        modcol=GetGadgetState(#Combo_3)
+      ElseIf GadgetID = #Combo_4      
+        motdevi=GetGadgetState(#Combo_4)
+      ElseIf GadgetID = #Checkbox_BlockIni  
+        blockini=GetGadgetState(#Checkbox_BlockIni)
+      ElseIf GadgetID = #Button_9
+        LogFile$=SaveFileRequester("Choose log file",LogFile$,"Log files (*.log)|*.log",0)
+      EndIf
+    EndIf
+  Until Event = #PB_Event_CloseWindow ; End of the event loop
+  OpenPreferences("poker.ini")
+  PreferenceGroup("cfg")
+  WritePreferenceString("LogFile",LogFile$)
+  WritePreferenceInteger("Logging",GetGadgetState(#CheckBox_4))
+  WritePreferenceString("oppass",GetGadgetText(#String_OP))
+  WritePreferenceString("adminpass",GetGadgetText(#String_AD))
+  WritePreferenceInteger("ModCol",GetGadgetState(#Combo_3))
+  WritePreferenceInteger("motdevi",GetGadgetState(#Combo_4))
+  WritePreferenceInteger("BlockIni",GetGadgetState(#Checkbox_BlockIni))
+  ClosePreferences()
+EndProcedure 
+; IDE Options = PureBasic 5.11 (Linux - x64)
+; CursorPosition = 183
+; FirstLine = 174
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

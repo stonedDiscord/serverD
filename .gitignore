@@ -46,5 +46,5 @@ Temporary Items
 *.jpg
 *.log
 check*
-base/
-build/
+base
+build

@@ -131,17 +131,20 @@ Procedure WriteLog(string$,*lclient.Client)
       mstr$="[U]"
   EndSelect
   logstr$=mstr$+"["+LSet(*lclient\IP,15)
-  logstr$=logstr$+"]"+"["+FormatDate("%dd.%mm.%yyyy %hh:%ii:%ss",Date())+"]"+string$
+  logstr$=logstr$+"]"+"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"]"+string$
   If Logging
     WriteStringN(1,Escape(logstr$))
   EndIf
   CompilerIf #CONSOLE
     PrintN(Escape(logstr$))
   CompilerElse
+    If Quit=0
     AddGadgetItem(#listbox_event,-1,string$)
     SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
+    EndIf
   CompilerEndIf   
 EndProcedure
+
 ;- Signal handling on linux
 CompilerIf #PB_Compiler_OS = #PB_OS_Linux
   #SIGINT = 2
@@ -327,8 +330,8 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 36
-; FirstLine = 22
+; IDE Options = PureBasic 5.40 LTS (Linux - x64)
+; CursorPosition = 117
+; FirstLine = 64
 ; Folding = --
 ; EnableXP
