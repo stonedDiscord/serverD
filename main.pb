@@ -194,7 +194,7 @@ EndProcedure
 ;- Load Settings function
 Procedure LoadSettings(reload)
   Define loadchars,loadcharsettings,loaddesc, loadevi, loadareas
-  Define iniarea,charpage,page,dur
+  Define iniarea,charpage,page,dur,ltracks
   Define track$,trackn$,hdmod$,hdban$,ipban$,ready$,area$,lgimp$,aname$
   WriteLog("Loading serverD "+version$+" settings",Server)
   If update
@@ -368,7 +368,7 @@ Procedure LoadSettings(reload)
   EndIf
   
   If ReadFile(2, "base/musiclist.txt")
-    tracks=0
+    ltracks=0
     musicpage=0
     ready$="EM#"
     While Eof(2) = 0
@@ -376,20 +376,21 @@ Procedure LoadSettings(reload)
       track$=ReadString(2) 
       trackn$=StringField(track$,1,"#")
       dur=Val(StringField(track$,2,"#"))
-      track$ = ReplaceString(track$,"%","<percent>")
+      track$ = Encode(track$)
       Music()\TrackName = track$
       Music()\Length =dur
       ready$ = ready$ + Str(tracks) + "#" + track$ + "#"
-      If tracks%10 = 9
+      If ltracks = 9
         ReadyMusic(musicpage)=ready$+"#%"
         musicpage+1
+        ltracks=0
         ReDim ReadyMusic(musicpage)
         ready$="EM#"
       EndIf
-      track$=ReplaceString(track$,".mp3","")
+      ltracks+1
       tracks+1
     Wend
-    If Not (tracks-1)%10 = 9
+    If Not ltracks = 9
       ReadyMusic(musicpage)=ready$+"#%"
     EndIf
     ReDim ReadyMusic(musicpage) 
@@ -2076,9 +2077,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 350
-; FirstLine = 300
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 196
+; FirstLine = 169
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
