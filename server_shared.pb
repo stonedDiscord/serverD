@@ -1,4 +1,8 @@
-﻿Structure area
+﻿CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
+  #MB_ICONERROR=0
+CompilerEndIf
+
+Structure area
   name.s
   bg.s
   wait.l
@@ -8,6 +12,8 @@
   players.w
   good.w
   evil.w
+  track.s
+  trackwait.i
 EndStructure
 Global Dim areas.area(100)
 Define iniarea
@@ -20,7 +26,6 @@ Next
 Structure ACharacter
   name.s
   desc.s
-  taken.w
   dj.b
   evinumber.w
   evidence.s
@@ -330,8 +335,7 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.40 LTS (Linux - x64)
-; CursorPosition = 117
-; FirstLine = 64
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 15
 ; Folding = --
 ; EnableXP

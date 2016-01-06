@@ -65,6 +65,7 @@ Enumeration
   #String_13
   #Button_31
   #Button_About
+  #Button_Load
 EndEnumeration
 
 Procedure BalloonTip(WindowID, Gadget, Text$ , Title$, Icon)
@@ -122,6 +123,7 @@ Procedure Open_Window_0()
     ButtonGadget(#Button_si, 0, 160, 20, 30, "S")
     BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
+    ButtonGadget(#Button_Load, -30, 340, 100, 30, "LOAD", #PB_Button_Right)
     ListIconGadget(#Listview_0, 70, 40, 220, 300, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
       SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
@@ -140,16 +142,12 @@ Procedure Open_Window_0()
     ButtonGadget(#Button_31,680,320,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
     Frame3DGadget(#Frame_5, 520, 0, 210, 340, "OOC")
-    CompilerIf #EASYLOG
       ListViewGadget(#listbox_event, 290, 20, 230, 320)
       AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
       AddGadgetItem(#listbox_event,0,"Check out http://stoned.ddns.net/serverd.html for updates")
       If update
         AddGadgetItem(#listbox_event,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
       EndIf
-    CompilerElse
-      EditorGadget(#listbox_event, 290, 20, 230, 320)
-    CompilerEndIf
     BalloonTip(GadgetID(#listbox_event), #listbox_event, "Shows all activity", "", #TOOLTIP_NO_ICON)
   EndIf
 EndProcedure
@@ -244,9 +242,9 @@ Procedure ConfigWindow(var)
   WritePreferenceInteger("BlockIni",GetGadgetState(#Checkbox_BlockIni))
   ClosePreferences()
 EndProcedure 
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 183
-; FirstLine = 174
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 67
+; FirstLine = 33
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0
