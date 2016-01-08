@@ -1,9 +1,71 @@
->birthday
->gs4
->cafeteria
-X-Files Theme.mp3*203
-Pylons.mp3*226
-furry.mp3*108
-Still Dre.mp3*258
+>Default
+>Alternative
+>Party
+~stop.mp3*0
+--- AA ---
+Annonce The Truth(AA).mp3*80
+OBJECTION (AA).mp3*73
+Prelude(AA).mp3*78
+PURSUIT(AA).mp3*96
+PURSUIT(AA) - variation.mp3*90
+Questioning(AA-allergo).mp3*127
+Questioning(AA-normal).mp3*105
+Trial(AA).mp3*109
+Suspence(AA).mp3*93
+--- AJ ---
+Annonce The Truth(AJ).mp3*60
+OBJECTIOM(AJ).mp3*96
+Annonce The Truth(JFA).mp3*98
+Prelude(AJ).mp3*71
+PURSUIT(AJ).mp3*109
+Questioning AJ (Allegro).mp3*103
+Questioning AJ (Moderato).mp3*80
+Trial(AJ).mp3*126
+--- JFA ---
+OBJECTION (JFA).mp3*94
+PURSUIT(JFA).mp3*82
+PURSUIT(JFA) - variation.mp3*76
+Questioning JFA (Allegro).mp3*103
+Questioning JFA (Moderato).mp3*90
+--- Miles ---
+114 Pursuit(Miles).mp3*197
+Annonce The Truth(Miles).mp3*153
+Great Revival ~ Miles Edgeworth.mp3*90
+OBJECTION(Miles).mp3*176
+Trial(Miles).mp3*276
+--- T&T ---
+Annonce The Truth(T&T).mp3*126
+OBJECTION (T&T).mp3*119
+PURSUIT(T&T) - variation.mp3*114
+PURSUIT(T&T).mp3*120
+Questioning T&T (Allegro).mp3*160
+Questioning T&T (Moderato).mp3*116
+--- Godot ---
+Godot - The Fragrance of Dark Coffee.mp3*148
+--- Others ---
+01_turnabout_courtroom_-_prologue.mp3*40
+113 Confrontation ~ Presto 2009.mp3*187
+Crises of Fate.mp3*144
+Forgotten Legend.mp3*141
+Great Revival ~ Franziska von Karma.mp3*86
+Hotline of Fate.mp3*51
+Interesting People.mp3*143
+logic_and_trick.mp3*152
+Luke Atmey ~ I Just Want Love.mp3*103
+Mystery Skulls - Money.mp3*212
+Noisy People.mp3*91
+Others ~ Guilty love.mp3*99
+Pursuit ~ I Want to Find the Truth(Orchestra).mp3*1804
+Speak up, Pup!.mp3*167
+The Great Truth Burglar.mp3*149
+--- TWEWY ---
+3DKH.mp3*289
 Sin.mp3*122
-Objection (AA).mp3*73
+Trans.mp3*199
+--- Ghost Trick ---
+Ghost Trick - 4 Minutes Before Death.mp3*905
+Ghost Trick - Countdown.mp3*464
+Ghost Trick - The World of the Dead.mp3*686
+--- MLP ---
+OBJECTION(trixie).mp3*148
+Super Trixie.mp3*148

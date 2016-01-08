@@ -6,6 +6,7 @@
 * reworked area system
 * same char can be used independently in different areas
 * looping music
+* added a simple replayer
  
 ### minimal setup (console version)
 > OS
@@ -21,7 +22,7 @@
 > HDD
 > 150 KB + logs
 
-### pro setu
+### pro setup
 > OS
 > Windows XP/Linux Kernel 2.7
 
@@ -125,6 +126,9 @@
 - /reload
 - reload the kurwalist,wodka files,etc.
 
+- /loadreplay
+- loads a replay, control it with mainchat
+
 - /lock 2
 - keep other kurwa out of your current wodka drinking contest
 
@@ -137,41 +141,22 @@
 - /unban 12.34.56.78
 - unban this kurwa
 
-** :warning: Mods can only be kicked by admins**
+**:warning:Mods can only be kicked by admins**
 
 ## FAQ
-Q: Will this change my kurwa files?
-A: only poker.ini
-Q: Are there any kurwas/kurwa code?
-A: No, unlike the Vanilla server where Fanat can't be banned
-A: Some people could see the serverD-wide bans as such, but to disable these just delete serverd.txt and reload
-Q: Then why is the result 3/52 on kurwaTotal?
-A: False positives. Google the virus names and you'll see.
-Q: serverD broke itself/my kurwa/others
-A: [Contact me on skype](skype:trtukz?chat)
-Q: I have another question
-A: [Contact me on skype](skype:trtukz?chat)
-Q: kurwa?
-A: :joy: :joy: :joy:
+- Q: Will this change my kurwa files?
+- A: only poker.ini
+- Q: Are there any kurwas/kurwa code?
+- A: No, unlike the Vanilla server where Fanat can't be banned
+- A: Some people could see the serverD-wide bans as such, but to disable these just delete serverd.txt and reload
+- Q: Then why is the result 3/52 on kurwaTotal?
+- A: False positives. Google the virus names and you'll see.
+- Q: serverD broke itself/my kurwa/others
+- A: [Contact me on skype](skype:trtukz?chat)
+- Q: I have another question
+- A: [Contact me on skype](skype:trtukz?chat)
+- Q: kurwa?
+- A: :joy: :joy: :joy:
  
-## Info
-Rooms are now configured VNO-style, file name /base/scene/[AAOPublic2]/areas.ini
-Example
-`[Areas]`
-`number = 2`
-`1 = birthday`
-`2 = gs4`
-`[filename]`
-`1 = birthday`
-`2 = gs4`
-
-Music list entries with a > as first character can be used as shortcuts for areanames
-Example:
-`>default`
-
-Music list entries following a star * and the track length in seconds can be looped
-Example:
-`Objection (AA).mp3*73`
-You also need to activate looping music through the LoopMusic switch in poker.ini
-
-## Copyright &copy; sD 2015
+## Configuration
+See the comments in the files at this repository

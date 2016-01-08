@@ -27,6 +27,8 @@ Global CommandThreading=0
 Global Dim MaskKey.a(3)
 Global Quit=0
 Global ReplayMode=0
+Global ReplayLength=0
+Global ReplayFile$=""
 Global LoopMusic=0
 Global MultiChar=1
 Global nthread=0
@@ -87,6 +89,7 @@ Global NewList HDmods.s()
 Global NewList IPbans.s()
 Global NewList SDbans.s()
 Global NewList gimps.s()
+Global NewList PReplay.s()
 Global Dim Evidences.Evidence(100)
 Global Dim Icons.l(2)
 Global Dim ReadyChar.s(10)
@@ -1035,7 +1038,7 @@ EndProcedure
 Procedure HandleAOCommand(*usagePointer.Client)
   StartProfiler()
   Define rawreceive$
-  Define comm$
+  Define comm$,rline$
   Define length,start,akchar
   Define ClientID,char
   Define msreply$
@@ -1067,7 +1070,9 @@ Procedure HandleAOCommand(*usagePointer.Client)
       Case "CH"
         SendTarget(Str(ClientID),"CHECK#%",*usagePointer)
       Case "MS"
-        If ReplayMode=0
+        If *usagePointer\perm=3
+          Sendtarget("*","MS#"+Mid(rawreceive$,7),*usagePointer)
+        ElseIf ReplayMode=0
           WriteLog("["+GetCharacterName(*usagePointer)+"@"+GetAreaName(*usagePointer)+"]["+StringField(rawreceive$,7,"#")+"]",*usagePointer)
           Debug areas(*usagePointer\area)\wait
           If areas(*usagePointer\area)\wait=0 Or *usagePointer\perm
@@ -1102,15 +1107,33 @@ Procedure HandleAOCommand(*usagePointer.Client)
             Next
             msreply$=msreply$+"%"
             Debug msreply$
-            areas(*usagePointer\area)\wait=*usagePointer\ClientID
-            CreateThread(@MSWait(),*usagePointer)
+            If *usagePointer\perm<>3
+              areas(*usagePointer\area)\wait=*usagePointer\ClientID
+              CreateThread(@MSWait(),*usagePointer)
+            EndIf
             Sendtarget("*",msreply$,*usagePointer)
             WriteReplay(rawreceive$)
           EndIf
         Else
-          Select StringField(rawreceive$,7,"#")
+          Select Trim(StringField(rawreceive$,7,"#"))
             Case "<"
+              If ListIndex(PReplay())>0
+                PreviousElement(PReplay())
+                Server\last=PReplay()
+                HandleAOCommand(Server)
+              Else
+                SendTarget("*","MS#chat#Normal#Discord#Normal#START!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              EndIf
             Case ">"
+              Debug "next"
+              If ListIndex(PReplay())<ListSize(PReplay())
+                NextElement(PReplay())
+                Server\last=PReplay()
+                Debug PReplay()
+                HandleAOCommand(Server)
+              Else
+                SendTarget("*","MS#chat#Normal#Discord#Normal#FIN!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              EndIf
             Case "Q"
               ReplayMode=0
             Default
@@ -1119,44 +1142,47 @@ Procedure HandleAOCommand(*usagePointer.Client)
         EndIf
         
       Case "MC"
-        music=0
-        LockMutex(musicmutex)
-        ForEach Music()
-          If StringField(rawreceive$,3,"#")=Music()\TrackName
-            music=1
-            mdur=Music()\Length
-            Debug Music()\Length
-            Break
-          EndIf
-        Next
-        UnlockMutex(musicmutex)
-        
-        If Not (music=0 Or *usagePointer\CID <> Val(StringField(rawreceive$,4,"#")))
-          If Left(StringField(rawreceive$,3,"#"),1)=">"
-            
-            SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,3,"#"),2))
-            
-          Else
-            If *usagePointer\ignoremc=0
-              If Characters(*usagePointer\CID)\dj
-                Debug mdur
-                areas(*usagePointer\area)\trackwait=mdur
-                areas(*usagePointer\area)\track=StringField(rawreceive$,3,"#")
-                If LoopMusic
-                  CreateThread(@TrackWait(),*usagePointer)
+        If *usagePointer\perm=3
+          Sendtarget("*","MC#"+Right(rawreceive$,length-6),*usagePointer)
+        Else
+          music=0
+          LockMutex(musicmutex)
+          ForEach Music()
+            If StringField(rawreceive$,3,"#")=Music()\TrackName
+              music=1
+              mdur=Music()\Length
+              Debug Music()\Length
+              Break
+            EndIf
+          Next
+          UnlockMutex(musicmutex)
+          
+          If Not (music=0 Or *usagePointer\CID <> Val(StringField(rawreceive$,4,"#")))
+            If Left(StringField(rawreceive$,3,"#"),1)=">"
+              
+              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,3,"#"),2))
+              
+            Else
+              If *usagePointer\ignoremc=0
+                If Characters(*usagePointer\CID)\dj
+                  Debug mdur
+                  areas(*usagePointer\area)\trackwait=mdur
+                  areas(*usagePointer\area)\track=StringField(rawreceive$,3,"#")
+                  If LoopMusic
+                    CreateThread(@TrackWait(),*usagePointer)
+                  EndIf
+                  Sendtarget("*","MC#"+Right(rawreceive$,length-6),*usagePointer)
+                  WriteReplay(rawreceive$)
                 EndIf
-                Sendtarget("*","MC#"+Right(rawreceive$,length-6),*usagePointer)
-                WriteReplay(rawreceive$)
               EndIf
             EndIf
-          EndIf
-          WriteLog("["+GetCharacterName(*usagePointer)+"] changed music to "+StringField(rawreceive$,3,"#"),*usagePointer)
-        Else
-          *usagePointer\hack=1
-          rf=1
-          WriteLog("["+GetCharacterName(*usagePointer)+"] tried changing music to "+StringField(rawreceive$,3,"#"),*usagePointer)
-        EndIf 
-        
+            WriteLog("["+GetCharacterName(*usagePointer)+"] changed music to "+StringField(rawreceive$,3,"#"),*usagePointer)
+          Else
+            *usagePointer\hack=1
+            rf=1
+            WriteLog("["+GetCharacterName(*usagePointer)+"] tried changing music to "+StringField(rawreceive$,3,"#"),*usagePointer)
+          EndIf 
+        EndIf
         ;- ooc commands
       Case "CT"
         send=0
@@ -1271,8 +1297,22 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 EndIf
                 
               Case "/loadreplay"
-                If *usagePointer\perm>1
-                  ReplayMode=1                  
+                If *usagePointer\perm>1                  
+                  ReplayFile$="base/replays/"+Mid(ctparam$,13)
+                  If ReadFile(8, ReplayFile$)
+                    ClearList(PReplay())
+                    ResetList(PReplay())
+                    While Eof(8) = 0
+                      rline$=ReadString(8)
+                      If Left(rline$,1)="#"
+                        AddElement(PReplay())
+                        PReplay()=rline$
+                      EndIf
+                    Wend
+                    ResetList(PReplay())
+                    CloseFile(8)  
+                    ReplayMode=1
+                  EndIf
                 EndIf
                 
               Case "/lock"
@@ -1819,7 +1859,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
         WriteLog("["+GetCharacterName(*usagePointer)+"] used opunMUTE",*usagePointer)
         
       Case "VERSION"
-        SendTarget(Str(ClientID),"CT#$HOST#"+version$+"%",Server)
+        SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
         
       Case "ZZ"
         If *usagePointer\CID>=0
@@ -2074,7 +2114,7 @@ Procedure Network(var)
               WriteLog(rawreceive$,*usagePointer)
             EndIf
             
-            If Not *usagePointer\last.s=rawreceive$ And *usagePointer\ignore=0
+            If ReplayMode=1 Or Not *usagePointer\last.s=rawreceive$ And *usagePointer\ignore=0 
               *usagePointer\last.s=rawreceive$
               If CommandThreading
                 CreateThread(@HandleAOCommand(),*usagePointer)
@@ -2199,8 +2239,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1127
-; FirstLine = 1116
+; CursorPosition = 2204
+; FirstLine = 2187
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

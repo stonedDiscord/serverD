@@ -7,24 +7,20 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-01-06 04:58" user="Sven" host="SPC"/>
+    <lastopen date="2016-01-08 05:08" user="Sven" host="SPC"/>
   </section>
   <section name="files">
-    <file name="checker.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="8527051c5c140a934fa2a44be3766a58"/>
-    </file>
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
       <fingerprint md5="f394641517ae50b970adf907d0d5ae67"/>
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="60d68b5f4284b3e9650894150302529d"/>
+      <fingerprint md5="70d32e9589ef4913ccdf5ad1d00500a9"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="7c7e0d2de5c5a210ec0fb598d7031a07"/>
+      <fingerprint md5="81f5d21faf6ae858a7d90c194b38b031"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -34,7 +30,7 @@
   <section name="targets">
     <target name="serverD" enabled="1" default="1">
       <inputfile value="main.pb"/>
-      <outputfile value="build/serverD.exe"/>
+      <outputfile value="build\serverD.exe"/>
       <compiler version="PureBasic 5.31 (Windows - x86)"/>
       <executable value="build\serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
@@ -42,8 +38,8 @@
       <icon enable="1">../dolan.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="940"/>
-      <buildcount enable="1" value="120"/>
+      <compilecount enable="1" value="951"/>
+      <buildcount enable="1" value="121"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>
@@ -70,15 +66,15 @@
     </target>
     <target name="serverDco" enabled="1" default="0">
       <inputfile value="main.pb"/>
-      <outputfile value="build/serverDco.exe"/>
+      <outputfile value="build\serverDco.exe"/>
       <compiler version="PureBasic 5.31 (Windows - x86)"/>
       <executable value="build\serverDco.exe"/>
       <options thread="1"/>
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="940"/>
-      <buildcount enable="1" value="120"/>
+      <compilecount enable="1" value="951"/>
+      <buildcount enable="1" value="121"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,0,0,0"/>

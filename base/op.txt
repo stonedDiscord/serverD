@@ -1,0 +1,2 @@
+#put IPs and HDs here which are automatically given moderator rights
+127.0.0.1
