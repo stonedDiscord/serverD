@@ -1,5 +1,6 @@
 # serverD
 ## headache
+You can find the downloads in the release tab
 
 ### changelog
 * fixed musiclist off-by-one
@@ -35,19 +36,11 @@
 > HDD
 > 400 KB + a few MB of logs
 
-### update instructions
-1. Place serverD in the same folder as your old
+### setup
+1. Drop your copy of serverD in an empty folder
 2. Start serverD
-3. kurwa
-4. Check the Public Server Mode box to make your server appear on the serverlist.
-
-### fresh install
-1. Copy AOs server folder whereever you want
-2. Inside that folder drop your copy of serverD
-3. Edit the config files
-4. Start serverD
-5. kurwa
-6. Check the Public Server Mode box to make your server appear on the serverlist.
+3. ur done lol
+by default it's running on port 27016
 
 ## Congratulations, your new serverD is now kurwa! Try [this](https://docs.google.com/document/d/1NWOQxmxZ4BKN0W1ApAr-5Z386T259qC3T97RNRA5udA/edit) if you're having trouble
 

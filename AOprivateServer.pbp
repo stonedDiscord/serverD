@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://www.purebasic.com/namespace" version="1.0" creator="PureBasic 5.31 (Windows - x86)">
+<project xmlns="http://www.purebasic.com/namespace" version="1.0" creator="PureBasic 5.11 (Windows - x64)">
   <section name="config">
     <options closefiles="1" openmode="0" name="MITMserver II"/>
   </section>
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-01-08 05:08" user="Sven" host="SPC"/>
+    <lastopen date="2016-01-20 16:20" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,25 +20,27 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="81f5d21faf6ae858a7d90c194b38b031"/>
+      <fingerprint md5="63ca1f095877382a1ae0e1d5d4af665b"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="259e8170ceee695a92570ed9b4991212"/>
+      <fingerprint md5="1ea97b8349f647f6cbfab27881e9feac"/>
     </file>
   </section>
   <section name="targets">
     <target name="serverD" enabled="1" default="1">
       <inputfile value="main.pb"/>
       <outputfile value="build\serverD.exe"/>
-      <compiler version="PureBasic 5.31 (Windows - x86)"/>
+      <compiler version="PureBasic 5.11 (Windows - x64)"/>
       <executable value="build\serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
       <purifier enable="1" granularity="1,1,1,1"/>
-      <icon enable="1">../dolan.ico</icon>
+      <icon enable="1">
+        ../dolan.ico
+      </icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="951"/>
+      <compilecount enable="1" value="965"/>
       <buildcount enable="1" value="121"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -67,10 +69,12 @@
     <target name="serverDco" enabled="1" default="0">
       <inputfile value="main.pb"/>
       <outputfile value="build\serverDco.exe"/>
-      <compiler version="PureBasic 5.31 (Windows - x86)"/>
+      <compiler version="PureBasic 5.11 (Windows - x64)"/>
       <executable value="build\serverDco.exe"/>
       <options thread="1"/>
-      <icon enable="0">owner.ico</icon>
+      <icon enable="0">
+        owner.ico
+      </icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
       <compilecount enable="1" value="951"/>

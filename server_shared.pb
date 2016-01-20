@@ -1,6 +1,27 @@
 ﻿CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
   #MB_ICONERROR=0
+  Global libext$=".so"
+CompilerElse
+  Global libext$=".dll"
 CompilerEndIf
+
+Structure Plugin
+  ID.i
+  version.i
+  name.s
+  description.s
+  *rawfunction
+  *gtarget
+  *gmessage
+  *gcallback
+  active.b
+EndStructure
+Global NewList Plugins.Plugin()
+
+Prototype.i PPluginVersion()
+Prototype.l PPluginName()
+Prototype.l PPluginDescription()
+Prototype.i PPluginRAW()
 
 Structure area
   name.s
@@ -335,7 +356,7 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.31 (Windows - x86)
+; IDE Options = PureBasic 5.11 (Windows - x64)
 ; CursorPosition = 15
 ; Folding = --
 ; EnableXP

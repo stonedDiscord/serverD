@@ -1,4 +1,3 @@
-EnableExplicit
 ; yes this is the legit serverD source code please report bugfixes/modifications/feature requests to sD/trtukz on skype
 
 CompilerIf #PB_Compiler_Debugger=0
@@ -188,7 +187,7 @@ EndProcedure
 ;- Load Settings function
 Procedure LoadSettings(reload)
   Define loadchars,loadcharsettings,loaddesc, loadevi, loadareas
-  Define iniarea,charpage,page,dur,ltracks
+  Define iniarea,charpage,page,dur,ltracks,nplg
   Define track$,trackn$,hdmod$,hdban$,ipban$,ready$,area$,lgimp$,aname$
   WriteLog("Loading serverD "+version$+" settings",Server)
   If update
@@ -515,6 +514,38 @@ Procedure LoadSettings(reload)
     Wend
     CloseFile(2)
   EndIf
+  
+  CloseLibrary(#PB_All)
+  If ExamineDirectory(0, "plugins/", "*"+libext$)  
+    While NextDirectoryEntry(0)
+      If DirectoryEntryType(0) = #PB_DirectoryEntry_File
+        Debug "file"
+        If OpenLibrary(nplg,"plugins/"+DirectoryEntryName(0))
+          PluginVersion.PPluginVersion = GetFunction(nplg,"PluginVersion")
+          Debug "loading"
+          If PluginVersion() >= 1
+            Debug "checked"
+            AddElement(Plugins())
+            Plugins()\version=PluginVersion()
+          Plugins()\ID=nplg
+          PluginName.PPluginName = GetFunction(nplg,"PluginName")
+          PluginDescription.PPluginDescription = GetFunction(nplg,"PluginDescription")
+          
+          Plugins()\rawfunction = GetFunction(nplg,"PluginRAW")
+          Plugins()\gtarget = GetFunction(nplg,"SetTarget")
+          Plugins()\gmessage = GetFunction(nplg,"SetMessage")
+          Plugins()\gcallback = GetFunction(nplg,"StatusCallback")
+          
+          Plugins()\name = PeekS(PluginName())
+          Plugins()\description = PeekS(PluginDescription())
+          Plugins()\active=1
+        EndIf
+      EndIf
+      EndIf
+    Wend
+    FinishDirectory(0)
+  EndIf
+  
   
 EndProcedure
 
@@ -973,6 +1004,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
   Define ir
   Define sendd=0
   For ir=0 To Aareas-1
+    areas(ir)\players=0
     Debug areas(ir)\name
     If areas(ir)\name = narea$
       narea$ = Str(ir)
@@ -988,6 +1020,9 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
       If Clients()\area=Val(narea$) Or MultiChar=0
         sendd=1
       EndIf
+      If Clients()\area>=0
+        areas(Clients()\area)\players+1
+      EndIf
     EndIf
   Wend
   PopMapPosition(Clients())
@@ -1000,6 +1035,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
     If sendd=1
       *usagePointer\CID=-1
       SendDone(*usagePointer)
+      SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
     Else
       SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(0)\bg+"#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
@@ -1018,6 +1054,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
         If sendd=1
           *usagePointer\CID=-1
           SendDone(*usagePointer)
+          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
         Else
           SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
           SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
@@ -1099,6 +1136,18 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 EndIf              
               ElseIf i=8 And Len(mss$)<>3
                 msreply$=msreply$+"def#"
+              ElseIf i=10
+                ir=Val(mss$)
+                Select ir ;fuck off guys
+                  Case 0
+                    msreply$=msreply$+"0#"
+                  Case 1
+                    msreply$=msreply$+"1#"
+                  Case 5
+                    msreply$=msreply$+"5#"
+                  Default
+                    *usagePointer\hack=1
+                EndSelect
               ElseIf i=17 And mss$=Str(modcol) And Not *usagePointer\perm
                 msreply$=msreply$+"0#"
               Else
@@ -1490,8 +1539,9 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 
               Case "/sendall"
                 If *usagePointer\perm
-                  reply$=Mid(ctparam$,10)
-                  reply$=Escape(reply$)
+                  smes$=Mid(ctparam$,10)
+                  smes$=Escape(smes$)
+                  SendTarget("*",smes$,Server)
                 EndIf
                 
               Case "/reload"
@@ -1906,6 +1956,9 @@ Procedure Network(var)
           areas(Clients()\area)\lock=0
           areas(Clients()\area)\mlock=0
         EndIf
+        If Clients()\area>=0
+          areas(Clients()\area)\players-1
+        EndIf
         DeleteMapElement(Clients(),Str(ClientID))
         rf=1
       EndIf
@@ -2121,6 +2174,12 @@ Procedure Network(var)
               Else
                 HandleAOCommand(*usagePointer)
               EndIf
+              If ListSize(Plugins())
+                ResetList(Plugins())
+                While NextElement(Plugins())
+                  CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+                  Wend
+                EndIf
             EndIf
             sc+1
           Wend
@@ -2133,7 +2192,9 @@ Procedure Network(var)
               areas(Clients()\area)\lock=0
               areas(Clients()\area)\mlock=0
             EndIf
-            areas(Clients()\area)\players-1
+            If Clients()\area>=0
+              areas(Clients()\area)\players-1
+            EndIf
             DeleteMapElement(Clients(),Str(ClientID))
             rf=1
           EndIf
@@ -2238,9 +2299,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2204
-; FirstLine = 2187
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 1543
+; FirstLine = 1509
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

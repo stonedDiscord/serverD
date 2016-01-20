@@ -1,3 +1,4 @@
+' this script will create a looping musiclist for you from any folder containing mp3 files
 Set objFS = CreateObject("Scripting.FileSystemObject")
 Set objPlayer = createobject("wmplayer.ocx.7")
 inFolder="U:\AOVanilla1.7.3\AOVanilla1.7.41\client\base\sounds\music" 'music folder here
