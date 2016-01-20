@@ -1,32 +1,7 @@
 ﻿Global PluginName$="Test Plugin"
-Global PluginDesc$="This Plugin tests the plugin system"
-
-#CONSOLE=1
-#WEB=0
-
-Structure Client
-  ClientID.l
-  IP.s
-  AID.w
-  CID.w
-  sHD.b
-  HD.s
-  perm.w
-  ignore.b
-  ignoremc.b
-  hack.b
-  gimp.b
-  area.w
-  last.s
-  cconnect.b
-  ooct.b
-  judget.b
-  websocket.b
-  username.s
-  RAW.b
-  master.b
-  Inventory.i[100]
-EndStructure
+Global PluginDesc$="This Test Plugin listens for the new WURST#% command and shows a messagebox + a message in ooc chat"
+Global wursti=0
+XIncludeFile "shared_headers.pb"
 
 ProcedureDLL.i PluginVersion()
   
@@ -48,20 +23,35 @@ EndProcedure
 
 ProcedureDLL.i PluginRAW(*usagePointer.Client)
   
-  MessageRequester("plg",*usagePointer\last.s)
-  
+  If *usagePointer\last="WURST#%"
+    MessageRequester("plugin","alles wird aus hack gemacht")
+    wursti=1
+  EndIf
 EndProcedure
 
-ProcedureDLL.i SetTarget()
+ProcedureDLL.s SetTarget()
+  ProcedureReturn "*"
 EndProcedure
 
-ProcedureDLL.i SetMessage()
+ProcedureDLL.s SetMessage()
+  ProcedureReturn "CT#stonedDiscord#sag mal guten tag#%"
 EndProcedure
 
-ProcedureDLL.i StatusCallback()
+ProcedureDLL.i StatusCallback(pStat)
+  Select pStat
+    Case  #NONE
+    Case #DATA
+    Case  #CONN
+    Case #DISC
+    Case #SEND
+      If wursti=1      
+        wursti=0
+        ProcedureReturn #SEND
+      EndIf
+  EndSelect
 EndProcedure
 ; IDE Options = PureBasic 5.11 (Windows - x64)
 ; ExecutableFormat = Shared Dll
-; CursorPosition = 28
+; CursorPosition = 46
 ; Folding = --
 ; Executable = plugins\test.dll

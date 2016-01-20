@@ -5,17 +5,8 @@ CompilerElse
   Global libext$=".dll"
 CompilerEndIf
 
-Structure Plugin
-  ID.i
-  version.i
-  name.s
-  description.s
-  *rawfunction
-  *gtarget
-  *gmessage
-  *gcallback
-  active.b
-EndStructure
+XIncludeFile "shared_headers.pb"
+
 Global NewList Plugins.Plugin()
 
 Prototype.i PPluginVersion()
@@ -23,19 +14,7 @@ Prototype.l PPluginName()
 Prototype.l PPluginDescription()
 Prototype.i PPluginRAW()
 
-Structure area
-  name.s
-  bg.s
-  wait.l
-  lock.l
-  mlock.w
-  pw.s
-  players.w
-  good.w
-  evil.w
-  track.s
-  trackwait.i
-EndStructure
+
 Global Dim areas.area(100)
 Define iniarea
 For iniarea=0 To 100 
@@ -44,14 +23,7 @@ For iniarea=0 To 100
   areas(iniarea)\mlock=0
 Next
 
-Structure ACharacter
-  name.s
-  desc.s
-  dj.b
-  evinumber.w
-  evidence.s
-  pw.s
-EndStructure
+
 Global Dim Characters.ACharacter(100)
 
 Structure Track
@@ -60,29 +32,7 @@ Structure Track
 EndStructure
 Global NewList Music.Track()
 
-Structure Client
-  ClientID.l
-  IP.s
-  AID.w
-  CID.w
-  sHD.b
-  HD.s
-  perm.w
-  ignore.b
-  ignoremc.b
-  hack.b
-  gimp.b
-  area.w
-  last.s
-  cconnect.b
-  ooct.b
-  judget.b
-  websocket.b
-  username.s
-  RAW.b
-  master.b
-  Inventory.i[100]
-EndStructure
+
 Global Server.Client
 Server\ClientID=0
 Server\IP="$HOST"
@@ -100,21 +50,7 @@ Server\RAW=0
 Server\username="$HOST"
 Global NewMap Clients.Client()
 
-Enumeration
-  #KICK
-  #DISCO
-  #BAN
-  #IDBAN
-  #MUTE
-  #UNMUTE
-  #CIGNORE
-  #UNIGNORE
-  #UNDJ
-  #DJ
-  #GIMP
-  #UNGIMP
-  #SWITCH
-EndEnumeration
+
 
 Structure Action
   IP.s
@@ -357,6 +293,6 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 15
+; CursorPosition = 7
 ; Folding = --
 ; EnableXP

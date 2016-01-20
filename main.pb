@@ -2177,7 +2177,19 @@ Procedure Network(var)
               If ListSize(Plugins())
                 ResetList(Plugins())
                 While NextElement(Plugins())
+                  pStat=#NONE
+                  CallFunctionFast(Plugins()\gcallback,#DATA)
+                  
+     
                   CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+                  
+                  pStat=CallFunctionFast(Plugins()\gcallback,#SEND)
+                  
+                  If pStat=#SEND
+                    ptarget$=PeekS(CallFunctionFast(Plugins()\gtarget))
+                    pmes$=PeekS(CallFunctionFast(Plugins()\gmessage))
+                    SendTarget(ptarget$,pmes$,Server)
+                    EndIf
                   Wend
                 EndIf
             EndIf
@@ -2300,8 +2312,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 1543
-; FirstLine = 1509
+; CursorPosition = 2189
+; FirstLine = 2186
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
