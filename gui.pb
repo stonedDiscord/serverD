@@ -16,7 +16,7 @@ Procedure RefreshList(var)
       If Clients()\hack
         listicon=ImageID(2)
       EndIf
-      AddGadgetItem(#Listview_0,i,Clients()\IP+Chr(10)+GetCharacterName(Clients())+Chr(10)+Str(Clients()\CID),listicon)
+      AddGadgetItem(#Listview_0,i,Clients()\IP+Chr(10)+GetCharacterName(Clients())+Chr(10)+GetAreaName(Clients())+Chr(10)+Clients()\HD,listicon)
       SetGadgetItemData(#Listview_0,i,Clients()\ClientID)
       i+1
     Wend
@@ -63,7 +63,7 @@ Repeat ; Start of the event loop
   Define lvstate,cldata,ooclient,logclid,b
   If success
     NStatus=Network(0)
-    EndIf
+  EndIf
   Event = WaitWindowEvent(LagShield) ; This line waits until an event is received from Windows
   WindowID = EventWindow()  ; The Window where the event is generated, can be used in the gadget procedures
   GadgetID = EventGadget()  ; Is it a gadget event?
@@ -81,42 +81,42 @@ Repeat ; Start of the event loop
       
       Select GadgetID 
         Case #Button_kk ;KICK
-          KickBan(Str(cldata),#KICK,Server)
+          KickBan(Str(cldata),"",#KICK,Server)
           cldata=-1
           
         Case #Button_sw ;SWITCH
-          KickBan(Str(cldata),#SWITCH,Server)
+          KickBan(Str(cldata),"",#SWITCH,Server)
           
         Case #Button_mu ;MUTE
           Debug cldata
-          KickBan(Str(cldata),#MUTE,Server)
+          KickBan(Str(cldata),"",#MUTE,Server)
           
         Case #Button_um ;UNMUTE
-          KickBan(Str(cldata),#UNMUTE,Server)
+          KickBan(Str(cldata),"",#UNMUTE,Server)
           
         Case #Button_kb ;BAN 
-          KickBan(Str(cldata),#BAN,Server)
+          KickBan(Str(cldata),"",#BAN,Server)
           cldata=-1
           
         Case #Button_hd ;HDBAN
-          KickBan(*clickedClient\HD,#BAN,Server)
+          KickBan(*clickedClient\HD,"",#BAN,Server)
           cldata=-1
           
         Case #Button_dc ;DISCONNECT
-          KickBan(Str(cldata),#DISCO,Server)
+          KickBan(Str(cldata),"",#DISCO,Server)
           cldata=-1     
           
         Case #Button_ig ;IGNORE
-          KickBan(Str(cldata),#CIGNORE,Server)
+          KickBan(Str(cldata),"",#CIGNORE,Server)
           
         Case #Button_si ; STOP IGNORING ME
-          KickBan(Str(cldata),#UNIGNORE,Server)
+          KickBan(Str(cldata),"",#UNIGNORE,Server)
           
         Case #Button_ndj ;IGNORE MUSIC
-          KickBan(Str(cldata),#UNDJ,Server)
+          KickBan(Str(cldata),"",#UNDJ,Server)
           
         Case #Button_dj ; STOP IGNORING MY MUSIC
-          KickBan(Str(cldata),#DJ,Server)
+          KickBan(Str(cldata),"",#DJ,Server)
           
       EndSelect
       
@@ -166,11 +166,26 @@ Repeat ; Start of the event loop
           Else
             SetWindowColor(0, RGB(128,0,0))
             SetGadgetText(#Button_2,"RETRY")  
-            EndIf
+          EndIf
         EndIf
         
       Case #Button_4 ;CONFIG
         CreateThread(@ConfigWindow(),0) 
+        
+      Case #Button_Load              
+        ReplayFile$=OpenFileRequester("Open a replay",GetCurrentDirectory()+"/base/replays/","Replays (*.txt)|*.txt|All files (*.*)|*.*",1)
+        If ReadFile(8, ReplayFile$)
+          ClearList(PReplay())
+          ResetList(PReplay())
+          While Eof(8) = 0
+            rline$=ReadString(8)
+            AddElement(PReplay())
+            ReplayMode=1
+            PReplay()=rline$
+          Wend
+          ResetList(PReplay())
+          CloseFile(8)
+        EndIf
         
       Case #Button_About
         MessageRequester("serverD","This is serverD version "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)+Chr(10)+"(c) stonedDiscord 2014-2015"+Chr(10)+"no one helped me with this, especially not FanatSors")
@@ -225,8 +240,8 @@ DataSection
   IncludeBinary "serverd.png"
   bannerend:
 EndDataSection
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 49
-; FirstLine = 17
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 18
+; FirstLine = 2
 ; Folding = -
 ; EnableXP

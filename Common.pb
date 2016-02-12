@@ -94,8 +94,8 @@ Procedure BalloonTip(WindowID, Gadget, Text$ , Title$, Icon)
 EndProcedure
 
 Procedure Open_Window_0()
-  If OpenWindow(#Window_0   , 301, 185, 730, 339, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
-    Frame3DGadget(#Frame_0, 0, 0, 290, 350, "Serverside")
+  If OpenWindow(#Window_0   , 300, 180, 730, 370, "serverD",  #PB_Window_SystemMenu | #PB_Window_MinimizeGadget | #PB_Window_MaximizeGadget | #PB_Window_SizeGadget | #PB_Window_TitleBar )
+    Frame3DGadget(#Frame_0, 0, 0, 290, 370, "Serverside")
     CheckBoxGadget(#CheckBox_MS, 10, 15, 110, 20, "Public server mode")
     BalloonTip(GadgetID(#CheckBox_MS), #CheckBox_MS, "Makes this server appear on the Masterserver list", "", #TOOLTIP_NO_ICON)
     StringGadget(#String_5, 210, 15, 70, 22, "27015", #PB_String_Numeric)
@@ -124,25 +124,26 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
     ButtonGadget(#Button_Load, -30, 340, 100, 30, "LOAD", #PB_Button_Right)
-    ListIconGadget(#Listview_0, 70, 40, 220, 300, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    ListIconGadget(#Listview_0, 70, 40, 220, 330, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
       SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
     CompilerEndIf
     AddGadgetColumn(#Listview_0, 1, "Character", 80)
-    AddGadgetColumn(#Listview_0, 2, "PV", 30)
+    AddGadgetColumn(#Listview_0, 2, "Area", 50)
+    AddGadgetColumn(#Listview_0, 3, "HDID", 80)
     BalloonTip(GadgetID(#Listview_0), #Listview_0, "Shows all connected clients", "", #TOOLTIP_NO_ICON)
     ButtonGadget(#Button_dj, 40, 250, 30, 30, "DJ")
     BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_ndj, -20, 250, 60, 30, "UN", #PB_Button_Right)
     BalloonTip(GadgetID(#Button_ndj), #Button_ndj, "Stops this client from changing the music", "", #TOOLTIP_INFO_ICON)
     Frame3DGadget(#Frame_4, 290, 0, 230, 340, "Log")
-    ListIconGadget(#ListIcon_2, 520, 20, 210, 300, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    ListIconGadget(#ListIcon_2, 520, 20, 210, 330, "Name", 80, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     AddGadgetColumn(#ListIcon_2, 1, "Message", 100)
-    StringGadget(#String_13,520,320,160,20,"")
-    ButtonGadget(#Button_31,680,320,50,20,"SEND")
+    StringGadget(#String_13,520,350,160,20,"")
+    ButtonGadget(#Button_31,680,350,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
-    Frame3DGadget(#Frame_5, 520, 0, 210, 340, "OOC")
-      ListViewGadget(#listbox_event, 290, 20, 230, 320)
+    Frame3DGadget(#Frame_5, 520, 0, 210, 370, "OOC")
+      ListViewGadget(#listbox_event, 290, 20, 230, 350)
       AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
       AddGadgetItem(#listbox_event,0,"Check out http://stoned.ddns.net/serverd.html for updates")
       If update
@@ -243,8 +244,8 @@ Procedure ConfigWindow(var)
   ClosePreferences()
 EndProcedure 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 67
-; FirstLine = 33
+; CursorPosition = 132
+; FirstLine = 95
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

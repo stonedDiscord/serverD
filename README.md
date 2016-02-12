@@ -1,13 +1,12 @@
 # serverD
-## headache
+## DER BASS MUSS FICKEN!
 You can find the downloads in the release tab
 
 ### changelog
-* fixed musiclist off-by-one
-* reworked area system
-* same char can be used independently in different areas
-* looping music
-* added a simple replayer
+* tempbans now possible
+* fixed an area bug
+* same char bug fixed
+* cleanups
  
 ### minimal setup (console version)
 > OS
@@ -68,6 +67,12 @@ by default it's running on port 27016
 
 - /evi 3
 - gives you wodka no3
+
+- /online
+- shows how many people are online
+
+- /version
+- show the version number
  
 #### for mods
 - /ip
@@ -97,23 +102,23 @@ by default it's running on port 27016
 - /unignore Doge
 - wodka
 
-- /undj Vinyl
-- kurwa
+- /undj Phoenix
+- keep this client from changing the music
 
-- /dj Vinyl
-- wodka
+- /dj Phoenix
+- makes 
 
-- /gimp Vinyl
-- kurwa
+- /gimp Miles
+- make this client talk nonsense
 
-- /ungimp Vinyl
+- /ungimp Miles
 - wodka
 
 - /play Pursuit(HY).mp3
 - play a kurwa thats not on wodkalist
 
 - /bg zetta
-- change the wodka
+- change the background
 
 #### for admins
 - /reload
@@ -121,6 +126,9 @@ by default it's running on port 27016
 
 - /loadreplay
 - loads a replay, control it with mainchat
+
+- /stop
+- stop the server
 
 - /lock 2
 - keep other kurwa out of your current wodka drinking contest

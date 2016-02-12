@@ -50,17 +50,24 @@ Server\RAW=0
 Server\username="$HOST"
 Global NewMap Clients.Client()
 
-
-
-Structure Action
-  IP.s
-  type.i  
-EndStructure
 Global NewList Actions.Action()
 
-#CRLF$ = Chr(13)+Chr(10)
+Procedure.s ValidateChars(source.s)
+  Protected i, *ptrChar.Character, length = Len(source), result.s
+  *ptrChar = @source
+  For i = 1 To length
+    If *ptrChar\c > 31
+      If *ptrChar\c<>127 And *ptrChar\c<>129
+        result + Chr(*ptrChar\c)
+        EndIf
+    EndIf
+    *ptrChar + SizeOf(Character)
+  Next
+  ProcedureReturn result 
+EndProcedure
 
 Procedure.s Encode(smes$)
+  smes$=ValidateChars(smes$)
   smes$=ReplaceString(smes$,"%n",#CRLF$)
   smes$=ReplaceString(smes$,"$n",#CRLF$)
   smes$=ReplaceString(smes$,"#","<num>")
@@ -292,7 +299,8 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 7
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 69
+; FirstLine = 27
 ; Folding = --
 ; EnableXP

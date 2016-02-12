@@ -1,4 +1,11 @@
-﻿Structure Plugin
+﻿#CRLF$ = Chr(13)+Chr(10)
+
+Structure Action
+  IP.s
+  type.i  
+EndStructure
+
+Structure Plugin
   ID.i
   version.i
   name.s
@@ -65,6 +72,13 @@ Structure Client
   Inventory.i[100]
 EndStructure
 
+Structure TempBan
+  banned.s
+  reason.s
+  type.b
+  time.l
+EndStructure
+
 Enumeration
   #KICK
   #DISCO
@@ -79,8 +93,9 @@ Enumeration
   #GIMP
   #UNGIMP
   #SWITCH
+  #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 13
-; FirstLine = 12
+; CursorPosition = 77
+; FirstLine = 29
 ; EnableXP
