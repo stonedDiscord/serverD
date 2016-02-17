@@ -597,7 +597,7 @@ Procedure SendTarget(user$,message$,*sender.Client)
   Else
     ResetMap(Clients())
     While NextMapElement(Clients())
-      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or (everybody And (*sender\area=Clients()\area Or *sender\area=-1)) And Clients()\master=*sender\master
+      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$="Area"+Str(Clients()\area) Or (everybody And (*sender\area=Clients()\area Or *sender\area=-1)) And Clients()\master=*sender\master
         If Clients()\websocket
           CompilerIf #WEB
             Websocket_SendTextFrame(Clients()\ClientID,message$)
@@ -633,23 +633,25 @@ Procedure MSWait(*usagePointer.Client)
 EndProcedure
 
 Procedure TrackWait(*usagePointer.Client)
+  Define stoploop
   If LoopMusic
     Define wttime,wtarea,track$
     wtarea=*usagePointer\area
     track$=areas(*usagePointer\area)\track
     wttime=areas(*usagePointer\area)\trackwait
     Debug wttime
+    stoploop=0
     If wttime
-      musicloop:
+      Repeat
       Debug "waiting"
       Delay(wttime)
       Debug "done waiting"
       If areas(wtarea)\track=track$
-        Server\area=wtarea
-        SendTarget("*","MC#"+track$+"#"+Str(characternumber)+"#%",Server)
-        Server\area=-1
-        Goto musicloop
+        SendTarget("Area"+Str(wtarea),"MC#"+track$+"#"+Str(characternumber)+"#%",Server)
+      Else
+        stoploop=1
       EndIf
+      Until stoploop=1
     EndIf
   EndIf
 EndProcedure
@@ -1090,7 +1092,7 @@ EndProcedure
 
 Procedure HandleAOCommand(*usagePointer.Client)
   StartProfiler()
-  Define rawreceive$
+  Define rawreceive$,subcommand$
   Define comm$,rline$
   Define length,start,akchar
   Define ClientID,char,coff
@@ -1189,7 +1191,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
             areas(*usagePointer\area)\wait=*usagePointer\ClientID
             CreateThread(@MSWait(),*usagePointer)
           EndIf
-          Sendtarget("*",msreply$,*usagePointer)
+          Sendtarget("Area"+Str(*usagePointer\area),msreply$,*usagePointer)
           WriteReplay(rawreceive$)
         EndIf
       Else
@@ -1250,7 +1252,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 If LoopMusic
                   CreateThread(@TrackWait(),*usagePointer)
                 EndIf
-                Sendtarget("*","MC#"+Mid(rawreceive$,coff),*usagePointer)
+                Sendtarget("Area"+Str(*usagePointer\area),"MC#"+Mid(rawreceive$,coff),*usagePointer)
                 WriteReplay(rawreceive$)
               EndIf
             EndIf
@@ -1323,7 +1325,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
               If *usagePointer\perm                            
                 bgcomm$=Mid(ctparam$,5)
                 areas(*usagePointer\area)\bg=bgcomm$
-                Sendtarget("*","BN#"+bgcomm$+"#%",*usagePointer)                      
+                Sendtarget("Area"+Str(*usagePointer\area),"BN#"+bgcomm$+"#%",*usagePointer)                      
               EndIf
               
             Case "/switch"
@@ -1489,7 +1491,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                   PushMapPosition(Clients())
                   ResetMap(Clients())
                   While NextMapElement(Clients())
-                    WriteStringN(33,Str(Clients()\ClientID))
+                    WriteStringN(33,"Client "+Str(Clients()\ClientID))
                     WriteStringN(33,Clients()\IP)
                     WriteStringN(33,Str(Clients()\CID))
                     WriteStringN(33,Str(Clients()\perm))
@@ -1499,6 +1501,17 @@ Procedure HandleAOCommand(*usagePointer.Client)
                   Wend
                   PopMapPosition(Clients())
                   UnlockMutex(ListMutex)
+                  LockMutex(ListMutex)
+                  For sa=0 To areas
+                    WriteStringN(33,"Area "+Str(sa))
+                    WriteStringN(33,Areas(sa)\name)
+                    WriteStringN(33,Areas(sa)\bg)
+                    WriteStringN(33,Str(Areas(sa)\players))
+                    WriteStringN(33,Str(Areas(sa)\lock))
+                    WriteStringN(33,Str(Areas(sa)\mlock))
+                    WriteStringN(33,Areas(sa)\track)
+                    WriteStringN(33,Str(Areas(sa)\trackwait))
+                  Next
                   CloseFile(33)
                 EndIf
               EndIf
@@ -1549,7 +1562,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
               Else
                 random$=Str(Random(dicemax))
               EndIf              
-              Sendtarget("*","CT#$HOST#"+GetCharacterName(*usagePointer)+" rolled "+random$+" out of "+Str(dicemax)+"#%",Server)
+              Sendtarget("Area"+Str(*usagePointer\area),"CT#$HOST#"+GetCharacterName(*usagePointer)+" rolled "+random$+" out of "+Str(dicemax)+"#%",Server)
               
             Case "/pm"                    
               sname$=StringField(rawreceive$,3,"#")
@@ -1582,7 +1595,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
             Case "/play"
               If *usagePointer\perm                
                 song$=Right(ctparam$,Len(ctparam$)-6)
-                SendTarget("*","MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
+                SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
               EndIf
               
             Case "/hd"
@@ -1715,7 +1728,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
           EndSelect
         Else
           *usagePointer\last.s=rawreceive$
-          SendTarget("*","CT#"+*usagePointer\username+"#"+StringField(rawreceive$,4,"#")+"#%",*usagePointer)
+          SendTarget("Area"+Str(*usagePointer\area),"CT#"+*usagePointer\username+"#"+StringField(rawreceive$,4,"#")+"#%",*usagePointer)
           CompilerIf #CONSOLE=0
             AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+StringField(rawreceive$,4,"#"))
             Debug "guys"
@@ -1735,10 +1748,10 @@ Procedure HandleAOCommand(*usagePointer.Client)
           WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
           If StringField(rawreceive$,3,"#")="1"
             Areas(*usagePointer\area)\good=bar
-            SendTarget("*","HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
+            SendTarget("Area"+Str(*usagePointer\area),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
           ElseIf StringField(rawreceive$,3,"#")="2"
             Areas(*usagePointer\area)\evil=bar
-            SendTarget("*","HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
+            SendTarget("Area"+Str(*usagePointer\area),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
           EndIf
           send=1
         EndIf
@@ -1751,7 +1764,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
     Case "RT"
       If *usagePointer\CID>=0
         If rt=1
-          Sendtarget("*","RT#"+Mid(rawreceive$,coff),*usagePointer)
+          Sendtarget("Area"+Str(*usagePointer\area),"RT#"+Mid(rawreceive$,coff),*usagePointer)
         EndIf
       Else
         *usagePointer\hack=1
@@ -2195,17 +2208,20 @@ Procedure Network(var)
               EndSelect
             EndIf
           CompilerEndIf
-          rawreceive$=ValidateChars(rawreceive$)
+          
           sc=1
           While StringField(rawreceive$,sc,"%")<>""
-            length=Len(rawreceive$)
+            subcommand$=StringField(rawreceive$,sc,"%")+"%"
+            
+            subcommand$$=ValidateChars(subcommand$$)
+            length=Len(subcommand$$)
             
             If ExpertLog
-              WriteLog(rawreceive$,*usagePointer)
+              WriteLog(subcommand$,*usagePointer)
             EndIf
             
-            If ReplayMode=1 Or Not *usagePointer\last.s=rawreceive$ And *usagePointer\ignore=0 
-              *usagePointer\last.s=rawreceive$
+            If ReplayMode=1 Or Not *usagePointer\last.s=subcommand$ And *usagePointer\ignore=0 
+              *usagePointer\last.s=subcommand$
               If CommandThreading
                 CreateThread(@HandleAOCommand(),*usagePointer)
               Else
@@ -2334,10 +2350,10 @@ CompilerElse
       EndIf
       DeleteMapElement(Clients())
     Wend
-    CloseNetworkServer(0)
     killed=1
+    UnlockMutex(ListMutex)    
+    CloseNetworkServer(0)
     FreeMemory(*Buffer)
-    UnlockMutex(ListMutex)
   Else
     WriteLog("server creation failed",Server)
   EndIf
@@ -2346,8 +2362,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1981
-; FirstLine = 1953
+; CursorPosition = 1985
+; FirstLine = 2198
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
