@@ -35,7 +35,7 @@ Global error=0
 Global lasterror=0
 Global WebSockets=0
 Global Logging.b=0
-Global LagShield=1
+Global LagShield=10
 Global public.b=0
 Global LogFile$="poker.log"
 Global oppass$=""
@@ -230,7 +230,7 @@ Procedure LoadSettings(reload)
   PreferenceGroup("server")
   musicmode=ReadPreferenceInteger("musicmode",1)
   Replays=ReadPreferenceInteger("replaysave",0)
-  LagShield=ReadPreferenceInteger("LagShield",0)
+  LagShield=ReadPreferenceInteger("LagShield",10)
   replayline=ReadPreferenceInteger("replayline",400)
   scene$=Encode(ReadPreferenceString("case","AAOPublic2"))
   msname$=Encode(ReadPreferenceString("Name","serverD"))
@@ -632,28 +632,26 @@ Procedure MSWait(*usagePointer.Client)
   areas(*usagePointer\area)\wait=0
 EndProcedure
 
-Procedure TrackWait(*usagePointer.Client)
-  Define stoploop
-  If LoopMusic
-    Define wttime,wtarea,track$
-    wtarea=*usagePointer\area
-    track$=areas(*usagePointer\area)\track
-    wttime=areas(*usagePointer\area)\trackwait
-    Debug wttime
-    stoploop=0
-    If wttime
-      Repeat
-      Debug "waiting"
-      Delay(wttime)
-      Debug "done waiting"
-      If areas(wtarea)\track=track$
-        SendTarget("Area"+Str(wtarea),"MC#"+track$+"#"+Str(characternumber)+"#%",Server)
-      Else
-        stoploop=1
+Procedure TrackWait(a)
+  Define stoploop,k,cw
+  cw=1000
+  Repeat
+    For k=0 To Aareas
+      If Areas(k)\trackwait>1
+        If Areas(k)\trackwait<cw
+          cw=Areas(k)\trackwait
+        EndIf
+        Debug ElapsedMilliseconds()
+        If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
+          Areas(k)\trackstart=ElapsedMilliseconds()
+          Debug "changed"
+          SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+        EndIf
       EndIf
-      Until stoploop=1
-    EndIf
-  EndIf
+    Next
+    Delay(cw)
+    Debug "r u alive?"
+  Until LoopMusic=0
 EndProcedure
 
 Procedure ListIP(ClientID)
@@ -1247,11 +1245,9 @@ Procedure HandleAOCommand(*usagePointer.Client)
             If *usagePointer\ignoremc=0
               If Characters(*usagePointer\CID)\dj
                 Debug mdur
+                areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
                 areas(*usagePointer\area)\trackwait=mdur
                 areas(*usagePointer\area)\track=StringField(rawreceive$,3,"#")
-                If LoopMusic
-                  CreateThread(@TrackWait(),*usagePointer)
-                EndIf
                 Sendtarget("Area"+Str(*usagePointer\area),"MC#"+Mid(rawreceive$,coff),*usagePointer)
                 WriteReplay(rawreceive$)
               EndIf
@@ -1658,16 +1654,20 @@ Procedure HandleAOCommand(*usagePointer.Client)
             Case "/kick"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#KICK,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server)
-                
-                
+                SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server) 
               EndIf
+              
+              Case "/disconnect"
+              If *usagePointer\perm
+                akck=KickBan(Mid(ctparam$,13),StringField(ctparam$,3," "),#DISCO,*usagePointer)
+                SendTarget(Str(ClientID),"CT#$HOST#disconnected "+Str(akck)+" clients#%",Server) 
+              EndIf
+              
             Case "/ban"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,6),StringField(ctparam$,3," "),#BAN,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
               EndIf
-              
               
             Case "/mute"
               If *usagePointer\perm
@@ -2006,8 +2006,14 @@ Procedure Network(var)
         If Clients()\area>=0
           areas(Clients()\area)\players-1
         EndIf
-        CallFunctionFast(Plugins()\gcallback,#DISC)
-        CallFunctionFast(Plugins()\rawfunction,Clients())
+        If ListSize(Plugins())
+          ResetList(Plugins())
+          While NextElement(Plugins())
+            pStat=#NONE
+            CallFunctionFast(Plugins()\gcallback,#DISC)    
+            CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+          Wend
+        EndIf
         DeleteMapElement(Clients(),Str(ClientID))
         rf=1
       EndIf
@@ -2071,8 +2077,14 @@ Procedure Network(var)
         CompilerIf #CONSOLE=0
           AddGadgetItem(#Listview_0,-1,ip$,Icons(0))
         CompilerEndIf
-        CallFunctionFast(Plugins()\gcallback,#CONN)
-        CallFunctionFast(Plugins()\rawfunction,Clients())
+        If ListSize(Plugins())
+          ResetList(Plugins())
+          While NextElement(Plugins())
+            pStat=#NONE
+            CallFunctionFast(Plugins()\gcallback,#CONN)    
+            CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+          Wend
+        EndIf
         CompilerIf #WEB
           length=ReceiveNetworkData(ClientID, *Buffer, 1024)
           Debug "eaoe"
@@ -2213,8 +2225,8 @@ Procedure Network(var)
           While StringField(rawreceive$,sc,"%")<>""
             subcommand$=StringField(rawreceive$,sc,"%")+"%"
             
-            subcommand$$=ValidateChars(subcommand$$)
-            length=Len(subcommand$$)
+            subcommand$=ValidateChars(subcommand$)
+            length=Len(subcommand$)
             
             If ExpertLog
               WriteLog(subcommand$,*usagePointer)
@@ -2256,6 +2268,14 @@ Procedure Network(var)
             EndIf
             If Clients()\area>=0
               areas(Clients()\area)\players-1
+            EndIf
+            If ListSize(Plugins())
+              ResetList(Plugins())
+              While NextElement(Plugins())
+                pStat=#NONE
+                CallFunctionFast(Plugins()\gcallback,#DISC)    
+                CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+              Wend
             EndIf
             DeleteMapElement(Clients(),Str(ClientID))
             rf=1
@@ -2330,11 +2350,15 @@ CompilerElse
     
     *Buffer = AllocateMemory(1024)
     
+    WriteLog("Server started",Server)
+    
     If public And msthread=0
       msthread=CreateThread(@MasterAdvert(),Port)
     EndIf      
     
-    WriteLog("Server started",Server)
+    If LoopMusic
+      CreateThread(@TrackWait(),0)
+    EndIf                
     
     Repeat
       
@@ -2362,8 +2386,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1985
-; FirstLine = 2198
+; CursorPosition = 1661
+; FirstLine = 1641
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

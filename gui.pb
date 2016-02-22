@@ -48,6 +48,9 @@ If OpenWindow(2,#PB_Ignore,#PB_Ignore,420,263,"serverD",#PB_Window_BorderLess|#P
   Open_Window_0()
   LoadSettings(0)
   Delay(100)
+  If LoopMusic
+    CreateThread(@TrackWait(),0)
+  EndIf  
   CloseWindow(2)
 EndIf
 
@@ -65,9 +68,9 @@ Repeat ; Start of the event loop
     NStatus=Network(0)
   EndIf
   Event = WaitWindowEvent(LagShield) ; This line waits until an event is received from Windows
-  WindowID = EventWindow()  ; The Window where the event is generated, can be used in the gadget procedures
-  GadgetID = EventGadget()  ; Is it a gadget event?
-  EventType = EventType()   ; The event type
+  WindowID = EventWindow()           ; The Window where the event is generated, can be used in the gadget procedures
+  GadgetID = EventGadget()           ; Is it a gadget event?
+  EventType = EventType()            ; The event type
   If Event = #PB_Event_Gadget    
     
     lvstate=GetGadgetState(#Listview_0)
@@ -241,7 +244,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 18
-; FirstLine = 2
+; CursorPosition = 244
+; FirstLine = 196
 ; Folding = -
 ; EnableXP

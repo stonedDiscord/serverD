@@ -1,11 +1,11 @@
 # serverD
-## DER BASS MUSS FICKEN!
+## Don't hassle the hoff
 You can find the downloads in the release tab
 
 ### changelog
-* tempbans now possible
-* fixed an area bug
-* same char bug fixed
+* looping music
+* roll is more subtle
+* lag and crashes fixed
 * cleanups
  
 ### minimal setup (console version)

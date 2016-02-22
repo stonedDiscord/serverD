@@ -36,6 +36,7 @@ Structure area
   good.w
   evil.w
   track.s
+  trackstart.l
   trackwait.i
 EndStructure
 
@@ -95,7 +96,7 @@ Enumeration
   #SWITCH
   #MOVE
 EndEnumeration
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 77
-; FirstLine = 29
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 38
+; FirstLine = 20
 ; EnableXP
