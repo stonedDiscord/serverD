@@ -882,6 +882,8 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
       SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(0)\bg+"#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
     EndIf
+    SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
+    SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(0)\evil)+"#%",Server)
   Else
     If Val(narea$)<=Aareas-1 And Val(narea$)>=0
       If Not areas(Val(narea$))\lock Or *usagePointer\perm>areas(Val(narea$))\mlock
@@ -901,7 +903,8 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
           SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
           SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
         EndIf
-        
+        SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+        SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
       Else
         SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area locked#%",Server)
       EndIf
@@ -1172,6 +1175,8 @@ Procedure HandleAOCommand(*usagePointer.Client)
                   msreply$=msreply$+"0#"
                 Case 1
                   msreply$=msreply$+"1#"
+                Case 2
+                  msreply$=msreply$+"2#"
                 Case 5
                   msreply$=msreply$+"5#"
                 Default
@@ -1657,7 +1662,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
                 SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server) 
               EndIf
               
-              Case "/disconnect"
+            Case "/disconnect"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,13),StringField(ctparam$,3," "),#DISCO,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#disconnected "+Str(akck)+" clients#%",Server) 
@@ -2386,8 +2391,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1661
-; FirstLine = 1641
+; CursorPosition = 2391
+; FirstLine = 2343
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
