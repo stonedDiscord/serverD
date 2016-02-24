@@ -9,12 +9,12 @@ Procedure RefreshList(var)
     LockMutex(ListMutex)    
     ResetMap(Clients())
     While NextMapElement(Clients())
-      listicon=ImageID(0)
+      listicon=Icons(0)
       If Clients()\perm
-        listicon=ImageID(1)
+        listicon=Icons(1)
       EndIf
       If Clients()\hack
-        listicon=ImageID(2)
+        listicon=Icons(2)
       EndIf
       AddGadgetItem(#Listview_0,i,Clients()\IP+Chr(10)+GetCharacterName(Clients())+Chr(10)+GetAreaName(Clients())+Chr(10)+Clients()\HD,listicon)
       SetGadgetItemData(#Listview_0,i,Clients()\ClientID)
@@ -25,6 +25,7 @@ Procedure RefreshList(var)
       SetGadgetState(#Listview_0,lstate)
     EndIf
     UnlockMutex(RefreshMutex)
+    rf=0
   EndIf
 EndProcedure
 
@@ -67,7 +68,7 @@ Repeat ; Start of the event loop
   If success
     NStatus=Network(0)
   EndIf
-  Event = WaitWindowEvent(LagShield) ; This line waits until an event is received from Windows
+  Event = WindowEvent() ; This line waits until an event is received from Windows
   WindowID = EventWindow()           ; The Window where the event is generated, can be used in the gadget procedures
   GadgetID = EventGadget()           ; Is it a gadget event?
   EventType = EventType()            ; The event type
@@ -204,23 +205,20 @@ Repeat ; Start of the event loop
     ResizeGadget(#listbox_event, WindowWidth(0)/1.7, 30, WindowWidth(0)-WindowWidth(0)/1.7, WindowHeight(0)-90)
     ResizeGadget(#listbox_event,WindowWidth(0)/2.517,20,WindowWidth(0)/3.173,WindowHeight(0)-20)
     ResizeGadget(#Frame_5,WindowWidth(0)/1.4,0,WindowWidth(0)/3.476,WindowHeight(0))
-    ResizeGadget(#ListIcon_2,WindowWidth(0)/1.4,20,WindowWidth(0)/3.476,WindowHeight(0)-40)  
-    
+    ResizeGadget(#ListIcon_2,WindowWidth(0)/1.4,20,WindowWidth(0)/3.476,WindowHeight(0)-40)
     ResizeGadget(#String_13,WindowWidth(0)/1.4,WindowHeight(0)-20,WindowWidth(0)/5,20)  
-    ResizeGadget(#Button_31,WindowWidth(0)/1.1,WindowHeight(0)-20,WindowWidth(0)/10,20)  
-    
-    
+    ResizeGadget(#Button_31,WindowWidth(0)/1.1,WindowHeight(0)-20,WindowWidth(0)/10,20) 
+  Else
+    If rf And chill<1
+      chill=(LagShield+10)*2
+      If CommandThreading
+        CreateThread(@RefreshList(),0)
+      Else
+        RefreshList(0)
+      EndIf
+    EndIf 
+    chill-1
   EndIf
-  
-  If rf
-    If CommandThreading
-      CreateThread(@RefreshList(),0)
-    Else
-      RefreshList(0)
-    EndIf
-    rf=0
-  EndIf 
-  
 Until Event = #PB_Event_CloseWindow ; End of the event loop
 Quit=1
 
@@ -244,7 +242,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 244
-; FirstLine = 196
+; CursorPosition = 212
+; FirstLine = 194
 ; Folding = -
 ; EnableXP

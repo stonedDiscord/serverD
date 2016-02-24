@@ -46,7 +46,7 @@ Global opppass$=""
 Global Quit=0
 Global Port=27016
 Global scene$="AAOPublic2"
-Global characternumber=0
+Global CharacterNumber=0
 Global slots$="100"
 Global oBG.s="gs4"
 Global rt.b=1
@@ -78,7 +78,7 @@ Global RefreshMutex = CreateMutex()
 Global ActionMutex = CreateMutex()
 Global musicmode=1
 Global update=0
-Global Aareas=1
+Global AreaNumber=1
 Global decryptor$
 Global key
 Global newbuild
@@ -447,8 +447,8 @@ Procedure LoadSettings(reload)
   
   If OpenPreferences( "base/scene/"+scene$+"/areas.ini")
     PreferenceGroup("Areas")
-    Aareas=ReadPreferenceInteger("number",1)
-    For loadareas=0 To Aareas-1
+    AreaNumber=ReadPreferenceInteger("number",1)
+    For loadareas=0 To AreaNumber-1
       PreferenceGroup("Areas")
       aname$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
       areas(loadareas)\name=aname$
@@ -465,7 +465,7 @@ Procedure LoadSettings(reload)
       PreferenceGroup("filename")
       WritePreferenceString("1",oBG.s)
       areas(0)\bg=oBG.s
-      Aareas=1
+      AreaNumber=1
       ClosePreferences()
     EndIf
   EndIf
@@ -636,7 +636,7 @@ Procedure TrackWait(a)
   Define stoploop,k,cw
   cw=1000
   Repeat
-    For k=0 To Aareas
+    For k=0 To AreaNumber-1
       If Areas(k)\trackwait>1
         If Areas(k)\trackwait<cw
           cw=Areas(k)\trackwait
@@ -655,22 +655,13 @@ Procedure TrackWait(a)
 EndProcedure
 
 Procedure ListIP(ClientID)
-  Define send.b
   Define iplist$
   Define charname$
-  Define char
-  send=0
   iplist$="IL#"
   LockMutex(ListMutex)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-    char=Clients()\CID
-    If char<=100 And char>=0
-      If char>characternumber      ; the character id is greater than the amount of characters
-        charname$="HACKER"         ; OBVIUOSLY
-        Clients()\hack=1
-      Else
         Select Clients()\perm
           Case 1
             charname$=GetCharacterName(Clients())+"(mod)"
@@ -681,12 +672,7 @@ Procedure ListIP(ClientID)
           Default
             charname$=GetCharacterName(Clients())
         EndSelect
-      EndIf
-    Else
-      charname$="nobody"
-      
-    EndIf
-    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(char)+"|*"
+    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\CID)+"|*"
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
@@ -695,38 +681,24 @@ Procedure ListIP(ClientID)
 EndProcedure
 
 Procedure ListAreas(ClientID)
-  Define send.b
   Define iplist$
   Define charname$
-  Define char
-  send=0
   iplist$="IL#"
   LockMutex(ListMutex)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-    char=Clients()\area
-    If char<=100 And char>=0
-      If char>Aareas      ; the character id is greater than the amount of characters
-        charname$="HACKER"; OBVIUOSLY
-        Clients()\hack=1
-      Else
         Select Clients()\perm
           Case 1
-            charname$=GetCharacterName(Clients())+"(mod)"
+            charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
           Case 2
-            charname$=GetCharacterName(Clients())+"(admin)"
+            charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
           Case 3
-            charname$=GetCharacterName(Clients())+"(server)"
+            charname$=GetCharacterName(Clients())+"(server)"+" in "+GetAreaName(Clients())
           Default
-            charname$=GetCharacterName(Clients())
+            charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
         EndSelect
-      EndIf
-    Else
-      charname$="nobody"
-      
-    EndIf
-    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(char)+"|*"
+    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\area)+"|*"
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
@@ -768,7 +740,7 @@ ProcedureDLL MasterAdvert(Port)
             msrec$=PeekS(*null,msinfo)
             Debug msrec$
             If msrec$="NOSERV#%"
-              WriteLog("Fell of the serverlist, fixing...",Server)
+              WriteLog("Fell off the serverlist, fixing...",Server)
               sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#serverD "+version$+"#%"+Chr(0))
               WriteLog("Server published!",Server)
             EndIf
@@ -845,7 +817,7 @@ EndProcedure
 Procedure SwitchAreas(*usagePointer.Client,narea$)
   Define ir
   Define sendd=0
-  For ir=0 To Aareas-1
+  For ir=0 To AreaNumber-1
     areas(ir)\players=0
     Debug areas(ir)\name
     If areas(ir)\name = narea$
@@ -885,7 +857,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
     SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
     SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(0)\evil)+"#%",Server)
   Else
-    If Val(narea$)<=Aareas-1 And Val(narea$)>=0
+    If Val(narea$)<=AreaNumber-1 And Val(narea$)>=0
       If Not areas(Val(narea$))\lock Or *usagePointer\perm>areas(Val(narea$))\mlock
         
         If areas(*usagePointer\area)\lock=*usagePointer\ClientID
@@ -1358,7 +1330,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
               
               If narea$=""
                 arep$="CT#$HOST#Areas:"
-                For ir=0 To Aareas-1
+                For ir=0 To AreaNumber-1
                   arep$+#CRLF$
                   arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
                   If ir=*usagePointer\area
@@ -1901,8 +1873,8 @@ Procedure HandleAOCommand(*usagePointer.Client)
           SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
           *usagePointer\CID=char                
           WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-          SendTarget(Str(ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
-          SendTarget(Str(ClientID),"HP#2#"+Str(Areas(0)\evil)+"#%",Server)
+          SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+          SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
           If MOTDevi
             SendTarget(Str(ClientID),"MS#chat#normal#Discord#normal#Take that!#jud#1#2#"+Str(characternumber-1)+"#0#3#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
           EndIf
@@ -1924,7 +1896,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
         Else
           ListIP(ClientID)
         EndIf
-        WriteLog("["+GetCharacterName(*usagePointer)+"] used /ip",*usagePointer)
+        WriteLog("["+GetCharacterName(*usagePointer)+"] used /ip (clientside)",*usagePointer)
       EndIf 
       
     Case "opKICK"
@@ -2391,8 +2363,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2391
-; FirstLine = 2343
+; CursorPosition = 1063
+; FirstLine = 1186
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
