@@ -6,7 +6,8 @@ Procedure RefreshList(var)
     lstate=GetGadgetState(#Listview_0)
     ClearGadgetItems(#Listview_0)
     i=0
-    LockMutex(ListMutex)    
+    LockMutex(ListMutex)
+    PushMapPosition(Clients())
     ResetMap(Clients())
     While NextMapElement(Clients())
       listicon=Icons(0)
@@ -21,6 +22,7 @@ Procedure RefreshList(var)
       i+1
     Wend
     UnlockMutex(ListMutex)
+    PopMapPosition(Clients())
     If lstate<CountGadgetItems(#Listview_0)
       SetGadgetState(#Listview_0,lstate)
     EndIf
@@ -69,11 +71,11 @@ Repeat ; Start of the event loop
     NStatus=Network(0)
   EndIf
   Event = WindowEvent() ; This line waits until an event is received from Windows
-  WindowID = EventWindow()           ; The Window where the event is generated, can be used in the gadget procedures
-  GadgetID = EventGadget()           ; Is it a gadget event?
-  EventType = EventType()            ; The event type
+  
   If Event = #PB_Event_Gadget    
-    
+    WindowID = EventWindow()           ; The Window where the event is generated, can be used in the gadget procedures
+    GadgetID = EventGadget()           ; Is it a gadget event?
+    EventType = EventType()            ; The event type    
     lvstate=GetGadgetState(#Listview_0)
     If lvstate>=0         
       cldata = GetGadgetItemData(#Listview_0,lvstate)
@@ -242,7 +244,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 212
-; FirstLine = 194
+; CursorPosition = 27
+; FirstLine = 26
 ; Folding = -
 ; EnableXP

@@ -560,7 +560,7 @@ Procedure SendTarget(user$,message$,*sender.Client)
   Define everybody,i,omessage$,sresult
   omessage$=message$
   
-  If user$="*"
+  If user$="*" Or user$="everybody"
     everybody=1
   Else
     everybody=0
@@ -597,7 +597,7 @@ Procedure SendTarget(user$,message$,*sender.Client)
   Else
     ResetMap(Clients())
     While NextMapElement(Clients())
-      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$="Area"+Str(Clients()\area) Or (everybody And (*sender\area=Clients()\area Or *sender\area=-1)) And Clients()\master=*sender\master
+      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$=Clients()\username Or user$="Area"+Str(Clients()\area) Or (everybody And (*sender\area=Clients()\area Or *sender\area=-1)) And Clients()\master=*sender\master
         If Clients()\websocket
           CompilerIf #WEB
             Websocket_SendTextFrame(Clients()\ClientID,message$)
@@ -662,16 +662,16 @@ Procedure ListIP(ClientID)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-        Select Clients()\perm
-          Case 1
-            charname$=GetCharacterName(Clients())+"(mod)"
-          Case 2
-            charname$=GetCharacterName(Clients())+"(admin)"
-          Case 3
-            charname$=GetCharacterName(Clients())+"(server)"
-          Default
-            charname$=GetCharacterName(Clients())
-        EndSelect
+    Select Clients()\perm
+      Case 1
+        charname$=GetCharacterName(Clients())+"(mod)"
+      Case 2
+        charname$=GetCharacterName(Clients())+"(admin)"
+      Case 3
+        charname$=GetCharacterName(Clients())+"(server)"
+      Default
+        charname$=GetCharacterName(Clients())
+    EndSelect
     iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\CID)+"|*"
   Wend
   PopMapPosition(Clients())
@@ -688,16 +688,16 @@ Procedure ListAreas(ClientID)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-        Select Clients()\perm
-          Case 1
-            charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
-          Case 2
-            charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
-          Case 3
-            charname$=GetCharacterName(Clients())+"(server)"+" in "+GetAreaName(Clients())
-          Default
-            charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
-        EndSelect
+    Select Clients()\perm
+      Case 1
+        charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
+      Case 2
+        charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
+      Case 3
+        charname$=GetCharacterName(Clients())+"(server)"+" in "+GetAreaName(Clients())
+      Default
+        charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
+    EndSelect
     iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\area)+"|*"
   Wend
   PopMapPosition(Clients())
@@ -815,9 +815,10 @@ Procedure SendDone(*usagePointer.Client)
 EndProcedure
 
 Procedure SwitchAreas(*usagePointer.Client,narea$)
-  Define ir
   Define sendd=0
-  For ir=0 To AreaNumber-1
+  Define ir
+  Debug narea$
+    For ir=0 To AreaNumber-1
     areas(ir)\players=0
     Debug areas(ir)\name
     If areas(ir)\name = narea$
@@ -840,9 +841,13 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
     EndIf
   Wend
   PopMapPosition(Clients())
-  UnlockMutex(ListMutex)   
+  UnlockMutex(ListMutex)
   
   If narea$="0"
+    If areas(*usagePointer\area)\lock=*usagePointer\ClientID
+      areas(*usagePointer\area)\lock=0
+      areas(*usagePointer\area)\mlock=0
+    EndIf
     areas(*usagePointer\area)\players-1
     *usagePointer\area=0
     areas(0)\players+1
@@ -859,7 +864,6 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
   Else
     If Val(narea$)<=AreaNumber-1 And Val(narea$)>=0
       If Not areas(Val(narea$))\lock Or *usagePointer\perm>areas(Val(narea$))\mlock
-        
         If areas(*usagePointer\area)\lock=*usagePointer\ClientID
           areas(*usagePointer\area)\lock=0
           areas(*usagePointer\area)\mlock=0
@@ -892,7 +896,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
   Define everybody
   Define i,kclid,kcid
   akck=0
-  If kick$="everybody"
+  If kick$="everybody" Or kick$="*"
     everybody=1
   EndIf
   Debug "kick$"
@@ -1115,8 +1119,7 @@ Procedure HandleAOCommand(*usagePointer.Client)
         Sendtarget("*","MS#"+Mid(rawreceive$,coff),*usagePointer)
       ElseIf ReplayMode=0
         WriteLog("["+GetCharacterName(*usagePointer)+"@"+GetAreaName(*usagePointer)+"]["+StringField(rawreceive$,7,"#")+"]",*usagePointer)
-        Debug areas(*usagePointer\area)\wait
-        If areas(*usagePointer\area)\wait=0 Or *usagePointer\perm
+        If areas(*usagePointer\area)\wait=0 Or *usagePointer\skip
           msreply$="MS#"
           For i=3 To 17
             mss$=StringField(rawreceive$,i,"#")
@@ -1325,1046 +1328,1038 @@ Procedure HandleAOCommand(*usagePointer.Client)
               UnlockMutex(ListMutex)
               SendTarget(Str(ClientID),"CT#$HOST#"+Str(players)+"/"+slots$+" characters online#%",Server)
               
-            Case "/area"  
-              narea$=StringField(ctparam$,2," ")
-              
-              If narea$=""
-                arep$="CT#$HOST#Areas:"
+            Case "/area"
+              If *usagePointer\perm
                 For ir=0 To AreaNumber-1
-                  arep$+#CRLF$
-                  arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
-                  If ir=*usagePointer\area
-                    arep$+" (including you)"
-                  EndIf
-                  If areas(ir)\mlock
-                    arep$+" super"
-                  EndIf
-                  If areas(ir)\lock
-                    arep$+"locked"                      
-                  EndIf
+                  areas(ir)\players=0
                 Next
-                arep$+"#%"
-                SendTarget(Str(ClientID),arep$,Server)
-              Else                  
-                SwitchAreas(*usagePointer,narea$)
-              EndIf
-              
-            Case "/loadreplay"
-              If *usagePointer\perm>1                  
-                ReplayFile$="base/replays/"+Mid(ctparam$,13)
-                If ReadFile(8, ReplayFile$)
-                  ClearList(PReplay())
-                  ResetList(PReplay())
-                  While Eof(8) = 0
-                    rline$=ReadString(8)
-                    If Left(rline$,1)="#"
-                      AddElement(PReplay())
-                      ReplayMode=1
-                      PReplay()=rline$
-                    EndIf
-                  Wend
-                  ResetList(PReplay())
-                  CloseFile(8)
-                EndIf
-              EndIf
-              
-            Case "/lock"
-              If *usagePointer\area
-                lock$=StringField(ctparam$,2," ")
-                Select lock$
-                  Case "0"
-                    areas(*usagePointer\area)\lock=0
-                    areas(*usagePointer\area)\mlock=0
-                    SendTarget(Str(ClientID),"CT#$HOST#area unlocked#%",Server)
-                  Case "1"
-                    areas(*usagePointer\area)\lock=*usagePointer\ClientID
-                    areas(*usagePointer\area)\mlock=0
-                    SendTarget(Str(ClientID),"CT#$HOST#area locked#%",Server)
-                  Case "2"
-                    If *usagePointer\perm
-                      areas(*usagePointer\area)\lock=*usagePointer\ClientID
-                      areas(*usagePointer\area)\mlock=1
-                      SendTarget(Str(ClientID),"CT#$HOST#area superlocked#%",Server)
-                    EndIf
-                  Default
-                    pr$="CT#$HOST#area is "
-                    If areas(*usagePointer\area)\lock=0
-                      pr$+"not "
-                    EndIf
-                    SendTarget(Str(ClientID),pr$+"locked#%",Server)
-                EndSelect
-              Else
-                SendTarget(Str(ClientID),"CT#$HOST#You can't lock the default area#%",Server)
-              EndIf
-              
-            Case "/nooc"
-              *usagePointer\ooct=0
-              
-            Case "/judge"
-              If *usagePointer\perm
-                *usagePointer\judget=1
-              EndIf
-              
-            Case "/nojudge"
-              If *usagePointer\perm
-                *usagePointer\judget=0
-              EndIf
-              
-            Case "/toggle"
-              If *usagePointer\perm
-                status$="invalid"
-                Select StringField(ctparam$,2," ")
-                  Case "WTCE"
-                    If rt
-                      rt=0
-                      status$="disabled"
-                    Else
-                      rt=1
-                      status$="enabled"
-                    EndIf
-                  Case "LogHD"
-                    If loghd
-                      loghd=0
-                      status$="disabled"
-                    Else
-                      loghd=1
-                      status$="enabled"
-                    EndIf
-                  Case "ExpertLog"
-                    If ExpertLog
-                      ExpertLog=0
-                      status$="disabled"
-                    Else
-                      ExpertLog=1
-                      status$="enabled"
-                    EndIf
-                  Case "Threading"
-                    If CommandThreading
-                      CommandThreading=0
-                      status$="disabled"
-                    Else
-                      CommandThreading=1
-                      status$="enabled"
-                    EndIf
-                EndSelect
-                SendTarget(Str(ClientID),"CT#$HOST#"+StringField(ctparam$,2," ")+" is "+status$+"#%",Server)
-              EndIf
-              
-            Case "/decryptor"
-              If *usagePointer\perm>1
-                decryptor$=StringField(ctparam$,2," ")
-                key=Val(DecryptStr(HexToString(decryptor$),322))
-                SendTarget("*","decryptor#"+decryptor$+"#%",Server)
-              EndIf
-              
-            Case "/snapshot"
-              If *usagePointer\perm>1
-                If CreateFile(33,"snap.txt")
-                  LockMutex(ListMutex)
-                  PushMapPosition(Clients())
-                  ResetMap(Clients())
-                  While NextMapElement(Clients())
-                    WriteStringN(33,"Client "+Str(Clients()\ClientID))
-                    WriteStringN(33,Clients()\IP)
-                    WriteStringN(33,Str(Clients()\CID))
-                    WriteStringN(33,Str(Clients()\perm))
-                    WriteStringN(33,Str(Clients()\hack))
-                    WriteStringN(33,Str(Clients()\area))
-                    WriteStringN(33,Clients()\last)
-                  Wend
-                  PopMapPosition(Clients())
-                  UnlockMutex(ListMutex)
-                  LockMutex(ListMutex)
-                  For sa=0 To areas
-                    WriteStringN(33,"Area "+Str(sa))
-                    WriteStringN(33,Areas(sa)\name)
-                    WriteStringN(33,Areas(sa)\bg)
-                    WriteStringN(33,Str(Areas(sa)\players))
-                    WriteStringN(33,Str(Areas(sa)\lock))
-                    WriteStringN(33,Str(Areas(sa)\mlock))
-                    WriteStringN(33,Areas(sa)\track)
-                    WriteStringN(33,Str(Areas(sa)\trackwait))
-                  Next
-                  CloseFile(33)
-                EndIf
-              EndIf
-              
-            Case "/smokeweed"
-              reply$="CT#stonedDiscord#where da weed at#%"
-              WriteLog("smoke weed everyday",*usagePointer)
-              
-            Case "/help"
-              SendTarget(Str(ClientID),"CT#SERVER#Check https://github.com/stonedDiscord/serverD/blob/master/README.md#%",Server)
-              
-            Case "/public"
-              Debug ctparam$
-              If StringField(ctparam$,2," ")=""
-                pr$="CT#$HOST#server is "
-                If public=0
-                  pr$+"not "
-                EndIf
-                SendTarget(Str(ClientID),pr$+"public#%",Server)
-              Else
-                If *usagePointer\perm>1
-                  public=Val(StringField(ctparam$,2," "))
-                  If public
-                    msthread=CreateThread(@MasterAdvert(),Port)
-                    SendTarget(Str(ClientID),"CT#$HOST# published server#%",Server)
-                  EndIf
-                  CompilerIf #CONSOLE=0
-                    SetGadgetState(#CheckBox_MS,public)
-                  CompilerEndIf
-                EndIf
-              EndIf
-              
-            Case "/evi"                      
-              SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+StringField(ctparam$,2," ")+"#jud#1#0#"+Str(characternumber-1)+"#0#0#"+StringField(ctparam$,2," ")+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)                         
-              
-            Case "/roll"                        
-              If Len(ctparam$)<7
-                dicemax=Val(StringField(ctparam$,2," "))
-              Else
-                dicemax=6
-              EndIf
-              If dicemax<=1 Or dicemax>9999
-                dicemax=6
-              EndIf
-              If OpenCryptRandom()
-                random$=Str(CryptRandom(dicemax))
-                CloseCryptRandom()
-              Else
-                random$=Str(Random(dicemax))
-              EndIf              
-              Sendtarget("Area"+Str(*usagePointer\area),"CT#$HOST#"+GetCharacterName(*usagePointer)+" rolled "+random$+" out of "+Str(dicemax)+"#%",Server)
-              
-            Case "/pm"                    
-              sname$=StringField(rawreceive$,3,"#")
-              Debug sname$
-              SendTarget(StringField(ctparam$,2," "),"CT#PM "+sname$+" to You#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
-              SendTarget(Str(ClientID),"CT#PM You to "+StringField(ctparam$,2," ")+"#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
-              
-            Case "/send"  
-              If *usagePointer\perm
-                sname$=StringField(ctparam$,2," ")
-                Debug sname$
-                smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
-                smes$=Escape(smes$)
-                SendTarget(sname$,smes$,Server)
-              EndIf
-              
-            Case "/sendall"
-              If *usagePointer\perm
-                smes$=Mid(ctparam$,10)
-                smes$=Escape(smes$)
-                SendTarget("*",smes$,Server)
-              EndIf
-              
-            Case "/reload"
-              If *usagePointer\perm>1
-                LoadSettings(1)
-                SendTarget(Str(ClientID),"CT#$HOST#serverD reloaded#%",Server)
-              EndIf
-              
-            Case "/play"
-              If *usagePointer\perm                
-                song$=Right(ctparam$,Len(ctparam$)-6)
-                SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
-              EndIf
-              
-            Case "/hd"
-              If *usagePointer\perm
-                kick$=Mid(ctparam$,5,Len(ctparam$)-2)
-                If kick$="" Or kick$="*"
-                  everybody=1
-                Else
-                  everybody=0
-                EndIf
-                hdlist$="IL#"
+                
                 LockMutex(ListMutex)
+                PushMapPosition(Clients())
                 ResetMap(Clients())
-                While NextMapElement(Clients())                   
-                  If kick$=Str(Clients()\CID) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
-                    hdlist$=hdlist$+Clients()\IP+"|"+Str(Clients()\CID)+"|"+Clients()\HD+"|*"                        
+                While NextMapElement(Clients())
+                  If Clients()\area>=0
+                    areas(Clients()\area)\players+1
                   EndIf
                 Wend
+                PopMapPosition(Clients())
                 UnlockMutex(ListMutex)
-                SendTarget(Str(ClientID),hdlist$+"#%",Server)
-                WriteLog("["+GetCharacterName(*usagePointer)+"] used /hd",*usagePointer)
-              EndIf 
+              EndIf
               
-              
-            Case "/unban"
-              If *usagePointer\perm>1
-                ub$=Mid(ctparam$,8,Len(ctparam$))
-                Debug ub$
-                If CreateFile(2,"base/banlist.txt")
-                  Debug "file recreated"
-                  ForEach IPbans()
-                    If IPbans()\banned=ub$
-                      DeleteElement(IPbans())
-                    Else
-                      WriteStringN(2,IPbans()\banned+"#"+IPbans()\reason+"#"+Str(IPbans()\time)+"#"+Str(IPbans()\type))
+                narea$=StringField(ctparam$,2," ")              
+                If narea$=""
+                  arep$="CT#$HOST#Areas:"
+                  For ir=0 To AreaNumber-1
+                    arep$+#CRLF$
+                    arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
+                    If ir=*usagePointer\area
+                      arep$+" (including you)"
+                    EndIf
+                    If areas(ir)\mlock
+                      arep$+" super"
+                    EndIf
+                    If areas(ir)\lock
+                      arep$+"locked"                      
                     EndIf
                   Next
-                  CloseFile(2)                                
+                  arep$+"#%"
+                  SendTarget(Str(ClientID),arep$,Server)
+                Else                  
+                  SwitchAreas(*usagePointer,narea$)
                 EndIf
                 
-                If CreateFile(2,"base/HDbanlist.txt")
-                  ForEach HDbans()
-                    If HDbans()\banned=ub$
-                      DeleteElement(HDbans())
-                    Else
-                      WriteStringN(2,HDbans()\banned+"#"+HDbans()\reason+"#"+Str(HDbans()\time)+"#"+Str(HDbans()\type))
-                    EndIf
-                  Next
-                  CloseFile(2)                                
+              Case "/loadreplay"
+                If *usagePointer\perm>1                  
+                  ReplayFile$="base/replays/"+Mid(ctparam$,13)
+                  If ReadFile(8, ReplayFile$)
+                    ClearList(PReplay())
+                    ResetList(PReplay())
+                    While Eof(8) = 0
+                      rline$=ReadString(8)
+                      If Left(rline$,1)="#"
+                        AddElement(PReplay())
+                        ReplayMode=1
+                        PReplay()=rline$
+                      EndIf
+                    Wend
+                    ResetList(PReplay())
+                    CloseFile(8)
+                  EndIf
                 EndIf
-              EndIf
-              
-            Case "/stop"
-              If *usagePointer\perm>1
-                public=0
-                WriteLog("stopping server...",*usagePointer)
-                Quit=1
-              EndIf
-              
-            Case "/kick"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#KICK,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server) 
-              EndIf
-              
-            Case "/disconnect"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,13),StringField(ctparam$,3," "),#DISCO,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#disconnected "+Str(akck)+" clients#%",Server) 
-              EndIf
-              
-            Case "/ban"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,6),StringField(ctparam$,3," "),#BAN,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-            Case "/mute"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#MUTE,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-              
-            Case "/unmute"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNMUTE,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-              
-            Case "/ignore"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#CIGNORE,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-              
-            Case "/unignore"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,11),StringField(ctparam$,3," "),#UNIGNORE,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-              
-            Case "/undj"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#UNDJ,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-              
-            Case "/dj"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,5),StringField(ctparam$,3," "),#DJ,*usagePointer)
-                SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
-              EndIf
-              
-            Case "/gimp"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#GIMP,*usagePointer)
-                SendNetworkString(ClientID,"CT#$HOST#gimped "+Str(akck)+" clients#%")
-              EndIf
-              
-            Case "/ungimp"
-              If *usagePointer\perm
-                akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNGIMP,*usagePointer)
-                SendNetworkString(ClientID,"CT#$HOST#ungimped "+Str(akck)+" clients#%")
-              EndIf
-              
-            Case "/version"
-              SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
-              
-          EndSelect
-        Else
-          *usagePointer\last.s=rawreceive$
-          SendTarget("Area"+Str(*usagePointer\area),"CT#"+*usagePointer\username+"#"+StringField(rawreceive$,4,"#")+"#%",*usagePointer)
-          CompilerIf #CONSOLE=0
-            AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+StringField(rawreceive$,4,"#"))
-            Debug "guys"
-            SetGadgetItemData(#ListIcon_2,CountGadgetItems(#ListIcon_2)-1,*usagePointer\ClientID)
-          CompilerEndIf
-        EndIf
-      Else
-        WriteLog("[OOC][HACKER]["+StringField(rawreceive$,3,"#")+"]["+ctparam$+"]",*usagePointer)
-        *usagePointer\hack=1
-        rf=1
-      EndIf
-      
-    Case "HP" 
-      bar=Val(StringField(rawreceive$,4,"#"))
-      If *usagePointer\CID>=0
-        If bar>=0 And bar<=10
-          WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
-          If StringField(rawreceive$,3,"#")="1"
-            Areas(*usagePointer\area)\good=bar
-            SendTarget("Area"+Str(*usagePointer\area),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
-          ElseIf StringField(rawreceive$,3,"#")="2"
-            Areas(*usagePointer\area)\evil=bar
-            SendTarget("Area"+Str(*usagePointer\area),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
+                
+              Case "/lock"
+                If *usagePointer\area
+                  lock$=StringField(ctparam$,2," ")
+                  Select lock$
+                    Case "0"
+                      areas(*usagePointer\area)\lock=0
+                      areas(*usagePointer\area)\mlock=0
+                      SendTarget(Str(ClientID),"CT#$HOST#area unlocked#%",Server)
+                    Case "1"
+                      areas(*usagePointer\area)\lock=*usagePointer\ClientID
+                      areas(*usagePointer\area)\mlock=0
+                      SendTarget(Str(ClientID),"CT#$HOST#area locked#%",Server)
+                    Case "2"
+                      If *usagePointer\perm
+                        areas(*usagePointer\area)\lock=*usagePointer\ClientID
+                        areas(*usagePointer\area)\mlock=1
+                        SendTarget(Str(ClientID),"CT#$HOST#area superlocked#%",Server)
+                      EndIf
+                    Default
+                      pr$="CT#$HOST#area is "
+                      If areas(*usagePointer\area)\lock=0
+                        pr$+"not "
+                      EndIf
+                      SendTarget(Str(ClientID),pr$+"locked#%",Server)
+                  EndSelect
+                Else
+                  SendTarget(Str(ClientID),"CT#$HOST#You can't lock the default area#%",Server)
+                EndIf
+                
+              Case "/skip"
+                If *usagePointer\perm
+                  *usagePointer\skip=1
+                EndIf
+                
+              Case "/noskip"
+                If *usagePointer\perm
+                  *usagePointer\skip=0
+                EndIf
+                
+              Case "/toggle"
+                If *usagePointer\perm
+                  status$="invalid"
+                  Select StringField(ctparam$,2," ")
+                    Case "WTCE"
+                      If rt
+                        rt=0
+                        status$="disabled"
+                      Else
+                        rt=1
+                        status$="enabled"
+                      EndIf
+                    Case "LogHD"
+                      If loghd
+                        loghd=0
+                        status$="disabled"
+                      Else
+                        loghd=1
+                        status$="enabled"
+                      EndIf
+                    Case "ExpertLog"
+                      If ExpertLog
+                        ExpertLog=0
+                        status$="disabled"
+                      Else
+                        ExpertLog=1
+                        status$="enabled"
+                      EndIf
+                    Case "Threading"
+                      If CommandThreading
+                        CommandThreading=0
+                        status$="disabled"
+                      Else
+                        CommandThreading=1
+                        status$="enabled"
+                      EndIf
+                  EndSelect
+                  SendTarget(Str(ClientID),"CT#$HOST#"+StringField(ctparam$,2," ")+" is "+status$+"#%",Server)
+                EndIf
+                
+              Case "/decryptor"
+                If *usagePointer\perm>1
+                  decryptor$=StringField(ctparam$,2," ")
+                  key=Val(DecryptStr(HexToString(decryptor$),322))
+                  SendTarget("*","decryptor#"+decryptor$+"#%",Server)
+                EndIf
+                
+              Case "/snapshot"
+                If *usagePointer\perm>1
+                  If CreateFile(33,"snap.txt")
+                    LockMutex(ListMutex)
+                    PushMapPosition(Clients())
+                    ResetMap(Clients())
+                    While NextMapElement(Clients())
+                      WriteStringN(33,"Client "+Str(Clients()\ClientID))
+                      WriteStringN(33,Clients()\IP)
+                      WriteStringN(33,Str(Clients()\CID))
+                      WriteStringN(33,Str(Clients()\perm))
+                      WriteStringN(33,Str(Clients()\hack))
+                      WriteStringN(33,Str(Clients()\area))
+                      WriteStringN(33,Clients()\last)
+                    Wend
+                    PopMapPosition(Clients())
+                    UnlockMutex(ListMutex)
+                    LockMutex(ListMutex)
+                    For sa=0 To areas
+                      WriteStringN(33,"Area "+Str(sa))
+                      WriteStringN(33,Areas(sa)\name)
+                      WriteStringN(33,Areas(sa)\bg)
+                      WriteStringN(33,Str(Areas(sa)\players))
+                      WriteStringN(33,Str(Areas(sa)\lock))
+                      WriteStringN(33,Str(Areas(sa)\mlock))
+                      WriteStringN(33,Areas(sa)\track)
+                      WriteStringN(33,Str(Areas(sa)\trackwait))
+                    Next
+                    CloseFile(33)
+                  EndIf
+                EndIf
+                
+              Case "/smokeweed"
+                reply$="CT#stonedDiscord#where da weed at#%"
+                WriteLog("smoke weed everyday",*usagePointer)
+                
+              Case "/help"
+                SendTarget(Str(ClientID),"CT#SERVER#Check https://github.com/stonedDiscord/serverD/blob/master/README.md#%",Server)
+                
+              Case "/public"
+                Debug ctparam$
+                If StringField(ctparam$,2," ")=""
+                  pr$="CT#$HOST#server is "
+                  If public=0
+                    pr$+"not "
+                  EndIf
+                  SendTarget(Str(ClientID),pr$+"public#%",Server)
+                Else
+                  If *usagePointer\perm>1
+                    public=Val(StringField(ctparam$,2," "))
+                    If public
+                      msthread=CreateThread(@MasterAdvert(),Port)
+                      SendTarget(Str(ClientID),"CT#$HOST# published server#%",Server)
+                    EndIf
+                    CompilerIf #CONSOLE=0
+                      SetGadgetState(#CheckBox_MS,public)
+                    CompilerEndIf
+                  EndIf
+                EndIf
+                
+              Case "/evi"                      
+                SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+StringField(ctparam$,2," ")+"#jud#1#0#"+Str(characternumber-1)+"#0#0#"+StringField(ctparam$,2," ")+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)                         
+                
+              Case "/roll"                        
+                If Len(ctparam$)<7
+                  dicemax=Val(StringField(ctparam$,2," "))
+                Else
+                  dicemax=6
+                EndIf
+                If dicemax<=1 Or dicemax>9999
+                  dicemax=6
+                EndIf
+                If OpenCryptRandom()
+                  random$=Str(CryptRandom(dicemax))
+                  CloseCryptRandom()
+                Else
+                  random$=Str(Random(dicemax))
+                EndIf              
+                Sendtarget("Area"+Str(*usagePointer\area),"CT#$HOST#"+GetCharacterName(*usagePointer)+" rolled "+random$+" out of "+Str(dicemax)+"#%",Server)
+                
+              Case "/pm"
+                SendTarget(StringField(ctparam$,2," "),"CT#PM "+*usagePointer\username+" to You#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
+                SendTarget(Str(ClientID),"CT#PM You to "+StringField(ctparam$,2," ")+"#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
+                
+              Case "/send"  
+                If *usagePointer\perm
+                  sname$=StringField(ctparam$,2," ")
+                  Debug sname$
+                  smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
+                  smes$=Escape(smes$)
+                  SendTarget(sname$,smes$,Server)
+                EndIf
+                
+              Case "/sendall"
+                If *usagePointer\perm
+                  smes$=Mid(ctparam$,10)
+                  smes$=Escape(smes$)
+                  SendTarget("*",smes$,Server)
+                EndIf
+                
+              Case "/reload"
+                If *usagePointer\perm>1
+                  LoadSettings(1)
+                  SendTarget(Str(ClientID),"CT#$HOST#serverD reloaded#%",Server)
+                EndIf
+                
+              Case "/play"
+                If *usagePointer\perm                
+                  song$=Right(ctparam$,Len(ctparam$)-6)
+                  SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
+                EndIf
+                
+              Case "/hd"
+                If *usagePointer\perm
+                  kick$=Mid(ctparam$,5,Len(ctparam$)-2)
+                  If kick$="" Or kick$="*"
+                    everybody=1
+                  Else
+                    everybody=0
+                  EndIf
+                  hdlist$="IL#"
+                  LockMutex(ListMutex)
+                  ResetMap(Clients())
+                  While NextMapElement(Clients())                   
+                    If kick$=Str(Clients()\CID) Or kick$=Clients()\HD Or kick$=Clients()\IP Or everybody
+                      hdlist$=hdlist$+Clients()\IP+"|"+Str(Clients()\CID)+"|"+Clients()\HD+"|*"                        
+                    EndIf
+                  Wend
+                  UnlockMutex(ListMutex)
+                  SendTarget(Str(ClientID),hdlist$+"#%",Server)
+                  WriteLog("["+GetCharacterName(*usagePointer)+"] used /hd",*usagePointer)
+                EndIf 
+                
+                
+              Case "/unban"
+                If *usagePointer\perm>1
+                  ub$=Mid(ctparam$,8,Len(ctparam$))
+                  Debug ub$
+                  If CreateFile(2,"base/banlist.txt")
+                    Debug "file recreated"
+                    ForEach IPbans()
+                      If IPbans()\banned=ub$
+                        DeleteElement(IPbans())
+                      Else
+                        WriteStringN(2,IPbans()\banned+"#"+IPbans()\reason+"#"+Str(IPbans()\time)+"#"+Str(IPbans()\type))
+                      EndIf
+                    Next
+                    CloseFile(2)                                
+                  EndIf
+                  
+                  If CreateFile(2,"base/HDbanlist.txt")
+                    ForEach HDbans()
+                      If HDbans()\banned=ub$
+                        DeleteElement(HDbans())
+                      Else
+                        WriteStringN(2,HDbans()\banned+"#"+HDbans()\reason+"#"+Str(HDbans()\time)+"#"+Str(HDbans()\type))
+                      EndIf
+                    Next
+                    CloseFile(2)                                
+                  EndIf
+                EndIf
+                
+              Case "/stop"
+                If *usagePointer\perm>1
+                  public=0
+                  WriteLog("stopping server...",*usagePointer)
+                  Quit=1
+                EndIf
+                
+              Case "/kick"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#KICK,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server) 
+                EndIf
+                
+              Case "/disconnect"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,13),StringField(ctparam$,3," "),#DISCO,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#disconnected "+Str(akck)+" clients#%",Server) 
+                EndIf
+                
+              Case "/ban"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,6),StringField(ctparam$,3," "),#BAN,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+              Case "/mute"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#MUTE,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+                
+              Case "/unmute"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNMUTE,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+                
+              Case "/ignore"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#CIGNORE,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+                
+              Case "/unignore"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,11),StringField(ctparam$,3," "),#UNIGNORE,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+                
+              Case "/undj"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#UNDJ,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+                
+              Case "/dj"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,5),StringField(ctparam$,3," "),#DJ,*usagePointer)
+                  SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
+                EndIf
+                
+              Case "/gimp"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#GIMP,*usagePointer)
+                  SendNetworkString(ClientID,"CT#$HOST#gimped "+Str(akck)+" clients#%")
+                EndIf
+                
+              Case "/ungimp"
+                If *usagePointer\perm
+                  akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNGIMP,*usagePointer)
+                  SendNetworkString(ClientID,"CT#$HOST#ungimped "+Str(akck)+" clients#%")
+                EndIf
+                
+              Case "/version"
+                SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
+                
+            EndSelect
+          Else
+            *usagePointer\last.s=rawreceive$
+            SendTarget("Area"+Str(*usagePointer\area),"CT#"+*usagePointer\username+"#"+StringField(rawreceive$,4,"#")+"#%",*usagePointer)
+            CompilerIf #CONSOLE=0
+              AddGadgetItem(#ListIcon_2,-1,StringField(rawreceive$,3,"#")+Chr(10)+StringField(rawreceive$,4,"#"))
+              Debug "guys"
+              SetGadgetItemData(#ListIcon_2,CountGadgetItems(#ListIcon_2)-1,*usagePointer\ClientID)
+            CompilerEndIf
           EndIf
-          send=1
+        Else
+          WriteLog("[OOC][HACKER]["+StringField(rawreceive$,3,"#")+"]["+ctparam$+"]",*usagePointer)
+          *usagePointer\hack=1
+          rf=1
         EndIf
-      Else
-        WriteLog("["+GetCharacterName(*usagePointer)+"] fucked up the bars",*usagePointer)
-        *usagePointer\hack=1
-        rf=1
-      EndIf
-      
-    Case "RT"
-      If *usagePointer\CID>=0
-        If rt=1
-          Sendtarget("Area"+Str(*usagePointer\area),"RT#"+Mid(rawreceive$,coff),*usagePointer)
+        
+      Case "HP" 
+        bar=Val(StringField(rawreceive$,4,"#"))
+        If *usagePointer\CID>=0
+          If bar>=0 And bar<=10
+            WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
+            If StringField(rawreceive$,3,"#")="1"
+              Areas(*usagePointer\area)\good=bar
+              SendTarget("Area"+Str(*usagePointer\area),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
+            ElseIf StringField(rawreceive$,3,"#")="2"
+              Areas(*usagePointer\area)\evil=bar
+              SendTarget("Area"+Str(*usagePointer\area),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
+            EndIf
+            send=1
+          EndIf
+        Else
+          WriteLog("["+GetCharacterName(*usagePointer)+"] fucked up the bars",*usagePointer)
+          *usagePointer\hack=1
+          rf=1
         EndIf
-      Else
-        *usagePointer\hack=1
-        rf=1
-      EndIf
-      
-      WriteLog("["+GetCharacterName(*usagePointer)+"] WT/CE button",*usagePointer)
-      
-    Case "AN" ; character list
-      start=Val(StringField(rawreceive$,3,"#"))
-      If start*10<characternumber And start>=0
-        SendTarget(Str(ClientID),ReadyChar(start),Server)
-      ElseIf EviNumber>0
-        SendTarget(Str(ClientID),ReadyEvidence(1),Server)
-      Else
-        SendTarget(Str(ClientID),ReadyMusic(0),Server)
-      EndIf
-      
-      
-    Case "AE" ; evidence list
-      Debug Evidences(0)\name
-      sentevi=Val(StringField(rawreceive$,3,"#"))
-      If sentevi<EviNumber And sentevi>=0          
-        SendTarget(Str(ClientID),ReadyEvidence(sentevi+1),Server)
-      Else
-        SendTarget(Str(ClientID),ReadyMusic(0),Server)
-      EndIf
-      
-    Case "AM" ;music list
-      start=Val(StringField(rawreceive$,3,"#"))
-      If start<=musicpage And start>=0 
-        SendTarget(Str(ClientID),ReadyMusic(start),Server)
-      Else ;MUSIC DONE
-        SendDone(*usagePointer)
-      EndIf
-      
-    Case "HI" ;what is this server
-      hdbanned=0
-      *usagePointer\HD = StringField(rawreceive$,3,"#")
-      WriteLog("HdId="+*usagePointer\HD,*usagePointer)
-      *usagePointer\sHD = 1
-      
-      If loghd
-        OpenFile(8,"base/hd.txt")
-        WriteStringN(8,*usagePointer\IP+","+*usagePointer\HD)
-        CloseFile(8)
-      EndIf
-      
-      ForEach SDBans()
-        Debug *usagePointer\HD
-        If *usagePointer\HD = SDbans()\banned Or *usagePointer\IP=SDBans()\banned
-          SendTarget(Str(ClientID),"BD#%",Server)
-          LockMutex(ListMutex)
-          CloseNetworkConnection(ClientID)
-          DeleteMapElement(Clients(),Str(ClientID))
-          UnlockMutex(ListMutex)
-          hdbanned=1
+        
+      Case "RT"
+        If *usagePointer\CID>=0
+          If rt=1
+            Sendtarget("Area"+Str(*usagePointer\area),"RT#"+Mid(rawreceive$,coff),*usagePointer)
+          EndIf
+        Else
+          *usagePointer\hack=1
+          rf=1
         EndIf
-      Next
-      If hdbanned=0
-        ForEach HDbans()
-          If *usagePointer\HD = HDbans()\banned
-            WriteLog("HdId: "+*usagePointer\HD+" is banned, disconnecting",*usagePointer)
+        
+        WriteLog("["+GetCharacterName(*usagePointer)+"] WT/CE button",*usagePointer)
+        
+      Case "AN" ; character list
+        start=Val(StringField(rawreceive$,3,"#"))
+        If start*10<characternumber And start>=0
+          SendTarget(Str(ClientID),ReadyChar(start),Server)
+        ElseIf EviNumber>0
+          SendTarget(Str(ClientID),ReadyEvidence(1),Server)
+        Else
+          SendTarget(Str(ClientID),ReadyMusic(0),Server)
+        EndIf
+        
+        
+      Case "AE" ; evidence list
+        Debug Evidences(0)\name
+        sentevi=Val(StringField(rawreceive$,3,"#"))
+        If sentevi<EviNumber And sentevi>=0          
+          SendTarget(Str(ClientID),ReadyEvidence(sentevi+1),Server)
+        Else
+          SendTarget(Str(ClientID),ReadyMusic(0),Server)
+        EndIf
+        
+      Case "AM" ;music list
+        start=Val(StringField(rawreceive$,3,"#"))
+        If start<=musicpage And start>=0 
+          SendTarget(Str(ClientID),ReadyMusic(start),Server)
+        Else ;MUSIC DONE
+          SendDone(*usagePointer)
+        EndIf
+        
+      Case "HI" ;what is this server
+        hdbanned=0
+        *usagePointer\HD = StringField(rawreceive$,3,"#")
+        WriteLog("HdId="+*usagePointer\HD,*usagePointer)
+        *usagePointer\sHD = 1
+        
+        If loghd
+          OpenFile(8,"base/hd.txt")
+          WriteStringN(8,*usagePointer\IP+","+*usagePointer\HD)
+          CloseFile(8)
+        EndIf
+        
+        ForEach SDBans()
+          Debug *usagePointer\HD
+          If *usagePointer\HD = SDbans()\banned Or *usagePointer\IP=SDBans()\banned
             SendTarget(Str(ClientID),"BD#%",Server)
             LockMutex(ListMutex)
             CloseNetworkConnection(ClientID)
             DeleteMapElement(Clients(),Str(ClientID))
             UnlockMutex(ListMutex)
             hdbanned=1
-            Break
           EndIf
         Next
-      EndIf
-      If hdbanned=0
-        ForEach HDmods()
-          If *usagePointer\HD = HDmods()
-            *usagePointer\perm=1
-          EndIf
-        Next
-        SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%",Server)
-        players=0
-        
-        LockMutex(ListMutex)    
-        ResetMap(Clients())
-        While NextMapElement(Clients())
-          If Clients()\CID>=0
-            players+1
-          EndIf
-        Wend
-        UnlockMutex(ListMutex)                      
-        
-        SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
-      EndIf
-      rf=1
-      
-    Case "askchaa" ;what is left to load
-      *usagePointer\cconnect=1
-      SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
-      
-    Case "askchar2" ; character list
-      SendTarget(Str(ClientID),ReadyChar(0),Server)
-      
-    Case "CC"
-      akchar=0
-      char=Val(StringField(rawreceive$,4,"#"))
-      If char>=0 And char<=characternumber
-        If BlockTaken=1
-          LockMutex(ListMutex)
-          PushMapPosition(Clients())
+        If hdbanned=0
+          ForEach HDbans()
+            If *usagePointer\HD = HDbans()\banned
+              WriteLog("HdId: "+*usagePointer\HD+" is banned, disconnecting",*usagePointer)
+              SendTarget(Str(ClientID),"BD#%",Server)
+              LockMutex(ListMutex)
+              CloseNetworkConnection(ClientID)
+              DeleteMapElement(Clients(),Str(ClientID))
+              UnlockMutex(ListMutex)
+              hdbanned=1
+              Break
+            EndIf
+          Next
+        EndIf
+        If hdbanned=0
+          ForEach HDmods()
+            If *usagePointer\HD = HDmods()
+              *usagePointer\perm=1
+            EndIf
+          Next
+          SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%",Server)
+          players=0
+          
+          LockMutex(ListMutex)    
           ResetMap(Clients())
           While NextMapElement(Clients())
-            If Clients()\CID=char
-              If Clients()\area=*usagePointer\area
-                akchar=1
-                Break
-              Else
-                akchar=0
-              EndIf
-              If MultiChar=0
-                akchar=1
-                Break
-              EndIf
+            If Clients()\CID>=0
+              players+1
             EndIf
           Wend
-          PopMapPosition(Clients())
-          UnlockMutex(ListMutex)     
+          UnlockMutex(ListMutex)                      
+          
+          SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
         EndIf
-        If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
-          SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
-          *usagePointer\CID=char                
-          WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-          SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-          SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
-          If MOTDevi
-            SendTarget(Str(ClientID),"MS#chat#normal#Discord#normal#Take that!#jud#1#2#"+Str(characternumber-1)+"#0#3#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-          EndIf
-        EndIf 
         rf=1
-      EndIf
-      
-    Case "DC"
-      If areas(*usagePointer\area)\lock=ClientID
-        areas(*usagePointer\area)\lock=0
-        areas(*usagePointer\area)\mlock=0
-      EndIf
-      *usagePointer\ignore=1
-      
-    Case "CA"
-      If *usagePointer\perm
-        If CommandThreading
-          CreateThread(@ListIP(),ClientID)
-        Else
-          ListIP(ClientID)
-        EndIf
-        WriteLog("["+GetCharacterName(*usagePointer)+"] used /ip (clientside)",*usagePointer)
-      EndIf 
-      
-    Case "opKICK"
-      If *usagePointer\perm
-        akck=KickBan(StringField(rawreceive$,3,"#"),"",#KICK,*usagePointer)
-        SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server)
-      EndIf
-      WriteLog("["+GetCharacterName(*usagePointer)+"] used opKICK",*usagePointer)
-      
-    Case "opBAN"
-      If *usagePointer\perm
-        akck=KickBan(StringField(rawreceive$,3,"#"),"",#BAN,*usagePointer)
-        SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
-      EndIf
-      WriteLog("["+GetCharacterName(*usagePointer)+"] used opBAN",*usagePointer)
-      
-    Case "opMUTE"
-      If *usagePointer\perm
-        akck=KickBan(StringField(rawreceive$,3,"#"),"",#MUTE,*usagePointer)
-        SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
-      EndIf
-      WriteLog("["+GetCharacterName(*usagePointer)+"] used opMUTE",*usagePointer)
-      
-    Case "opunMUTE"
-      If *usagePointer\perm
-        akck=KickBan(StringField(rawreceive$,3,"#"),"",#UNMUTE,*usagePointer)
-        SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
-      EndIf
-      WriteLog("["+GetCharacterName(*usagePointer)+"] used opunMUTE",*usagePointer)
-      
-    Case "VERSION"
-      SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
-      
-    Case "ZZ"
-      If *usagePointer\CID>=0
-        WriteLog("["+GetCharacterName(*usagePointer)+"] called mod",*usagePointer)
-      Else
-        WriteLog("[HACKER] called mod",*usagePointer)
-      EndIf
-      LockMutex(ListMutex)  
-      ResetMap(Clients())
-      While NextMapElement(Clients())
-        If Clients()\perm
-          SendTarget(Str(Clients()\ClientID),"ZZ#"+*usagePointer\IP+"#%",*usagePointer)  
-        Else
-          SendTarget(Str(Clients()\ClientID),"ZZ#someone#%",*usagePointer)  
-        EndIf
-      Wend   
-      UnlockMutex(ListMutex)
-      
-    Default
-      WriteLog(rawreceive$,*usagePointer)
-      If StringField(rawreceive$,3,"#")="chat"
-        Goto msreplayfix
-      ElseIf FindString(rawreceive$,".mp3")
-        Goto replaymusicfix
-      EndIf
-  EndSelect
-  
-  StopProfiler()
-EndProcedure
-
-;- Network Thread
-Procedure Network(var)
-  Define SEvent,ClientID,send,length
-  Define ip$,rawreceive$,sc
-  Define *usagePointer.Client
-  
-  SEvent = NetworkServerEvent()
-  
-  Select SEvent
-    Case 0
-      Delay(LagShield)
-      
-    Case #PB_NetworkEvent_Disconnect
-      ClientID = EventClient() 
-      LockMutex(ListMutex)
-      If FindMapElement(Clients(),Str(ClientID))
-        WriteLog("CLIENT DISCONNECTED",Clients())
-        If areas(Clients()\area)\lock=ClientID
-          areas(Clients()\area)\lock=0
-          areas(Clients()\area)\mlock=0
-        EndIf
-        If Clients()\area>=0
-          areas(Clients()\area)\players-1
-        EndIf
-        If ListSize(Plugins())
-          ResetList(Plugins())
-          While NextElement(Plugins())
-            pStat=#NONE
-            CallFunctionFast(Plugins()\gcallback,#DISC)    
-            CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-          Wend
-        EndIf
-        DeleteMapElement(Clients(),Str(ClientID))
-        rf=1
-      EndIf
-      UnlockMutex(ListMutex)
-      
-    Case #PB_NetworkEvent_Connect
-      ClientID = EventClient() 
-      send=1
-      ip$=IPString(GetClientIP(ClientID))
-      
-      ForEach IPbans()
-        If ip$ = IPbans()\banned
-          send=0
-          WriteLog("IP: "+ip$+" is banned, disconnecting",Server)
-          CloseNetworkConnection(ClientID)                   
-          Break
-        EndIf
-      Next 
-      
-      If send
         
-        LockMutex(ListMutex)
-        Clients(Str(ClientID))\ClientID = ClientID
-        Clients()\IP = ip$
-        Clients()\AID=PV
-        PV+1
-        Clients()\CID=-1
-        Clients()\hack=0
-        Clients()\perm=0
-        ForEach HDmods()
-          If ip$ = HDmods()
-            Clients()\perm=1
-          EndIf
-        Next
-        Clients()\area=0
-        areas(0)\players+1
-        Clients()\ignore=0
-        Clients()\judget=0
-        Clients()\ooct=0
-        Clients()\gimp=0
-        Clients()\ignoremc=0
-        Clients()\websocket=0
-        Clients()\username=""
+      Case "askchaa" ;what is left to load
+        *usagePointer\cconnect=1
+        SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
         
-        LockMutex(ActionMutex)
-        ResetList(Actions())
-        While NextElement(Actions())
-          If Actions()\IP=ip$
-            Select Actions()\type
-              Case #UNDJ
-                Clients()\ignoremc=1
-              Case #GIMP
-                Clients()\gimp=1
-            EndSelect
-          EndIf
-        Wend
-        UnlockMutex(ActionMutex)
+      Case "askchar2" ; character list
+        SendTarget(Str(ClientID),ReadyChar(0),Server)
         
-        UnlockMutex(ListMutex)
-        WriteLog("CLIENT CONNECTED ",Clients())
-        CompilerIf #CONSOLE=0
-          AddGadgetItem(#Listview_0,-1,ip$,Icons(0))
-        CompilerEndIf
-        If ListSize(Plugins())
-          ResetList(Plugins())
-          While NextElement(Plugins())
-            pStat=#NONE
-            CallFunctionFast(Plugins()\gcallback,#CONN)    
-            CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-          Wend
-        EndIf
-        CompilerIf #WEB
-          length=ReceiveNetworkData(ClientID, *Buffer, 1024)
-          Debug "eaoe"
-          Debug length
-          If length=-1
-            SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
-          Else
-            Debug "wotf"
-            rawreceive$=PeekS(*Buffer,length)
-            Debug rawreceive$
-            If ExpertLog
-              WriteLog(rawreceive$,Clients())
-            EndIf
-            If length>=0 And Left(rawreceive$,3)="GET"
-              Clients()\websocket=1
-              For i = 1 To CountString(rawreceive$, #CRLF$)
-                headeririda$ = StringField(rawreceive$, i, #CRLF$)
-                headeririda$ = RemoveString(headeririda$, #CR$)
-                headeririda$ = RemoveString(headeririda$, #LF$)
-                If Left(headeririda$, 19) = "Sec-WebSocket-Key: "
-                  wkey$ = Right(headeririda$, Len(headeririda$) - 19)
+      Case "CC"
+        akchar=0
+        char=Val(StringField(rawreceive$,4,"#"))
+        If char>=0 And char<=characternumber
+          If BlockTaken=1
+            LockMutex(ListMutex)
+            PushMapPosition(Clients())
+            ResetMap(Clients())
+            While NextMapElement(Clients())
+              If Clients()\CID=char
+                If Clients()\area=*usagePointer\area
+                  akchar=1
+                  Break
+                Else
+                  akchar=0
                 EndIf
-              Next
-              Debug wkey$
-              rkey$ = SecWebsocketAccept(wkey$)
-              Debug rkey$
-              vastus$ = "HTTP/1.1 101 Web Socket Protocol Handshake" + #CRLF$
-              vastus$ = vastus$ + "Access-Control-Allow-Origin: null" + #CRLF$
-              vastus$ = vastus$ + "Connection: Upgrade"+ #CRLF$
-              vastus$ = vastus$ + "Sec-WebSocket-Accept: " + rkey$ + #CRLF$
-              vastus$ = vastus$ + "Sec-WebSocket-Version:13" + #CRLF$
-              vastus$ = vastus$ + "Server: serverD "+version$ + #CRLF$
-              vastus$ = vastus$ + "Upgrade: websocket"+ #CRLF$ + #CRLF$
-              Debug vastus$
-              SendNetworkString(ClientID, vastus$)
-              
-            EndIf
+                If MultiChar=0
+                  akchar=1
+                  Break
+                EndIf
+              EndIf
+            Wend
+            PopMapPosition(Clients())
+            UnlockMutex(ListMutex)     
           EndIf
-        CompilerElse
-          SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
-        CompilerEndIf
-      EndIf
-      
-      
-    Case #PB_NetworkEvent_Data ;//////////////////////////Data
-      ClientID = EventClient() 
-      LockMutex(ListMutex)
-      *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
-      UnlockMutex(ListMutex)
-      If *usagePointer
-        length=ReceiveNetworkData(ClientID, *Buffer, 1024)
-        If length
-          rawreceive$=PeekS(*Buffer,length)
-          Debug rawreceive$
-          CompilerIf #WEB
-            If *usagePointer\websocket And WebSockets
-              
-              Ptr = 0
-              Byte.a = PeekA(*Buffer + Ptr)
-              If Byte & %10000000
-                Fin = #True
-              Else
-                Fin = #False
-              EndIf
-              Opcode = Byte & %00001111
-              Ptr = 1
-              
-              Debug "Fin:" + Str(Fin)
-              Debug "Opcode: " + Str(Opcode)            
-              
-              
-              Byte = PeekA(*Buffer + Ptr)
-              Masked = Byte >> 7
-              Payload = Byte & $7F            
-              Ptr + 1
-              
-              If Payload = 126
-                Payload = PeekA(*Buffer + Ptr) << 8
-                Ptr + 1
-                Payload | PeekA(*Buffer + Ptr)
-                Ptr + 1
-              ElseIf Payload = 127
-                Payload = 0
-                n = 7
-                For i = Ptr To Ptr + 7
-                  Payload | PeekA(*Buffer + i) << (8 * n)
-                  n - 1
-                Next i
-                Ptr + 8
-              EndIf
-              
-              Debug "Masked: " + Str(Masked)
-              Debug "Payload: " + Str(Payload)
-              
-              If Masked
-                n = 0
-                For i = Ptr To Ptr + 3
-                  MaskKey(n) = PeekA(*Buffer + i)
-                  Debug "MaskKey " + Str(n + 1) + ": " + RSet(Hex(MaskKey(n)), 2, "0")
-                  n + 1
-                Next i
-                Ptr + 4
-              EndIf
-              
-              Select Opcode
-                Case #TextFrame
-                  If Masked
-                    vastus$ = ""
-                    n = 0
-                    For i = Ptr To Ptr + Payload - 1
-                      vastus$ + Chr(PeekA(*Buffer + i) ! MaskKey(n % 4))
-                      n + 1
-                    Next i
-                  Else
-                    vastus$ = PeekS(*Buffer + Ptr, Payload)
-                  EndIf
-                  rawreceive$=vastus$
-                Case #PingFrame
-                  Byte = PeekA(*Buffer) & %11110000
-                  PokeA(*Buffer, Byte | #PongFrame)
-                  SendNetworkData(ClientID, *Buffer, bytesidkokku)
-                Case #ConnectionCloseFrame
-                  If *usagePointer\CID>=0 And *usagePointer\CID <= characternumber
-                    Characters(*usagePointer\CID)\taken=0
-                  EndIf
-                  If areas(*usagePointer\area)\lock=ClientID
-                    areas(*usagePointer\area)\lock=0
-                    areas(*usagePointer\area)\mlock=0
-                  EndIf
-                Default
-                  Debug "Opcode not implemented yet!"
-                  Debug Opcode
+          If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
+            SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
+            *usagePointer\CID=char                
+            WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+            SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+            SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+            If MOTDevi
+              SendTarget(Str(ClientID),"MS#chat#normal#Discord#normal#Take that!#jud#1#2#"+Str(characternumber-1)+"#0#3#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+            EndIf
+          EndIf 
+          rf=1
+        EndIf
+        
+      Case "DC"
+        If areas(*usagePointer\area)\lock=ClientID
+          areas(*usagePointer\area)\lock=0
+          areas(*usagePointer\area)\mlock=0
+        EndIf
+        *usagePointer\ignore=1
+        
+      Case "CA"
+        If *usagePointer\perm
+          If CommandThreading
+            CreateThread(@ListIP(),ClientID)
+          Else
+            ListIP(ClientID)
+          EndIf
+          WriteLog("["+GetCharacterName(*usagePointer)+"] used /ip (clientside)",*usagePointer)
+        EndIf 
+        
+      Case "opKICK"
+        If *usagePointer\perm
+          akck=KickBan(StringField(rawreceive$,3,"#"),"",#KICK,*usagePointer)
+          SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server)
+        EndIf
+        WriteLog("["+GetCharacterName(*usagePointer)+"] used opKICK",*usagePointer)
+        
+      Case "opBAN"
+        If *usagePointer\perm
+          akck=KickBan(StringField(rawreceive$,3,"#"),"",#BAN,*usagePointer)
+          SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
+        EndIf
+        WriteLog("["+GetCharacterName(*usagePointer)+"] used opBAN",*usagePointer)
+        
+      Case "opMUTE"
+        If *usagePointer\perm
+          akck=KickBan(StringField(rawreceive$,3,"#"),"",#MUTE,*usagePointer)
+          SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
+        EndIf
+        WriteLog("["+GetCharacterName(*usagePointer)+"] used opMUTE",*usagePointer)
+        
+      Case "opunMUTE"
+        If *usagePointer\perm
+          akck=KickBan(StringField(rawreceive$,3,"#"),"",#UNMUTE,*usagePointer)
+          SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
+        EndIf
+        WriteLog("["+GetCharacterName(*usagePointer)+"] used opunMUTE",*usagePointer)
+        
+      Case "VERSION"
+        SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
+        
+      Case "ZZ"
+        If *usagePointer\CID>=0
+          WriteLog("["+GetCharacterName(*usagePointer)+"] called mod",*usagePointer)
+        Else
+          WriteLog("[HACKER] called mod",*usagePointer)
+        EndIf
+        LockMutex(ListMutex)  
+        ResetMap(Clients())
+        While NextMapElement(Clients())
+          If Clients()\perm
+            SendTarget(Str(Clients()\ClientID),"ZZ#"+*usagePointer\IP+"#%",*usagePointer)  
+          Else
+            SendTarget(Str(Clients()\ClientID),"ZZ#someone#%",*usagePointer)  
+          EndIf
+        Wend   
+        UnlockMutex(ListMutex)
+        
+      Default
+        WriteLog(rawreceive$,*usagePointer)
+        If StringField(rawreceive$,3,"#")="chat"
+          Goto msreplayfix
+        ElseIf FindString(rawreceive$,".mp3")
+          Goto replaymusicfix
+        EndIf
+    EndSelect
+    
+    StopProfiler()
+  EndProcedure
+  
+  ;- Network Thread
+  Procedure Network(var)
+    Define SEvent,ClientID,send,length
+    Define ip$,rawreceive$,sc
+    Define *usagePointer.Client
+    
+    SEvent = NetworkServerEvent()
+    
+    Select SEvent
+      Case 0
+        Delay(LagShield)
+        
+      Case #PB_NetworkEvent_Disconnect
+        ClientID = EventClient() 
+        LockMutex(ListMutex)
+        If FindMapElement(Clients(),Str(ClientID))
+          WriteLog("CLIENT DISCONNECTED",Clients())
+          If areas(Clients()\area)\lock=ClientID
+            areas(Clients()\area)\lock=0
+            areas(Clients()\area)\mlock=0
+          EndIf
+          If Clients()\area>=0
+            areas(Clients()\area)\players-1
+          EndIf
+          If ListSize(Plugins())
+            ResetList(Plugins())
+            While NextElement(Plugins())
+              pStat=#NONE
+              CallFunctionFast(Plugins()\gcallback,#DISC)    
+              CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+            Wend
+          EndIf
+          DeleteMapElement(Clients(),Str(ClientID))
+          rf=1
+        EndIf
+        UnlockMutex(ListMutex)
+        
+      Case #PB_NetworkEvent_Connect
+        ClientID = EventClient() 
+        send=1
+        ip$=IPString(GetClientIP(ClientID))
+        
+        ForEach IPbans()
+          If ip$ = IPbans()\banned
+            send=0
+            WriteLog("IP: "+ip$+" is banned, disconnecting",Server)
+            CloseNetworkConnection(ClientID)                   
+            Break
+          EndIf
+        Next 
+        
+        If send
+          
+          LockMutex(ListMutex)
+          Clients(Str(ClientID))\ClientID = ClientID
+          Clients()\IP = ip$
+          Clients()\AID=PV
+          PV+1
+          Clients()\CID=-1
+          Clients()\hack=0
+          Clients()\perm=0
+          ForEach HDmods()
+            If ip$ = HDmods()
+              Clients()\perm=1
+            EndIf
+          Next
+          Clients()\area=0
+          areas(0)\players+1
+          Clients()\ignore=0
+          Clients()\judget=0
+          Clients()\ooct=0
+          Clients()\gimp=0
+          Clients()\ignoremc=0
+          Clients()\websocket=0
+          Clients()\username=""
+          
+          LockMutex(ActionMutex)
+          ResetList(Actions())
+          While NextElement(Actions())
+            If Actions()\IP=ip$
+              Select Actions()\type
+                Case #UNDJ
+                  Clients()\ignoremc=1
+                Case #GIMP
+                  Clients()\gimp=1
               EndSelect
             EndIf
-          CompilerEndIf
+          Wend
+          UnlockMutex(ActionMutex)
           
-          sc=1
-          While StringField(rawreceive$,sc,"%")<>""
-            subcommand$=StringField(rawreceive$,sc,"%")+"%"
-            
-            subcommand$=ValidateChars(subcommand$)
-            length=Len(subcommand$)
-            
-            If ExpertLog
-              WriteLog(subcommand$,*usagePointer)
+          UnlockMutex(ListMutex)
+          WriteLog("CLIENT CONNECTED ",Clients())
+          CompilerIf #CONSOLE=0
+            AddGadgetItem(#Listview_0,-1,ip$,Icons(0))
+          CompilerEndIf
+          If ListSize(Plugins())
+            ResetList(Plugins())
+            While NextElement(Plugins())
+              pStat=#NONE
+              CallFunctionFast(Plugins()\gcallback,#CONN)    
+              CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+            Wend
+          EndIf
+          CompilerIf #WEB
+            length=ReceiveNetworkData(ClientID, *Buffer, 1024)
+            Debug "eaoe"
+            Debug length
+            If length=-1
+              SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
+            Else
+              Debug "wotf"
+              rawreceive$=PeekS(*Buffer,length)
+              Debug rawreceive$
+              If ExpertLog
+                WriteLog(rawreceive$,Clients())
+              EndIf
+              If length>=0 And Left(rawreceive$,3)="GET"
+                Clients()\websocket=1
+                For i = 1 To CountString(rawreceive$, #CRLF$)
+                  headeririda$ = StringField(rawreceive$, i, #CRLF$)
+                  headeririda$ = RemoveString(headeririda$, #CR$)
+                  headeririda$ = RemoveString(headeririda$, #LF$)
+                  If Left(headeririda$, 19) = "Sec-WebSocket-Key: "
+                    wkey$ = Right(headeririda$, Len(headeririda$) - 19)
+                  EndIf
+                Next
+                Debug wkey$
+                rkey$ = SecWebsocketAccept(wkey$)
+                Debug rkey$
+                vastus$ = "HTTP/1.1 101 Switching Protocols" + #CRLF$
+                vastus$ = vastus$ + "Connection: Upgrade"+ #CRLF$
+                vastus$ = vastus$ + "Sec-WebSocket-Accept: " + rkey$ + #CRLF$
+                vastus$ = vastus$ + "Server: serverD "+version$ + #CRLF$
+                vastus$ = vastus$ + "Upgrade: websocket"+ #CRLF$ + #CRLF$
+                Debug vastus$
+                SendNetworkString(ClientID, vastus$)
+                
+              EndIf
             EndIf
+          CompilerElse
+            SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
+          CompilerEndIf
+        EndIf
+        
+        
+      Case #PB_NetworkEvent_Data ;//////////////////////////Data
+        ClientID = EventClient()
+        *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
+        If *usagePointer
+          length=ReceiveNetworkData(ClientID, *Buffer, 1024)
+          If length
+            rawreceive$=PeekS(*Buffer,length)
+            Debug rawreceive$
+            CompilerIf #WEB
+              If *usagePointer\websocket And WebSockets              
+                Ptr = 0
+                Byte.a = PeekA(*Buffer + Ptr)
+                If Byte & %10000000
+                  Fin = #True
+                Else
+                  Fin = #False
+                EndIf
+                Opcode = Byte & %00001111
+                Ptr = 1
+                Byte = PeekA(*Buffer + Ptr)
+                Masked = Byte >> 7
+                Payload = Byte & $7F            
+                Ptr + 1
+                If Payload = 126
+                  Payload = PeekA(*Buffer + Ptr) << 8
+                  Ptr + 1
+                  Payload | PeekA(*Buffer + Ptr)
+                  Ptr + 1
+                ElseIf Payload = 127
+                  Payload = 0
+                  n = 7
+                  For i = Ptr To Ptr + 7
+                    Payload | PeekA(*Buffer + i) << (8 * n)
+                    n - 1
+                  Next i
+                  Ptr + 8
+                EndIf
+                If Masked
+                  n = 0
+                  For i = Ptr To Ptr + 3
+                    MaskKey(n) = PeekA(*Buffer + i)
+                    Debug "MaskKey " + Str(n + 1) + ": " + RSet(Hex(MaskKey(n)), 2, "0")
+                    n + 1
+                  Next i
+                  Ptr + 4
+                EndIf
+                Select Opcode
+                  Case #TextFrame
+                    If Masked
+                      vastus$ = ""
+                      n = 0
+                      For i = Ptr To Ptr + Payload - 1
+                        vastus$ + Chr(PeekA(*Buffer + i) ! MaskKey(n % 4))
+                        n + 1
+                      Next i
+                    Else
+                      vastus$ = PeekS(*Buffer + Ptr, Payload)
+                    EndIf
+                    rawreceive$=vastus$
+                  Case #PingFrame
+                    Byte = PeekA(*Buffer) & %11110000
+                    PokeA(*Buffer, Byte | #PongFrame)
+                    SendNetworkData(ClientID, *Buffer, bytesidkokku)
+                  Case #ConnectionCloseFrame
+                    If areas(Clients()\area)\lock=ClientID
+                      areas(Clients()\area)\lock=0
+                      areas(Clients()\area)\mlock=0
+                    EndIf
+                    If Clients()\area>=0
+                      areas(Clients()\area)\players-1
+                    EndIf
+                EndSelect
+              EndIf
+            CompilerEndIf
             
-            If ReplayMode=1 Or Not *usagePointer\last.s=subcommand$ And *usagePointer\ignore=0 
-              *usagePointer\last.s=subcommand$
-              If CommandThreading
-                CreateThread(@HandleAOCommand(),*usagePointer)
-              Else
-                HandleAOCommand(*usagePointer)
+            sc=1
+            While StringField(rawreceive$,sc,"%")<>""
+              subcommand$=StringField(rawreceive$,sc,"%")+"%"
+              
+              subcommand$=ValidateChars(subcommand$)
+              length=Len(subcommand$)
+              
+              If ExpertLog
+                WriteLog(subcommand$,*usagePointer)
+              EndIf
+              
+              If ReplayMode=1 Or Not *usagePointer\last.s=subcommand$ And *usagePointer\ignore=0 
+                *usagePointer\last.s=subcommand$
+                If CommandThreading
+                  CreateThread(@HandleAOCommand(),*usagePointer)
+                Else
+                  HandleAOCommand(*usagePointer)
+                EndIf
+                If ListSize(Plugins())
+                  ResetList(Plugins())
+                  While NextElement(Plugins())
+                    pStat=#NONE
+                    CallFunctionFast(Plugins()\gcallback,#DATA)    
+                    CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+                    pStat=CallFunctionFast(Plugins()\gcallback,#SEND)
+                    Select pStat
+                      Case #SEND
+                        ptarget$=PeekS(CallFunctionFast(Plugins()\gtarget))
+                        pmes$=PeekS(CallFunctionFast(Plugins()\gmessage))
+                        SendTarget(ptarget$,pmes$,Server)
+                    EndSelect
+                  Wend
+                EndIf
+              EndIf
+              sc+1
+            Wend
+            
+          ElseIf length=-1
+            LockMutex(ListMutex)
+            If FindMapElement(Clients(),Str(ClientID))
+              WriteLog("CLIENT BROKE",Clients())
+              If areas(Clients()\area)\lock=ClientID
+                areas(Clients()\area)\lock=0
+                areas(Clients()\area)\mlock=0
+              EndIf
+              If Clients()\area>=0
+                areas(Clients()\area)\players-1
               EndIf
               If ListSize(Plugins())
                 ResetList(Plugins())
                 While NextElement(Plugins())
                   pStat=#NONE
-                  CallFunctionFast(Plugins()\gcallback,#DATA)    
+                  CallFunctionFast(Plugins()\gcallback,#DISC)    
                   CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-                  pStat=CallFunctionFast(Plugins()\gcallback,#SEND)
-                  Select pStat
-                    Case #SEND
-                      ptarget$=PeekS(CallFunctionFast(Plugins()\gtarget))
-                      pmes$=PeekS(CallFunctionFast(Plugins()\gmessage))
-                      SendTarget(ptarget$,pmes$,Server)
-                  EndSelect
                 Wend
               EndIf
+              DeleteMapElement(Clients(),Str(ClientID))
+              rf=1
             EndIf
-            sc+1
-          Wend
-          
-        ElseIf length=-1
-          LockMutex(ListMutex)
-          If FindMapElement(Clients(),Str(ClientID))
-            WriteLog("CLIENT BROKE",Clients())
-            If areas(Clients()\area)\lock=ClientID
-              areas(Clients()\area)\lock=0
-              areas(Clients()\area)\mlock=0
-            EndIf
-            If Clients()\area>=0
-              areas(Clients()\area)\players-1
-            EndIf
-            If ListSize(Plugins())
-              ResetList(Plugins())
-              While NextElement(Plugins())
-                pStat=#NONE
-                CallFunctionFast(Plugins()\gcallback,#DISC)    
-                CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-              Wend
-            EndIf
-            DeleteMapElement(Clients(),Str(ClientID))
-            rf=1
+            UnlockMutex(ListMutex)
           EndIf
-          UnlockMutex(ListMutex)
         EndIf
-      EndIf
-      
-    Default
-      Delay(LagShield)
-      
-  EndSelect
+        
+      Default
+        Delay(LagShield)
+        
+    EndSelect
+    
+  EndProcedure
   
-EndProcedure
-
-;-  PROGRAM START    
-
-start:
-CompilerIf #PB_Compiler_Debugger=0
-  error=ErrorAddress()
-  If error<>lasterror
-    lasterror=error
-    public=0
-    OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
-    WriteStringN(5,"it "+ErrorMessage()+"'d at this address "+Str(ErrorAddress())+" target "+Str(ErrorTargetAddress()))
-    CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
-      WriteStringN(5,"RAX "+ErrorRegister(#PB_OnError_RAX))
-      WriteStringN(5,"RBX "+ErrorRegister(#PB_OnError_RBX))
-      WriteStringN(5,"RCX "+ErrorRegister(#PB_OnError_RCX))
-      WriteStringN(5,"RDX "+ErrorRegister(#PB_OnError_RDX))
-      WriteStringN(5,"RBP "+ErrorRegister(#PB_OnError_RBP))
-      WriteStringN(5,"RSI "+ErrorRegister(#PB_OnError_RSI))
-      WriteStringN(5,"RDI "+ErrorRegister(#PB_OnError_RDI))
-      WriteStringN(5,"RSP "+ErrorRegister(#PB_OnError_RSP))
-      WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
-    CompilerElse
-      WriteStringN(5,"EAX "+ErrorRegister(#PB_OnError_EAX))
-      WriteStringN(5,"EBX "+ErrorRegister(#PB_OnError_EBX))
-      WriteStringN(5,"ECX "+ErrorRegister(#PB_OnError_ECX))
-      WriteStringN(5,"EDX "+ErrorRegister(#PB_OnError_EDX))
-      WriteStringN(5,"EBP "+ErrorRegister(#PB_OnError_EBP))
-      WriteStringN(5,"ESI "+ErrorRegister(#PB_OnError_ESI))
-      WriteStringN(5,"EDI "+ErrorRegister(#PB_OnError_EDI))
-      WriteStringN(5,"ESP "+ErrorRegister(#PB_OnError_ESP))
-      WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
-    CompilerEndIf
-    CloseFile(5)
-    LoadSettings(1)
-    Delay(500)
-  EndIf
-CompilerEndIf
-
-If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/serverd.txt","serverd.txt")
-  OpenPreferences("serverd.txt")
-  PreferenceGroup("Version")
-  newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
-  If newbuild>#PB_Editor_BuildCount
-    update=1
-  EndIf
-  ClosePreferences()
-EndIf
-
-CompilerIf #CONSOLE=0
-  IncludeFile "gui.pb"      
-CompilerElse
-  OpenConsole()
-  LoadSettings(0)
+  ;-  PROGRAM START    
   
-  killed=0
-  success=CreateNetworkServer(0,Port,#PB_Network_TCP)
-  If success
-    
-    *Buffer = AllocateMemory(1024)
-    
-    WriteLog("Server started",Server)
-    
-    If public And msthread=0
-      msthread=CreateThread(@MasterAdvert(),Port)
-    EndIf      
-    
-    If LoopMusic
-      CreateThread(@TrackWait(),0)
-    EndIf                
-    
-    Repeat
-      
-      Network(0)
-      
-    Until Quit = 1
-    WriteLog("stopping server...",Server)
-    LockMutex(ListMutex)
-    ResetMap(Clients())
-    While NextMapElement(Clients())
-      If Clients()\ClientID
-        CloseNetworkConnection(Clients()\ClientID)
-      EndIf
-      DeleteMapElement(Clients())
-    Wend
-    killed=1
-    UnlockMutex(ListMutex)    
-    CloseNetworkServer(0)
-    FreeMemory(*Buffer)
-  Else
-    WriteLog("server creation failed",Server)
+  start:
+  CompilerIf #PB_Compiler_Debugger=0
+    error=ErrorAddress()
+    If error<>lasterror
+      lasterror=error
+      public=0
+      OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
+      WriteStringN(5,"it "+ErrorMessage()+"'d at this address "+Str(ErrorAddress())+" target "+Str(ErrorTargetAddress()))
+      CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
+        WriteStringN(5,"RAX "+ErrorRegister(#PB_OnError_RAX))
+        WriteStringN(5,"RBX "+ErrorRegister(#PB_OnError_RBX))
+        WriteStringN(5,"RCX "+ErrorRegister(#PB_OnError_RCX))
+        WriteStringN(5,"RDX "+ErrorRegister(#PB_OnError_RDX))
+        WriteStringN(5,"RBP "+ErrorRegister(#PB_OnError_RBP))
+        WriteStringN(5,"RSI "+ErrorRegister(#PB_OnError_RSI))
+        WriteStringN(5,"RDI "+ErrorRegister(#PB_OnError_RDI))
+        WriteStringN(5,"RSP "+ErrorRegister(#PB_OnError_RSP))
+        WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
+      CompilerElse
+        WriteStringN(5,"EAX "+ErrorRegister(#PB_OnError_EAX))
+        WriteStringN(5,"EBX "+ErrorRegister(#PB_OnError_EBX))
+        WriteStringN(5,"ECX "+ErrorRegister(#PB_OnError_ECX))
+        WriteStringN(5,"EDX "+ErrorRegister(#PB_OnError_EDX))
+        WriteStringN(5,"EBP "+ErrorRegister(#PB_OnError_EBP))
+        WriteStringN(5,"ESI "+ErrorRegister(#PB_OnError_ESI))
+        WriteStringN(5,"EDI "+ErrorRegister(#PB_OnError_EDI))
+        WriteStringN(5,"ESP "+ErrorRegister(#PB_OnError_ESP))
+        WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
+      CompilerEndIf
+      CloseFile(5)
+      LoadSettings(1)
+      Delay(500)
+    EndIf
+  CompilerEndIf
+  
+  If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/serverd.txt","serverd.txt")
+    OpenPreferences("serverd.txt")
+    PreferenceGroup("Version")
+    newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
+    If newbuild>#PB_Editor_BuildCount
+      update=1
+    EndIf
+    ClosePreferences()
   EndIf
   
-CompilerEndIf
-
-End
+  CompilerIf #CONSOLE=0
+    IncludeFile "gui.pb"      
+  CompilerElse
+    OpenConsole()
+    LoadSettings(0)
+    
+    killed=0
+    success=CreateNetworkServer(0,Port,#PB_Network_TCP)
+    If success
+      
+      *Buffer = AllocateMemory(1024)
+      
+      WriteLog("Server started",Server)
+      
+      If public And msthread=0
+        msthread=CreateThread(@MasterAdvert(),Port)
+      EndIf      
+      
+      If LoopMusic
+        CreateThread(@TrackWait(),0)
+      EndIf                
+      
+      Repeat
+        
+        Network(0)
+        
+      Until Quit = 1
+      WriteLog("stopping server...",Server)
+      LockMutex(ListMutex)
+      ResetMap(Clients())
+      While NextMapElement(Clients())
+        If Clients()\ClientID
+          CloseNetworkConnection(Clients()\ClientID)
+        EndIf
+        DeleteMapElement(Clients())
+      Wend
+      killed=1
+      UnlockMutex(ListMutex)    
+      CloseNetworkServer(0)
+      FreeMemory(*Buffer)
+    Else
+      WriteLog("server creation failed",Server)
+    EndIf
+    
+  CompilerEndIf
+  
+  End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1063
-; FirstLine = 1186
+; CursorPosition = 827
+; FirstLine = 813
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

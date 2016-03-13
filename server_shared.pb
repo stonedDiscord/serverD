@@ -175,7 +175,7 @@ CompilerIf #WEB
     
     ; #### Convert to ASCII
     Temp_String_ByteLength = StringByteLength(Temp_String, #PB_Ascii)
-    *Temp_Data = AllocateMemory(Temp_String_ByteLength)
+    *Temp_Data = AllocateMemory(Temp_String_ByteLength + SizeOf(Character))
     PokeS(*Temp_Data, Temp_String, -1, #PB_Ascii)
     
     ; #### Generate the SHA1
@@ -290,7 +290,7 @@ EndProcedure
 
 Procedure.s GetAreaName(*nclient.Client)
   Define name$
-  If *nclient\area>=0 And *nclient\area<=Aareas
+  If *nclient\area>=0 And *nclient\area<=AreaNumber
     name$=Areas(*nclient\area)\name
   ElseIf *nclient\area=-3
     name$="RAM"
@@ -300,7 +300,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 69
-; FirstLine = 27
+; CursorPosition = 292
+; FirstLine = 216
 ; Folding = --
 ; EnableXP

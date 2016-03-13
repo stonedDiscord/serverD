@@ -70,6 +70,7 @@ Structure Client
   username.s
   RAW.b
   master.b
+  skip.b
   Inventory.i[100]
 EndStructure
 
@@ -97,6 +98,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 38
-; FirstLine = 20
+; CursorPosition = 72
+; FirstLine = 29
 ; EnableXP
