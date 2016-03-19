@@ -1,12 +1,12 @@
 # serverD
-## Don't hassle the hoff
+## DANK MEMES
 You can find the downloads in the release tab
 
 ### changelog
-* looping music
-* roll is more subtle
-* lag and crashes fixed
-* cleanups
+* /pos command added
+* /pm now works with usernames
+* areas should not freeze anymore
+* logs show the correct area
  
 ### minimal setup (console version)
 > OS
@@ -14,10 +14,10 @@ You can find the downloads in the release tab
 > Linux Kernel 2.3 and libc6 2.13
 
 > CPU
-> i486SX @ 66 MHz
+> i486DX @ 66MHz
 
 > RAM
-> 5 MB
+> 16 MB
 
 > HDD
 > 150 KB + logs
@@ -30,7 +30,7 @@ You can find the downloads in the release tab
 > Pentium P55C 200MHz
 
 > RAM
-> 20MB
+> 24 MB
 
 > HDD
 > 400 KB + a few MB of logs
@@ -46,6 +46,9 @@ by default it's running on port 27016
 ### commands
 - /area
 - lets you view and switch areas
+
+- /pos
+- lets you switch positions
 
 - /switch
 - lets you switch characters
@@ -84,6 +87,10 @@ by default it's running on port 27016
 - /hd
 - show the kurwalist with HDs
 
+- /skip
+- /noskip
+- lets you ignore the waittime after a message
+
 - /kick Godot
 - kurwakurwa
 
@@ -91,28 +98,20 @@ by default it's running on port 27016
 - kurwakurwakurwa
 
 - /mute Hawk
-- kurwa
-
 - /unmute Hawk
-- wodka
+- keep him from talking
 
 - /ignore Doge
-- kurwa
-
 - /unignore Doge
-- wodka
+- ignores all traffic from this client
 
 - /undj Phoenix
+- /dj Phoenix
 - keep this client from changing the music
 
-- /dj Phoenix
-- makes 
-
 - /gimp Miles
-- make this client talk nonsense
-
 - /ungimp Miles
-- wodka
+- make this client talk nonsense
 
 - /play Pursuit(HY).mp3
 - play a kurwa thats not on wodkalist

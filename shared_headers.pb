@@ -61,6 +61,7 @@ Structure Client
   ignoremc.b
   hack.b
   gimp.b
+  pos.s
   area.w
   last.s
   cconnect.b
@@ -98,6 +99,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 72
-; FirstLine = 29
+; CursorPosition = 63
+; FirstLine = 32
 ; EnableXP
