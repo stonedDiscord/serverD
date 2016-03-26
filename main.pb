@@ -128,9 +128,10 @@ Procedure WriteReplay(string$)
         ReplayOpen=0
       EndIf
     Else
-      OpenFile(3,"base/replays/AAO replay "+FormatDate("%dd-%mm-%yy %hh-%ii-%ss",Date())+".txt",#PB_File_SharedRead | #PB_File_NoBuffering)
-      WriteStringN(3,"decryptor#"+decryptor$+"#%")
-      ReplayOpen=1
+      ReplayOpen=OpenFile(3,"base/replays/AAO replay "+FormatDate("%dd-%mm-%yy %hh-%ii-%ss",Date())+".txt",#PB_File_SharedRead | #PB_File_NoBuffering)
+      If ReplayOpen
+        WriteStringN(3,"decryptor#"+decryptor$+"#%")
+      EndIf
     EndIf
   EndIf
 EndProcedure
@@ -2287,8 +2288,8 @@ CompilerIf #PB_Compiler_Debugger=0
   If error<>lasterror
     lasterror=error
     public=0
-    OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
-    WriteStringN(5,"it "+ErrorMessage()+"'d at this address "+Str(ErrorAddress())+" target "+Str(ErrorTargetAddress()))
+    If OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
+    WriteStringN(5,"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"] serverD "+ErrorMessage()+"'d at this address "+Str(ErrorAddress())+" target "+Str(ErrorTargetAddress()))
     CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
       WriteStringN(5,"RAX "+ErrorRegister(#PB_OnError_RAX))
       WriteStringN(5,"RBX "+ErrorRegister(#PB_OnError_RBX))
@@ -2311,6 +2312,7 @@ CompilerIf #PB_Compiler_Debugger=0
       WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
     CompilerEndIf
     CloseFile(5)
+    EndIf
     LoadSettings(1)
     Delay(500)
   EndIf
@@ -2374,8 +2376,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2332
-; FirstLine = 2326
+; CursorPosition = 2291
+; FirstLine = 2279
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
