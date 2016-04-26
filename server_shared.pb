@@ -34,7 +34,7 @@ Global NewList Music.Track()
 
 
 Global Server.Client
-Server\ClientID=0
+Server\ClientID=-1
 Server\IP="$HOST"
 Server\AID=-3
 Server\CID=-3
@@ -102,10 +102,10 @@ Procedure WriteLog(string$,*lclient.Client)
   logstr$=mstr$+"["+LSet(*lclient\IP,15)
   logstr$=logstr$+"]"+"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"]"+string$
   If Logging
-    WriteStringN(1,Escape(logstr$))
+    WriteStringN(1,logstr$)
   EndIf
   CompilerIf #CONSOLE
-    PrintN(Escape(logstr$))
+    PrintN(logstr$)
   CompilerElse
     If Quit=0
     AddGadgetItem(#listbox_event,-1,string$)
@@ -300,7 +300,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 292
-; FirstLine = 216
+; CursorPosition = 36
+; FirstLine = 9
 ; Folding = --
 ; EnableXP
