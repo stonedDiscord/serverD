@@ -59,7 +59,7 @@ Procedure.s ValidateChars(source.s)
     If *ptrChar\c > 31
       If *ptrChar\c<>127 And *ptrChar\c<>129
         result + Chr(*ptrChar\c)
-        EndIf
+      EndIf
     EndIf
     *ptrChar + SizeOf(Character)
   Next
@@ -108,8 +108,8 @@ Procedure WriteLog(string$,*lclient.Client)
     PrintN(logstr$)
   CompilerElse
     If Quit=0
-    AddGadgetItem(#listbox_event,-1,string$)
-    SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
+      AddGadgetItem(#listbox_event,-1,string$)
+      SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
     EndIf
   CompilerEndIf   
 EndProcedure
@@ -123,7 +123,19 @@ CompilerIf #PB_Compiler_OS = #PB_OS_Linux
   #SIGTERM   =   15
   
   ProcedureC on_killed_do(signum)
+    WriteLog("stopping server...",Server)
+    LockMutex(ListMutex)
+    ResetMap(Clients())
+    While NextMapElement(Clients())
+      If Clients()\ClientID
+        CloseNetworkConnection(Clients()\ClientID)
+      EndIf
+      DeleteMapElement(Clients())
+    Wend
+    killed=1
+    UnlockMutex(ListMutex)    
     CloseNetworkServer(0)
+    FreeMemory(*Buffer)
     WriteLog("KILLED",Server)
     End
   EndProcedure
@@ -299,8 +311,8 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 36
-; FirstLine = 9
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 312
+; FirstLine = 263
 ; Folding = --
 ; EnableXP

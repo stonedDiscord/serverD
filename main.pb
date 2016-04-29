@@ -678,7 +678,7 @@ Procedure ListIP(ClientID)
       Case 2
         charname$=GetCharacterName(Clients())+"(admin)"
       Case 3
-        charname$=GetCharacterName(Clients())+"(server) also this is not good, it'd be better if you sent sD a message"
+        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
       Default
         charname$=GetCharacterName(Clients())
     EndSelect
@@ -724,7 +724,7 @@ ProcedureDLL MasterAdvert(Port)
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/masterserver.ini")
   PreferenceGroup("list")
-  master$=ReadPreferenceString("0","54.93.210.149")
+  master$=ReadPreferenceString("0","51.255.160.217")
   msPort=ReadPreferenceInteger("Port",27016)
   ClosePreferences()
   
@@ -765,7 +765,7 @@ ProcedureDLL MasterAdvert(Port)
         msID=OpenNetworkConnection(master$,msPort)
         If msID
           Server\ClientID=msID
-          sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#"+version$+"#%"+Chr(0))
+          sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#serverD "+version$+"#%"+Chr(0))
           WriteLog("Server published!",Server)
         EndIf
       EndIf
@@ -2398,8 +2398,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 1058
-; FirstLine = 1025
+; CursorPosition = 565
+; FirstLine = 565
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
