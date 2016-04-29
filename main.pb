@@ -902,7 +902,7 @@ EndProcedure
 
 Procedure KickBan(kick$,param$,action,*usagePointer.Client)
   Define actionn$
-  Define akck
+  Define akck,newchar=-1
   Define everybody
   Define i,kclid,kcid
   akck=0
@@ -920,7 +920,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
     Debug kick$
     Debug kclid
     If Clients()\ClientID
-      If kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=GetCharacterName(Clients()) Or kick$=Clients()\HD Or kick$=Clients()\IP Or kick$="Area"+Str(Clients()\area) Or everybody
+      If kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=ReplaceString(GetCharacterName(Clients())," ","_") Or kick$=Clients()\HD Or kick$=Clients()\IP Or kick$="Area"+Str(Clients()\area) Or everybody
         If Clients()\perm<*usagePointer\perm Or (*usagePointer\perm And Clients()=*usagePointer)
           LockMutex(ActionMutex)
           Select action
@@ -1046,11 +1046,22 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
               Debug "swkick$"
               Debug kick$
               Debug kclid
-              actionn$="switched"
-              Clients()\CID=-1 
-              akck+1
-              SendTarget(Str(Clients()\ClientID),"DONE#%",Server)
-              
+              actionn$="switched"              
+              For scid=0 To CharacterNumber
+                If param$=ReplaceString(Characters(scid)\name," ","_")
+                  newchar=scid
+                  Break
+                EndIf
+              Next
+              If newchar<>-1
+                Clients()\CID=newchar
+                akck+1
+                SendTarget(Str(Clients()\ClientID),"PV#"+Str(Clients()\AID)+"#CID#"+Str(newchar)+"#%",Server)
+              Else
+                Clients()\CID=-1 
+                akck+1
+                SendTarget(Str(Clients()\ClientID),"DONE#%",Server)
+              EndIf
             Case #MOVE
               SwitchAreas(Clients(),param$)
               
@@ -1347,11 +1358,11 @@ Procedure HandleAOCommand(ClientID)
                 *usagePointer\cid=-1
                 SendDone(*usagePointer)
               Else
-                KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#SWITCH,*usagePointer)
+                KickBan(StringField(ctparam$,2," "),StringField(ctparam$,3," "),#SWITCH,*usagePointer)
               EndIf
               
             Case "/move"
-              KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#MOVE,*usagePointer)
+              KickBan(StringField(ctparam$,2," "),StringField(ctparam$,3," "),#MOVE,*usagePointer)
               
             Case "/online"
               players=0          
@@ -1595,7 +1606,7 @@ Procedure HandleAOCommand(ClientID)
               SendTarget(Str(ClientID),"CT#PM You to "+StringField(ctparam$,2," ")+"#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
               
             Case "/send"  
-              If *usagePointer\perm
+              If *usagePointer\perm>1
                 sname$=StringField(ctparam$,2," ")
                 Debug sname$
                 smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
@@ -2386,9 +2397,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1923
-; FirstLine = 1890
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 1058
+; FirstLine = 1025
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
