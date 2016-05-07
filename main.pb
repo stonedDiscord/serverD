@@ -1120,33 +1120,36 @@ Procedure HandleAOCommand(ClientID)
     *usagePointer=0
     Debug "error"
   EndIf
-  If *usagePointer
-    
+  If *usagePointer    
     If Left(*usagePointer\last,1)="#"
       comm$=DecryptStr(HexToString(StringField(*usagePointer\last,2,"#")),key)
+      rawreceive$=*usagePointer\last
       coff=7
-    ElseIf Left(*usagePointer\last,1)="4"
+    ElseIf Left(*usagePointer\last,1)="4" Or Left(*usagePointer\last,1)="3"
       comm$=DecryptStr(HexToString(StringField(*usagePointer\last,1,"#")),key)
       *usagePointer\last="#"+*usagePointer\last
+      rawreceive$=*usagePointer\last
       coff=7
     Else
       comm$=StringField(*usagePointer\last,1,"#")
       *usagePointer\last="#"+*usagePointer\last
+      rawreceive$=*usagePointer\last
       coff=3
-    EndIf
+    EndIf    
     
-    rawreceive$=*usagePointer\last
-    length=Len(rawreceive$)
-    ClientID=*usagePointer\ClientID
+    length=Len(rawreceive$)    
     
     If StringField(rawreceive$,3,"#")="chat"
       comm$="MS"
-    ElseIf FindString(rawreceive$,".mp3#")
+    ElseIf Right(StringField(rawreceive$,3,"#"),4)=".mp3"
       comm$="MC"
     EndIf
+    
+    
     Debug rawreceive$
     Debug comm$
     Select comm$
+      Case "wait"        
       Case "CH"
         SendTarget(Str(ClientID),"CHECK#%",*usagePointer)
       Case "MS"
@@ -1762,7 +1765,7 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/version"
-              SendTarget(Str(ClientID),"CT#$HOST#"+version$+"#%",Server)
+              SendTarget(Str(ClientID),"CT#$HOST#serverD "+version$+"#%",Server)
               
           EndSelect
         Else
@@ -2397,9 +2400,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 565
-; FirstLine = 565
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 1151
+; FirstLine = 1126
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
