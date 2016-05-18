@@ -32,6 +32,7 @@ Structure area
   lock.l
   mlock.w
   pw.s
+  hidden.b
   players.w
   good.w
   evil.w
@@ -98,7 +99,7 @@ Enumeration
   #SWITCH
   #MOVE
 EndEnumeration
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 63
-; FirstLine = 32
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 34
+; FirstLine = 11
 ; EnableXP

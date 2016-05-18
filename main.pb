@@ -462,6 +462,10 @@ Procedure LoadSettings(reload)
       PreferenceGroup("filename")
       area$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
       areas(loadareas)\bg=area$
+      PreferenceGroup("hidden")
+      areas(loadareas)\hidden=ReadPreferenceInteger(Str(loadareas+1),0)
+      PreferenceGroup("password")
+      areas(loadareas)\pw=Encode(ReadPreferenceString(Str(loadareas+1),""))
     Next  
     ClosePreferences()
   Else
@@ -1402,6 +1406,7 @@ Procedure HandleAOCommand(ClientID)
               If narea$=""
                 arep$="CT#$HOST#Areas:"
                 For ir=0 To AreaNumber-1
+                  If aread(ir)\hidden=0 Or *usagePointer\perm
                   arep$+#CRLF$
                   arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
                   If ir=*usagePointer\area
@@ -1412,6 +1417,7 @@ Procedure HandleAOCommand(ClientID)
                   EndIf
                   If areas(ir)\lock
                     arep$+"locked"                      
+                  EndIf
                   EndIf
                 Next
                 arep$+"#%"
@@ -2400,9 +2406,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1151
-; FirstLine = 1126
+; IDE Options = PureBasic 5.11 (Windows - x64)
+; CursorPosition = 467
+; FirstLine = 433
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
