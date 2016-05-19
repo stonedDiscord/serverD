@@ -1,12 +1,11 @@
 # serverD
-## DANK MEMES
+## TAKE ON ME
 You can find the downloads in the release tab
 
 ### changelog
-* /pos command added
-* /pm now works with usernames
-* areas should not freeze anymore
-* logs show the correct area
+* /change command added
+* hidden areas added
+* fixed /play
  
 ### minimal setup (console version)
 > OS
@@ -47,11 +46,14 @@ by default it's running on port 27016
 - /area
 - lets you view and switch areas
 
-- /pos
+- /pos hlp
 - lets you switch positions
 
 - /switch
-- lets you switch characters
+- lets you switch character
+
+- /change Klavier_G
+- lets you change character
 
 - /pm Godot sup
 - send a PM
@@ -90,6 +92,12 @@ by default it's running on port 27016
 - /skip
 - /noskip
 - lets you ignore the waittime after a message
+
+- /switch Gumshoe
+- kicks Gumshoe to charselect
+
+- /switch Gumshoe Vinyl
+- changes Gumshoe to Vinyl
 
 - /kick Godot
 - kurwakurwa
@@ -144,9 +152,9 @@ by default it's running on port 27016
 **:warning:Mods can only be kicked by admins**
 
 ## FAQ
-- Q: Will this change my kurwa files?
+- Q: Will this change my server files?
 - A: only poker.ini
-- Q: Are there any kurwas/kurwa code?
+- Q: Are there any backdoors/malicious code?
 - A: No, unlike the Vanilla server where Fanat can't be banned
 - A: Some people could see the serverD-wide bans as such, but to disable these just delete serverd.txt and reload
 - Q: Then why is the result 3/52 on kurwaTotal?

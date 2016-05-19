@@ -1360,6 +1360,43 @@ Procedure HandleAOCommand(ClientID)
                 *usagePointer\pos=""
               EndIf
               
+            Case "/change"
+              nchar$=Mid(ctparam$,9)
+              For nch=0 To CharacterNumber
+                If Characters(nch)\name=nchar$
+                  If BlockTaken=1
+                    LockMutex(ListMutex)
+                    PushMapPosition(Clients())
+                    ResetMap(Clients())
+                    While NextMapElement(Clients())
+                      If Clients()\CID=nch
+                        If Clients()\area=*usagePointer\area
+                          akchar=1
+                          Break
+                        Else
+                          akchar=0
+                        EndIf
+                        If MultiChar=0
+                          akchar=1
+                          Break
+                        EndIf
+                      EndIf
+                    Wend
+                    PopMapPosition(Clients())
+                    UnlockMutex(ListMutex)     
+                  EndIf
+                  If akchar=0 Or *usagePointer\CID=nch Or BlockTaken=0
+                    SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(nch)+"#%",Server)               
+                    *usagePointer\CID=nch       
+                    WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+                    SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+                    SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+                  EndIf
+                  Break
+                  rf=1
+                EndIf
+              Next
+              
             Case "/switch"
               If Mid(ctparam$,9)=""
                 *usagePointer\cid=-1
@@ -1406,18 +1443,18 @@ Procedure HandleAOCommand(ClientID)
               If narea$=""
                 arep$="CT#$HOST#Areas:"
                 For ir=0 To AreaNumber-1
-                  If aread(ir)\hidden=0 Or *usagePointer\perm
-                  arep$+#CRLF$
-                  arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
-                  If ir=*usagePointer\area
-                    arep$+" (including you)"
-                  EndIf
-                  If areas(ir)\mlock
-                    arep$+" super"
-                  EndIf
-                  If areas(ir)\lock
-                    arep$+"locked"                      
-                  EndIf
+                  If areas(ir)\hidden=0 Or *usagePointer\perm
+                    arep$+#CRLF$
+                    arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
+                    If ir=*usagePointer\area
+                      arep$+" (including you)"
+                    EndIf
+                    If areas(ir)\mlock
+                      arep$+" super"
+                    EndIf
+                    If areas(ir)\lock
+                      arep$+"locked"                      
+                    EndIf
                   EndIf
                 Next
                 arep$+"#%"
@@ -2406,9 +2443,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 467
-; FirstLine = 433
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 1363
+; FirstLine = 1359
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
