@@ -2253,7 +2253,7 @@ Procedure Network(var)
                   PokeA(*Buffer, Byte | #PongFrame)
                   SendNetworkData(ClientID, *Buffer, bytesidkokku)
                 Case #ConnectionCloseFrame
-                  Disconnect(ClientID)
+                  RemoveDisconnect(ClientID)
               EndSelect
             EndIf
           CompilerEndIf
@@ -2296,7 +2296,7 @@ Procedure Network(var)
           Wend
           
         ElseIf length=-1
-          Disconnect(ClientID)
+          RemoveDisconnect(ClientID)
         EndIf
       EndIf
       
@@ -2318,7 +2318,7 @@ If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/mast
   EndIf
   ClosePreferences()
 EndIf
-
+start:
 CompilerIf #CONSOLE=0
   IncludeFile "gui.pb"      
 CompilerElse
@@ -2367,8 +2367,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1604
-; FirstLine = 1861
+; CursorPosition = 2320
+; FirstLine = 2303
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
