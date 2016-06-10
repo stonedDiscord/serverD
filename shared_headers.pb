@@ -50,6 +50,13 @@ Structure ACharacter
   pw.s
 EndStructure
 
+Structure ItemData
+  name.s
+  price.w
+  filename.s
+  desc.s
+EndStructure
+
 Structure Client
   ClientID.l
   IP.s
@@ -73,7 +80,7 @@ Structure Client
   RAW.b
   master.b
   skip.b
-  Inventory.i[100]
+  Inventory.i[20]
 EndStructure
 
 Structure TempBan
@@ -99,7 +106,7 @@ Enumeration
   #SWITCH
   #MOVE
 EndEnumeration
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 34
-; FirstLine = 11
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 78
+; FirstLine = 45
 ; EnableXP

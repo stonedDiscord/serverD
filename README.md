@@ -6,6 +6,8 @@ You can find the downloads in the release tab
 * /change command added
 * hidden areas added
 * fixed /play
+* /ip now shows the area and makes /getareas obsolete
+* cleanups
  
 ### minimal setup (console version)
 > OS
@@ -82,9 +84,6 @@ by default it's running on port 27016
 #### for mods
 - /ip
 - show the kurwalist with IPs
-
-- /getareas
-- get all clients with areas
 
 - /hd
 - show the kurwalist with HDs

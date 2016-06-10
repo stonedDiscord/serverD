@@ -286,7 +286,7 @@ CompilerEndIf
 
 Procedure.s GetCharacterName(*nclient.Client)
   Define name$
-  If *nclient\CID>=0 And *nclient\CID<=characternumber
+  If *nclient\CID>=0 And *nclient\CID<=CharacterNumber
     name$=Characters(*nclient\CID)\name
   ElseIf *nclient\CID=-1
     name$="$UNOWN"
@@ -311,8 +311,8 @@ Procedure.s GetAreaName(*nclient.Client)
   EndIf
   ProcedureReturn name$
 EndProcedure
-; IDE Options = PureBasic 5.11 (Windows - x64)
-; CursorPosition = 312
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 288
 ; FirstLine = 263
 ; Folding = --
 ; EnableXP

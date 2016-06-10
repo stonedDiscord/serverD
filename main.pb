@@ -89,7 +89,7 @@ Global NewList gimps.s()
 Global NewList PReplay.s()
 Global Dim Evidences.Evidence(100)
 Global Dim Icons.l(2)
-Global Dim ReadyChar.s(10)
+Global Dim ReadyChar.s(100)
 Global Dim ReadyEvidence.s(100)
 Global Dim ReadyMusic.s(500)
 
@@ -327,7 +327,7 @@ Procedure LoadSettings(reload)
     slots$=Str(ReadPreferenceInteger("slots",characternumber))
   EndIf
   ReDim Characters.ACharacter(characternumber)
-  ReDim ReadyChar(characternumber/9)
+  ReDim ReadyChar(characternumber/10)
   For loadchars=0 To characternumber
     Characters(loadchars)\name=Encode(ReadPreferenceString(Str(loadchars),"zettaslow"))
   Next
@@ -351,6 +351,7 @@ Procedure LoadSettings(reload)
   
   ready$="CI#"
   charpage=0
+  Debug CharacterNumber
   For loadcharsettings=0 To characternumber
     OpenPreferences("base/scene/"+scene$+"/char"+Str(loadcharsettings)+".ini")
     PreferenceGroup("desc")
@@ -368,14 +369,18 @@ Procedure LoadSettings(reload)
     ready$ = ready$ + Str(loadcharsettings)+"#"+Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&"+Str(Characters(loadcharsettings)\evinumber)+"&"+Characters(loadcharsettings)\evidence+"&"+Characters(loadcharsettings)\pw+"&0&#"
     
     If loadcharsettings%10 = 9
-      ReadyChar(charpage)=ready$+"#%"
+      ready$=ready$+"#%"
+      ReadyChar(charpage)=ready$
+      Debug charpage
+      Debug loadcharsettings
       charpage+1
       ready$="CI#"
     EndIf    
-  Next 
+  Next
   
-  If Not loadcharsettings%10 = 9
-    ReadyChar(charpage)=ready$+"#%"
+  If Right(ready$,2)<>"#%"
+    ready$=ready$+"#%"
+    ReadyChar(charpage)=ready$
   EndIf
   
   If ReadFile(2, "base/musiclist.txt")
@@ -652,19 +657,18 @@ Procedure TrackWait(a)
   Repeat
     For k=0 To AreaNumber-1
       If Areas(k)\trackwait>1
-        If Areas(k)\trackwait<cw
-          cw=Areas(k)\trackwait
-        EndIf
-        Debug ElapsedMilliseconds()
         If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
           Areas(k)\trackstart=ElapsedMilliseconds()
           Debug "changed"
           SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+        Else
+          If Areas(k)\trackwait<cw
+          cw=(Areas(k)\trackstart+Areas(k)\trackwait)-ElapsedMilliseconds()
+        EndIf
         EndIf
       EndIf
     Next
     Delay(cw)
-    Debug "r u alive?"
   Until LoopMusic=0
 EndProcedure
 
@@ -678,41 +682,15 @@ Procedure ListIP(ClientID)
   While NextMapElement(Clients())
     Select Clients()\perm
       Case 1
-        charname$=GetCharacterName(Clients())+"(mod)"
-      Case 2
-        charname$=GetCharacterName(Clients())+"(admin)"
-      Case 3
-        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
-      Default
-        charname$=GetCharacterName(Clients())
-    EndSelect
-    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\CID)+"|*"
-  Wend
-  PopMapPosition(Clients())
-  UnlockMutex(ListMutex)
-  iplist$=iplist$+"#%"
-  SendTarget(Str(ClientID),iplist$,Server) 
-EndProcedure
-
-Procedure ListAreas(ClientID)
-  Define iplist$
-  Define charname$
-  iplist$="IL#"
-  LockMutex(ListMutex)
-  PushMapPosition(Clients())
-  ResetMap(Clients())
-  While NextMapElement(Clients())
-    Select Clients()\perm
-      Case 1
         charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
       Case 2
         charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
       Case 3
-        charname$=GetCharacterName(Clients())+"(server)"+" in "+GetAreaName(Clients())
+        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
       Default
         charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
     EndSelect
-    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\area)+"|*"
+    iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\CID)+"|*"
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
@@ -793,6 +771,30 @@ ProcedureDLL MasterAdvert(Port)
   msthread=0
 EndProcedure
 
+Procedure RemoveDisconnect(ClientID)
+  LockMutex(ListMutex)
+          If FindMapElement(Clients(),Str(ClientID))
+            WriteLog("DISCONNECTING",Clients())
+            If areas(Clients()\area)\lock=ClientID
+              areas(Clients()\area)\lock=0
+              areas(Clients()\area)\mlock=0
+            EndIf
+            If Clients()\area>=0
+              areas(Clients()\area)\players-1
+            EndIf
+            If ListSize(Plugins())
+              ResetList(Plugins())
+              While NextElement(Plugins())
+                pStat=#NONE
+                CallFunctionFast(Plugins()\gcallback,#DISC)    
+                CallFunctionFast(Plugins()\rawfunction,*usagePointer)
+              Wend
+            EndIf
+            DeleteMapElement(Clients(),Str(ClientID))
+            rf=1
+          EndIf
+          UnlockMutex(ListMutex)  
+EndProcedure
 
 Procedure SendDone(*usagePointer.Client)
   Define send$
@@ -929,15 +931,15 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
           LockMutex(ActionMutex)
           Select action
             Case #KICK
-              DeleteMapElement(Clients())
               SendNetworkString(kclid,"KK#"+Str(kcid)+"#"+param$+"#%")
-              CloseNetworkConnection(kclid) 
+              RemoveDisconnect(kclid)
+              CloseNetworkConnection(kclid)
               actionn$="kicked"
               akck+1
               
             Case #DISCO
-              DeleteMapElement(Clients())
-              CloseNetworkConnection(kclid) 
+              RemoveDisconnect(kclid)
+              CloseNetworkConnection(kclid)
               actionn$="disconnected"
               akck+1
               
@@ -966,9 +968,9 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
                     CloseFile(2)
                   EndIf
                 EndIf
-                DeleteMapElement(Clients())
                 SendNetworkString(kclid,"KB#"+Str(kcid)+"#"+param$+"#%")
-                CloseNetworkConnection(kclid)  
+                RemoveDisconnect(kclid)
+              CloseNetworkConnection(kclid)
                 actionn$="banned"
                 akck+1
               EndIf
@@ -1162,6 +1164,7 @@ Procedure HandleAOCommand(ClientID)
           Sendtarget("*","MS#"+Mid(rawreceive$,coff),*usagePointer)
         ElseIf ReplayMode=0
           WriteLog("["+GetCharacterName(*usagePointer)+"@"+GetAreaName(*usagePointer)+"]["+StringField(rawreceive$,7,"#")+"]",*usagePointer)
+          If *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
           If areas(*usagePointer\area)\wait=0 Or *usagePointer\skip
             msreply$="MS#"
             For i=3 To 17
@@ -1177,9 +1180,9 @@ Procedure HandleAOCommand(ClientID)
                   Else
                     msreply$=msreply$+"gimp.txt is empty lol"+"#"
                   EndIf
-                  SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,7),*usagePointer)
+                  SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,coff),*usagePointer)
                 ElseIf Len(mss$)>255
-                  SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,7),*usagePointer)
+                  SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,coff),*usagePointer)
                   msreply$=msreply$+Left(mss$,255)+"#"
                 Else
                   msreply$=msreply$+mss$+"#"
@@ -1220,6 +1223,7 @@ Procedure HandleAOCommand(ClientID)
             EndIf
             Sendtarget("Area"+Str(*usagePointer\area),msreply$,*usagePointer)
             WriteReplay(rawreceive$)
+          EndIf
           EndIf
         Else
           Select Trim(StringField(rawreceive$,7,"#"))
@@ -1277,7 +1281,7 @@ Procedure HandleAOCommand(ClientID)
                   areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
                   areas(*usagePointer\area)\trackwait=mdur
                   areas(*usagePointer\area)\track=StringField(rawreceive$,3,"#")
-                  Sendtarget("Area"+Str(*usagePointer\area),"MC#"+Mid(rawreceive$,coff),*usagePointer)
+                  Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,3,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
                   WriteReplay(rawreceive$)
                 EndIf
               EndIf
@@ -1333,16 +1337,6 @@ Procedure HandleAOCommand(ClientID)
                   ListIP(ClientID)
                 EndIf
                 WriteLog("["+GetCharacterName(*usagePointer)+"] used /ip",*usagePointer)
-              EndIf 
-              
-            Case "/getareas"
-              If *usagePointer\perm
-                If CommandThreading
-                  CreateThread(@ListAreas(),ClientID)
-                Else
-                  ListAreas(ClientID)
-                EndIf
-                WriteLog("["+GetCharacterName(*usagePointer)+"] used /getareas",*usagePointer)
               EndIf 
               
             Case "/bg"
@@ -1486,15 +1480,19 @@ Procedure HandleAOCommand(ClientID)
                 lock$=StringField(ctparam$,2," ")
                 Select lock$
                   Case "0"
+                    If areas(*usagePointer\area)\lock=*usagePointer\ClientID Or *usagePointer\perm>areas(*usagePointer\area)\mlock
                     areas(*usagePointer\area)\lock=0
                     areas(*usagePointer\area)\mlock=0
                     SendTarget(Str(ClientID),"CT#$HOST#area unlocked#%",Server)
+                    EndIf
                   Case "1"
+                    If *usagePointer\perm
                     areas(*usagePointer\area)\lock=*usagePointer\ClientID
                     areas(*usagePointer\area)\mlock=0
                     SendTarget(Str(ClientID),"CT#$HOST#area locked#%",Server)
+                    EndIf
                   Case "2"
-                    If *usagePointer\perm
+                    If *usagePointer\perm>1
                       areas(*usagePointer\area)\lock=*usagePointer\ClientID
                       areas(*usagePointer\area)\mlock=1
                       SendTarget(Str(ClientID),"CT#$HOST#area superlocked#%",Server)
@@ -1604,7 +1602,7 @@ Procedure HandleAOCommand(ClientID)
               WriteLog("smoke weed everyday",*usagePointer)
               
             Case "/help"
-              SendTarget(Str(ClientID),"CT#SERVER#Check https://github.com/stonedDiscord/serverD/blob/master/README.md#%",Server)
+              SendTarget(Str(ClientID),"CT#$HOST#Check https://github.com/stonedDiscord/serverD/blob/master/README.md#%",Server)
               
             Case "/public"
               Debug ctparam$
@@ -1855,7 +1853,8 @@ Procedure HandleAOCommand(ClientID)
         
       Case "AN" ; character list
         start=Val(StringField(rawreceive$,3,"#"))
-        If start*10<characternumber And start>=0
+        If start*10<characternumber And start>=0 And ( start*10<100 Or *usagePointer\websocket )
+          Debug "huh"
           SendTarget(Str(ClientID),ReadyChar(start),Server)
         ElseIf EviNumber>0
           SendTarget(Str(ClientID),ReadyEvidence(1),Server)
@@ -1942,7 +1941,15 @@ Procedure HandleAOCommand(ClientID)
         
       Case "askchaa" ;what is left to load
         *usagePointer\cconnect=1
-        SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
+        If CharacterNumber>100
+          If *usagePointer\websocket
+            SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
+          Else
+            SendTarget(Str(ClientID),"SI#100#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
+          EndIf
+        Else
+          SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
+        EndIf
         
       Case "askchar2" ; character list
         SendTarget(Str(ClientID),ReadyChar(0),Server)
@@ -2071,28 +2078,7 @@ Procedure Network(var)
       
     Case #PB_NetworkEvent_Disconnect
       ClientID = EventClient() 
-      LockMutex(ListMutex)
-      If FindMapElement(Clients(),Str(ClientID))
-        WriteLog("CLIENT DISCONNECTED",Clients())
-        If areas(Clients()\area)\lock=ClientID
-          areas(Clients()\area)\lock=0
-          areas(Clients()\area)\mlock=0
-        EndIf
-        If Clients()\area>=0
-          areas(Clients()\area)\players-1
-        EndIf
-        If ListSize(Plugins())
-          ResetList(Plugins())
-          While NextElement(Plugins())
-            pStat=#NONE
-            CallFunctionFast(Plugins()\gcallback,#DISC)    
-            CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-          Wend
-        EndIf
-        DeleteMapElement(Clients(),Str(ClientID))
-        rf=1
-      EndIf
-      UnlockMutex(ListMutex)
+      RemoveDisconnect(ClientID)
       
     Case #PB_NetworkEvent_Connect
       ClientID = EventClient()
@@ -2267,13 +2253,7 @@ Procedure Network(var)
                   PokeA(*Buffer, Byte | #PongFrame)
                   SendNetworkData(ClientID, *Buffer, bytesidkokku)
                 Case #ConnectionCloseFrame
-                  If areas(Clients()\area)\lock=ClientID
-                    areas(Clients()\area)\lock=0
-                    areas(Clients()\area)\mlock=0
-                  EndIf
-                  If Clients()\area>=0
-                    areas(Clients()\area)\players-1
-                  EndIf
+                  Disconnect(ClientID)
               EndSelect
             EndIf
           CompilerEndIf
@@ -2316,28 +2296,7 @@ Procedure Network(var)
           Wend
           
         ElseIf length=-1
-          LockMutex(ListMutex)
-          If FindMapElement(Clients(),Str(ClientID))
-            WriteLog("CLIENT BROKE",Clients())
-            If areas(Clients()\area)\lock=ClientID
-              areas(Clients()\area)\lock=0
-              areas(Clients()\area)\mlock=0
-            EndIf
-            If Clients()\area>=0
-              areas(Clients()\area)\players-1
-            EndIf
-            If ListSize(Plugins())
-              ResetList(Plugins())
-              While NextElement(Plugins())
-                pStat=#NONE
-                CallFunctionFast(Plugins()\gcallback,#DISC)    
-                CallFunctionFast(Plugins()\rawfunction,*usagePointer)
-              Wend
-            EndIf
-            DeleteMapElement(Clients(),Str(ClientID))
-            rf=1
-          EndIf
-          UnlockMutex(ListMutex)
+          Disconnect(ClientID)
         EndIf
       EndIf
       
@@ -2349,42 +2308,6 @@ Procedure Network(var)
 EndProcedure
 
 ;-  PROGRAM START    
-
-start:
-CompilerIf #PB_Compiler_Debugger=0
-  error=ErrorAddress()
-  If error<>lasterror
-    lasterror=error
-    public=0
-    If OpenFile(5,"crash.txt",#PB_File_NoBuffering|#PB_File_Append)      
-      WriteStringN(5,"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"] serverD "+ErrorMessage()+"'d at this address "+Str(ErrorAddress())+" target "+Str(ErrorTargetAddress()))
-      CompilerIf #PB_Compiler_Processor = #PB_Processor_x64
-        WriteStringN(5,"RAX "+ErrorRegister(#PB_OnError_RAX))
-        WriteStringN(5,"RBX "+ErrorRegister(#PB_OnError_RBX))
-        WriteStringN(5,"RCX "+ErrorRegister(#PB_OnError_RCX))
-        WriteStringN(5,"RDX "+ErrorRegister(#PB_OnError_RDX))
-        WriteStringN(5,"RBP "+ErrorRegister(#PB_OnError_RBP))
-        WriteStringN(5,"RSI "+ErrorRegister(#PB_OnError_RSI))
-        WriteStringN(5,"RDI "+ErrorRegister(#PB_OnError_RDI))
-        WriteStringN(5,"RSP "+ErrorRegister(#PB_OnError_RSP))
-        WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
-      CompilerElse
-        WriteStringN(5,"EAX "+ErrorRegister(#PB_OnError_EAX))
-        WriteStringN(5,"EBX "+ErrorRegister(#PB_OnError_EBX))
-        WriteStringN(5,"ECX "+ErrorRegister(#PB_OnError_ECX))
-        WriteStringN(5,"EDX "+ErrorRegister(#PB_OnError_EDX))
-        WriteStringN(5,"EBP "+ErrorRegister(#PB_OnError_EBP))
-        WriteStringN(5,"ESI "+ErrorRegister(#PB_OnError_ESI))
-        WriteStringN(5,"EDI "+ErrorRegister(#PB_OnError_EDI))
-        WriteStringN(5,"ESP "+ErrorRegister(#PB_OnError_ESP))
-        WriteStringN(5,"FLG "+ErrorRegister(#PB_OnError_Flags))
-      CompilerEndIf
-      CloseFile(5)
-    EndIf
-    LoadSettings(1)
-    Delay(500)
-  EndIf
-CompilerEndIf
 
 If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/serverd.txt","serverd.txt")
   OpenPreferences("serverd.txt")
@@ -2444,8 +2367,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1363
-; FirstLine = 1359
+; CursorPosition = 1604
+; FirstLine = 1861
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
