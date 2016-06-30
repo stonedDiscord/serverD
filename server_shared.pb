@@ -46,7 +46,7 @@ Server\area=-1
 Server\last=""
 Server\cconnect=0
 Server\ooct=0
-Server\RAW=0
+Server\type=#MASTER
 Server\username="$HOST"
 Global NewMap Clients.Client()
 
@@ -282,6 +282,65 @@ CompilerIf #WEB
     ProcedureReturn Result
     
   EndProcedure
+  
+  ;Used procedures
+  Procedure.s DayInText(dd)
+    Protected d$
+    Select DayOfWeek(dd)
+      Case 1: d$="Mon"
+      Case 2: d$="Tue"
+      Case 3: d$="Wed"
+      Case 4: d$="Thu"
+      Case 5: d$="Fri"
+      Case 6: d$="Sat"
+      Default: d$="Sun"
+    EndSelect
+    ProcedureReturn d$
+  EndProcedure
+  
+  Procedure.s MonthInText(dd)
+    Protected  m$
+    Select Month(dd)  
+      Case 1: m$="Jan"
+      Case 2: m$="Feb"
+      Case 3: m$="Mar"
+      Case 4: m$="Apr"
+      Case 5: m$="May"
+      Case 6: m$="Jun"
+      Case 7: m$="Jul"
+      Case 8: m$="Aug"
+      Case 9: m$="Sep"
+      Case 10:m$="Oct"
+      Case 11:m$="Nov"
+      Default:m$="Dec"
+    EndSelect
+    ProcedureReturn m$
+  EndProcedure
+  
+  Procedure.s MIME(RFile$)    
+    Select Right(RFile$,4)
+      Case ".gif"
+        ContentType$ = "image/gif"                      
+      Case ".png"
+        ContentType$ = "image/png"                      
+      Case ".ico"
+        ContentType$ = "image/x-icon"
+      Case ".css"
+        ContentType$ = "text/css"
+      Case ".htm"
+        ContentType$ = "text/html"   
+      Default        
+        If Right(RFile$,3)=".js"
+          ContentType$ = "text/javascript" 
+        ElseIf Right(RFile$,5)=".html"
+          ContentType$ = "text/html" 
+        Else        
+          ContentType$ = "text/plain"   
+        EndIf
+    EndSelect
+    ProcedureReturn ContentType$
+  EndProcedure
+  
 CompilerEndIf
 
 Procedure.s GetCharacterName(*nclient.Client)
@@ -312,7 +371,7 @@ Procedure.s GetAreaName(*nclient.Client)
   ProcedureReturn name$
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 288
-; FirstLine = 263
-; Folding = --
+; CursorPosition = 331
+; FirstLine = 314
+; Folding = ---
 ; EnableXP

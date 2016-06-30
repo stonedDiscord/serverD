@@ -46,4 +46,5 @@ Temporary Items
 *.jpg
 *.log
 check*
-base/
+base
+cbase

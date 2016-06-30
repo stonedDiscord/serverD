@@ -25,6 +25,15 @@ Enumeration ;plugin status
   #SEND
 EndEnumeration
 
+Enumeration ;client type
+  #NONE
+  #VANILLA
+  #MASTER
+  #VNO
+  #WEBSOCKET
+  #AOTWO  
+EndEnumeration
+
 Structure area
   name.s
   bg.s
@@ -64,6 +73,7 @@ Structure Client
   CID.w
   sHD.b
   HD.s
+  type.b
   perm.w
   ignore.b
   ignoremc.b
@@ -72,13 +82,11 @@ Structure Client
   pos.s
   area.w
   last.s
+  command.s
   cconnect.b
   ooct.b
   judget.b
-  websocket.b
   username.s
-  RAW.b
-  master.b
   skip.b
   Inventory.i[20]
 EndStructure
@@ -107,6 +115,5 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 78
-; FirstLine = 45
+; CursorPosition = 33
 ; EnableXP

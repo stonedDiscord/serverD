@@ -6,9 +6,10 @@ Global active=0
 Global WinID
 Global message$="CT#$AUTO##%"
 Global expl$=""
-XIncludeFile "shared_headers.pb"
+XIncludeFile "../shared_headers.pb"
 
 ProcedureDLL AttachProcess(Instance)
+  ; create window
   WinID=OpenWindow(#PB_Any,300,200,130,55,"Broadcaster")
   If WinID
     StringGadget(1,3,3,82,26,message$)
@@ -20,7 +21,7 @@ ProcedureDLL AttachProcess(Instance)
 EndProcedure
 
 ProcedureDLL.i PluginVersion()  
-  ProcedureReturn 5
+  ProcedureReturn 6
 EndProcedure
 
 ProcedureDLL.s PluginName()  
@@ -31,7 +32,8 @@ ProcedureDLL.s PluginDescription()
   ProcedureReturn PluginDesc$  
 EndProcedure
 
-ProcedureDLL.i PluginRAW(*usagePointer.Client)  
+ProcedureDLL.i PluginRAW(*usagePointer.Client)
+  ; not handling client input in this one
 EndProcedure
 
 ProcedureDLL.s SetTarget()
@@ -45,7 +47,7 @@ EndProcedure
 ProcedureDLL.i StatusCallback(pStat)
   wEv=WindowEvent()
   If wEv = #PB_Event_Gadget And winID=EventWindow()   
-    GadgetID = EventGadget()           ; Is it a gadget event?
+    GadgetID = EventGadget()  ; was a button pressed?
     Select GadgetID
       Case 1
         message$=GetGadgetText(1)
@@ -60,13 +62,14 @@ ProcedureDLL.i StatusCallback(pStat)
   If pStat=#SEND And active=1
     ctime=ElapsedMilliseconds()
     If ctime>=(timer*1000)+lastb
-      lastb=ctime
+      lastb=ctime ;save when it was triggered the last time
       ProcedureReturn #SEND
     EndIf
   EndIf
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
 ; ExecutableFormat = Shared Dll
-; CursorPosition = 17
+; CursorPosition = 8
+; FirstLine = 4
 ; Folding = --
 ; Executable = plugins\bcast.dll
