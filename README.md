@@ -1,12 +1,11 @@
 # serverD
-## TAKE ON ME
+## PUMP UP THE JAM
 You can find the downloads in the release tab
 
 ### changelog
-* /change command added
-* hidden areas added
-* fixed /play
-* /ip now shows the area and makes /getareas obsolete
+* added banning IP ranges
+* newAO support
+* fixed plugins
 * cleanups
  
 ### minimal setup (console version)
@@ -52,7 +51,7 @@ by default it's running on port 27016
 - lets you switch positions
 
 - /switch
-- lets you switch character
+- show the charselect(shrinks vanilla client)
 
 - /change Klavier_G
 - lets you change character
@@ -65,12 +64,6 @@ by default it's running on port 27016
 
 - /roll 6
 - roll a dice
-
-- /lock 1
-- keep other users out of your current area
-
-- /lock 0
-- let them in again
 
 - /evi 3
 - gives you wodka no3
@@ -91,6 +84,12 @@ by default it's running on port 27016
 - /skip
 - /noskip
 - lets you ignore the waittime after a message
+
+- /lock 1
+- keep other users out of your current area
+
+- /lock 0
+- let them in again
 
 - /switch Gumshoe
 - kicks Gumshoe to charselect

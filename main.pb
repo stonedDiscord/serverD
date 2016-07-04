@@ -1305,7 +1305,7 @@ Procedure HandleAOCommand(ClientID)
         WriteLog("[OOC]"+StringField(rawreceive$,3,"#")+":"+ctparam$,*usagePointer)
         
         If *usagePointer\username=""
-          *usagePointer\username=RemoveString(StringField(rawreceive$,3,"#"),"$")
+          *usagePointer\username=RemoveString(StringField(rawreceive$,3,"#"),"<dollar>")
         EndIf
         
         Debug ctparam$
@@ -1323,8 +1323,7 @@ Procedure HandleAOCommand(ClientID)
                   EndIf
                 Case adminpass$
                   If adminpass$<>""
-                    SendTarget(Str(ClientID),LoginReply$,Server) 
-                    SendTarget(Str(ClientID),"UM#"+Str(*usagePointer\CID)+"#%",Server)
+                    SendTarget(Str(ClientID),LoginReply$,Server)
                     *usagePointer\perm=2
                     *usagePointer\ooct=1
                     rf=1
@@ -2057,34 +2056,35 @@ Procedure HandleAOCommand(ClientID)
           EndIf
         Wend   
         UnlockMutex(ListMutex)
-      Case "GET"
-        *usagePointer\type=#WEBSOCKET
-        RequestedFile$=StringField(StringField(rawreceive$,2," "),1,"?")
-        Debug "rfile"
-        Debug RequestedFile$
-        If RequestedFile$ = ""
-          RequestedFile$ = "index.html"
-        EndIf
-        
-        If ReadFile(0, "cbase/"+RequestedFile$)
+        CompilerIf #WEB
+        Case "GET"
+          *usagePointer\type=#WEBSOCKET
+          RequestedFile$=StringField(StringField(rawreceive$,2," "),1,"?")
+          Debug "rfile"
+          Debug RequestedFile$
+          If RequestedFile$ = ""
+            RequestedFile$ = "index.html"
+          EndIf
           
-          FileLength = Lof(0)
-          ContentType$ = MIME(RequestedFile$)
-          RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
-          RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+", "+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
-          *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
-          HLength=PokeS(*FileBuffer,RHeader$)  
-          *BufferOffset = *FileBuffer+HLength
-          WriteLog(ip$+" requested file "+RequestedFile$,Server)
-          ReadData(0, *BufferOffset, FileLength)
-          Debug "headerlength"
-          Debug HLength
-          CloseFile(0)
-          Debug PeekS(*FileBuffer, HLength+FileLength)
-          SendNetworkData(ClientID, *FileBuffer, HLength+FileLength)
-          FreeMemory(*FileBuffer)
-        EndIf     
-        
+          If ReadFile(0, "cbase/"+RequestedFile$)
+            
+            FileLength = Lof(0)
+            ContentType$ = MIME(RequestedFile$)
+            RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
+            RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+", "+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
+            *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
+            HLength=PokeS(*FileBuffer,RHeader$)  
+            *BufferOffset = *FileBuffer+HLength
+            WriteLog(ip$+" requested file "+RequestedFile$,Server)
+            ReadData(0, *BufferOffset, FileLength)
+            Debug "headerlength"
+            Debug HLength
+            CloseFile(0)
+            Debug PeekS(*FileBuffer, HLength+FileLength)
+            SendNetworkData(ClientID, *FileBuffer, HLength+FileLength)
+            FreeMemory(*FileBuffer)
+          EndIf     
+        CompilerEndIf
       Default
         WriteLog(rawreceive$,*usagePointer)
     EndSelect
@@ -2430,8 +2430,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1168
-; FirstLine = 1139
+; CursorPosition = 2430
+; FirstLine = 2382
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
