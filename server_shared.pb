@@ -86,6 +86,34 @@ Procedure.s Escape(smes$)
   ProcedureReturn smes$
 EndProcedure
 
+Procedure.s GetCharacterName(*nclient.Client)
+  Define name$
+  If *nclient\CID>=0 And *nclient\CID<=CharacterNumber
+    name$=Characters(*nclient\CID)\name
+  ElseIf *nclient\CID=-1
+    name$="$UNOWN"
+  ElseIf *nclient\CID=-3
+    name$="$HOST"
+  Else
+    name$="HACKER"
+    *nclient\hack=1
+    rf=1
+  EndIf
+  ProcedureReturn name$
+EndProcedure
+
+Procedure.s GetAreaName(*nclient.Client)
+  Define name$
+  If *nclient\area>=0 And *nclient\area<=AreaNumber
+    name$=Areas(*nclient\area)\name
+  ElseIf *nclient\area=-3
+    name$="RAM"
+  Else
+    name$="$NONE"
+  EndIf
+  ProcedureReturn name$
+EndProcedure
+
 Procedure WriteLog(string$,*lclient.Client)
   Define mstr$,logstr$
   ; [23:21:05] David Skoland: (If mod)[M][IP][Timestamp, YYYYMMDDHHMM][Character][Message]
@@ -100,7 +128,7 @@ Procedure WriteLog(string$,*lclient.Client)
       mstr$="[U]"
   EndSelect
   logstr$=mstr$+"["+LSet(*lclient\IP,15)
-  logstr$=logstr$+"]"+"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"]"+string$
+  logstr$=logstr$+"]"+"["+FormatDate("%yyyy.%mm.%dd %hh:%ii:%ss",Date())+"]["+GetCharacterName(*lclient)+"]["+GetAreaName(*lclient)+"]"+string$
   If Logging
     WriteStringN(1,logstr$)
   EndIf
@@ -108,7 +136,7 @@ Procedure WriteLog(string$,*lclient.Client)
     PrintN(logstr$)
   CompilerElse
     If Quit=0
-      AddGadgetItem(#listbox_event,-1,string$)
+      AddGadgetItem(#listbox_event,-1,"["+GetCharacterName(*lclient)+"]["+GetAreaName(*lclient)+"]"+string$)
       SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
     EndIf
   CompilerEndIf   
@@ -342,36 +370,8 @@ CompilerIf #WEB
   EndProcedure
   
 CompilerEndIf
-
-Procedure.s GetCharacterName(*nclient.Client)
-  Define name$
-  If *nclient\CID>=0 And *nclient\CID<=CharacterNumber
-    name$=Characters(*nclient\CID)\name
-  ElseIf *nclient\CID=-1
-    name$="$UNOWN"
-  ElseIf *nclient\CID=-3
-    name$="$HOST"
-  Else
-    name$="HACKER"
-    *nclient\hack=1
-    rf=1
-  EndIf
-  ProcedureReturn name$
-EndProcedure
-
-Procedure.s GetAreaName(*nclient.Client)
-  Define name$
-  If *nclient\area>=0 And *nclient\area<=AreaNumber
-    name$=Areas(*nclient\area)\name
-  ElseIf *nclient\area=-3
-    name$="RAM"
-  Else
-    name$="$NONE"
-  EndIf
-  ProcedureReturn name$
-EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 331
-; FirstLine = 314
+; CursorPosition = 138
+; FirstLine = 114
 ; Folding = ---
 ; EnableXP

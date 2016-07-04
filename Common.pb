@@ -145,7 +145,7 @@ Procedure Open_Window_0()
     Frame3DGadget(#Frame_5, 520, 0, 210, 370, "OOC")
       ListViewGadget(#listbox_event, 290, 20, 230, 350)
       AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
-      AddGadgetItem(#listbox_event,0,"Check out http://stoned.ddns.net/serverd.html for updates")
+      AddGadgetItem(#listbox_event,0,"Check out https://github.com/stonedDiscord/serverD/ for updates")
       If update
         AddGadgetItem(#listbox_event,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
       EndIf
@@ -244,8 +244,8 @@ Procedure ConfigWindow(var)
   ClosePreferences()
 EndProcedure 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 132
-; FirstLine = 95
+; CursorPosition = 147
+; FirstLine = 125
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

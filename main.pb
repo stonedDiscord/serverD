@@ -1166,7 +1166,7 @@ Procedure HandleAOCommand(ClientID)
         If *usagePointer\perm=3
           Sendtarget("*","MS#"+Mid(rawreceive$,coff),*usagePointer)
         ElseIf ReplayMode=0
-          WriteLog("[CHAT]"+StringField(rawreceive$,7,"#")+"]",*usagePointer)
+          WriteLog("[CHAT]"+StringField(rawreceive$,7,"#"),*usagePointer)
           If *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
             If areas(*usagePointer\area)\wait=0 Or *usagePointer\skip
               msreply$="MS#"
@@ -1305,7 +1305,7 @@ Procedure HandleAOCommand(ClientID)
         WriteLog("[OOC]"+StringField(rawreceive$,3,"#")+":"+ctparam$,*usagePointer)
         
         If *usagePointer\username=""
-          *usagePointer\username=StringField(rawreceive$,3,"#")
+          *usagePointer\username=RemoveString(StringField(rawreceive$,3,"#"),"$")
         EndIf
         
         Debug ctparam$
@@ -2116,7 +2116,7 @@ Procedure Network(var)
         ip$=IPString(GetClientIP(ClientID))
         
         ForEach IPbans()
-          If ip$ = IPbans()\banned
+          If Left(ip$,Len(IPbans()\banned)) = IPbans()\banned
             send=0
             WriteLog("IP: "+ip$+" is banned, reason: "+IPbans()\reason,Server)
             CloseNetworkConnection(ClientID)                   
@@ -2129,7 +2129,7 @@ Procedure Network(var)
           length=ReceiveNetworkData(ClientID, *Buffer, 2048)
           Debug "eaoe"
           Debug length
-          If length
+          If length<>-1
             Debug "wotf"
             rawreceive$=PeekS(*Buffer,length)
             Debug rawreceive$
@@ -2430,8 +2430,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2335
-; FirstLine = 2240
+; CursorPosition = 1168
+; FirstLine = 1139
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
