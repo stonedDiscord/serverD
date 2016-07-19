@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-07-04 12:18" user="Sven" host="SPC"/>
+    <lastopen date="2016-07-19 20:46" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -16,15 +16,15 @@
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="73be5d372ae83eed9d3ae4eb41b55ec1"/>
+      <fingerprint md5="7fc8c69b6900b38909c0d2bb2c8a90d1"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="57d45c349cd0e31b3d9d0ed338e29b03"/>
+      <fingerprint md5="64332cf2ecc9b02980736266b7cec10f"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="536f6a33aae444f829d7ea1d9c6de490"/>
+      <fingerprint md5="257d91b5d8ebd89e2ee7795533ae0dea"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -34,15 +34,15 @@
   <section name="targets">
     <target name="serverD" enabled="1" default="1">
       <inputfile value="main.pb"/>
-      <outputfile value="build\serverD.exe"/>
-      <executable value="build\serverD.exe"/>
+      <outputfile value="serverD.exe"/>
+      <executable value="serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
       <purifier enable="1" granularity="1,1,1,1"/>
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1196"/>
-      <buildcount enable="1" value="134"/>
+      <compilecount enable="1" value="1201"/>
+      <buildcount enable="1" value="135"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2.%COMPILECOUNT.%BUILDCOUNT,0"/>
@@ -69,14 +69,14 @@
     </target>
     <target name="serverDco" enabled="1" default="0">
       <inputfile value="main.pb"/>
-      <outputfile value="build\serverDco.exe"/>
-      <executable value="build\serverDco.exe"/>
+      <outputfile value="serverDco.exe"/>
+      <executable value="serverDco.exe"/>
       <options thread="1" debug="1"/>
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1196"/>
-      <buildcount enable="1" value="134"/>
+      <compilecount enable="1" value="1201"/>
+      <buildcount enable="1" value="135"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>

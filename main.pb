@@ -328,6 +328,8 @@ Procedure LoadSettings(reload)
   EndIf
   ReDim Characters.ACharacter(characternumber)
   ReDim ReadyChar(characternumber/10)
+  Debug "rcharpages"
+  Debug characternumber/10
   For loadchars=0 To characternumber
     Characters(loadchars)\name=Encode(ReadPreferenceString(Str(loadchars),"zettaslow"))
   Next
@@ -352,7 +354,7 @@ Procedure LoadSettings(reload)
   ready$="CI#"
   charpage=0
   Debug CharacterNumber
-  For loadcharsettings=0 To characternumber
+  For loadcharsettings=0 To CharacterNumber
     OpenPreferences("base/scene/"+scene$+"/char"+Str(loadcharsettings)+".ini")
     PreferenceGroup("desc")
     Characters(loadcharsettings)\desc=Encode(ReadPreferenceString("text","No description"))
@@ -368,20 +370,16 @@ Procedure LoadSettings(reload)
     ClosePreferences()
     ready$ = ready$ + Str(loadcharsettings)+"#"+Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&"+Str(Characters(loadcharsettings)\evinumber)+"&"+Characters(loadcharsettings)\evidence+"&"+Characters(loadcharsettings)\pw+"&0&#"
     
-    If loadcharsettings%10 = 9
+    If loadcharsettings%10 = 9 Or loadcharsettings=CharacterNumber
       ready$=ready$+"#%"
       ReadyChar(charpage)=ready$
+      Debug ready$
       Debug charpage
       Debug loadcharsettings
       charpage+1
       ready$="CI#"
     EndIf    
   Next
-  
-  If Right(ready$,2)<>"#%"
-    ready$=ready$+"#%"
-    ReadyChar(charpage)=ready$
-  EndIf
   
   If ReadFile(2, "base/musiclist.txt")
     tracks=0
@@ -573,71 +571,6 @@ Procedure LoadSettings(reload)
   
 EndProcedure
 
-Procedure SendTarget(user$,message$,*sender.Client)
-  Define everybody,i,omessage$,sresult
-  omessage$=message$
-  
-  If user$="*" Or user$="everybody"
-    everybody=1
-  Else
-    everybody=0
-  EndIf
-  
-  For i=0 To characternumber
-    If Characters(i)\name=user$
-      user$=Str(i)
-      Break
-    EndIf
-  Next
-  
-  LockMutex(ListMutex)
-  
-  If FindMapElement(Clients(),user$)
-    
-    If Clients()\type=#WEBSOCKET
-      CompilerIf #WEB
-        Websocket_SendTextFrame(Clients()\ClientID,message$)
-      CompilerEndIf
-    Else
-      Debug message$
-      sresult=SendNetworkString(Clients()\ClientID,message$)  
-      If sresult=-1
-        WriteLog("CLIENT DIED DIRECTLY",Clients())
-        If areas(Clients()\area)\lock=Clients()\ClientID
-          areas(Clients()\area)\lock=0
-          areas(Clients()\area)\mlock=0
-        EndIf
-        DeleteMapElement(Clients(),Str(Clients()\ClientID))
-        rf=1
-      EndIf
-    EndIf
-  Else
-    ResetMap(Clients())
-    While NextMapElement(Clients())
-      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$=Clients()\username Or user$="Area"+Str(Clients()\area) Or (everybody And (*sender\area=Clients()\area Or *sender\area=-1)) And Clients()\type=*sender\type
-        If Clients()\type=#WEBSOCKET
-          CompilerIf #WEB
-            Websocket_SendTextFrame(Clients()\ClientID,message$)
-          CompilerEndIf
-        Else
-          Debug message$
-          sresult=SendNetworkString(Clients()\ClientID,message$)
-          If sresult=-1
-            WriteLog("CLIENT DIED",Clients())
-            If areas(Clients()\area)\lock=Clients()\ClientID
-              areas(Clients()\area)\lock=0
-              areas(Clients()\area)\mlock=0
-            EndIf
-            DeleteMapElement(Clients(),Str(Clients()\ClientID))
-            rf=1
-          EndIf
-        EndIf
-      EndIf
-    Wend   
-  EndIf
-  UnlockMutex(ListMutex)
-EndProcedure
-
 Procedure MSWait(*usagePointer.Client)
   Define wttime,wtarea
   wtarea=*usagePointer\area
@@ -770,31 +703,6 @@ ProcedureDLL MasterAdvert(Port)
   EndIf
   FreeMemory(*null)
   msthread=0
-EndProcedure
-
-Procedure RemoveDisconnect(ClientID)
-  LockMutex(ListMutex)
-  If FindMapElement(Clients(),Str(ClientID))
-    WriteLog("DISCONNECTING",Clients())
-    If areas(Clients()\area)\lock=ClientID
-      areas(Clients()\area)\lock=0
-      areas(Clients()\area)\mlock=0
-    EndIf
-    If Clients()\area>=0
-      areas(Clients()\area)\players-1
-    EndIf
-    If ListSize(Plugins())
-      ResetList(Plugins())
-      While NextElement(Plugins())
-        pStat=#NONE
-        CallFunctionFast(Plugins()\gcallback,#DISC)    
-        CallFunctionFast(Plugins()\rawfunction,Clients())
-      Wend
-    EndIf
-    DeleteMapElement(Clients(),Str(ClientID))
-    rf=1
-  EndIf
-  UnlockMutex(ListMutex)  
 EndProcedure
 
 Procedure SendDone(*usagePointer.Client)
@@ -1164,7 +1072,7 @@ Procedure HandleAOCommand(ClientID)
       Case "MS"
         msreplayfix:
         If *usagePointer\perm=3
-          Sendtarget("*","MS#"+Mid(rawreceive$,coff),*usagePointer)
+          Sendtarget("Area"+Str(*usagePointer\area),"MS#"+Mid(rawreceive$,coff),*usagePointer)
         ElseIf ReplayMode=0
           WriteLog("[CHAT]"+StringField(rawreceive$,7,"#"),*usagePointer)
           If *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
@@ -1209,6 +1117,8 @@ Procedure HandleAOCommand(ClientID)
                       msreply$=msreply$+"2#"
                     Case 5
                       msreply$=msreply$+"5#"
+                    Case 6
+                      msreply$=msreply$+"6#"
                     Default
                       *usagePointer\hack=1
                   EndSelect
@@ -2430,8 +2340,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2430
-; FirstLine = 2382
+; CursorPosition = 1148
+; FirstLine = 1145
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

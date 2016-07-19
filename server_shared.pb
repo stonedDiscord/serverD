@@ -310,8 +310,7 @@ CompilerIf #WEB
     ProcedureReturn Result
     
   EndProcedure
-  
-  ;Used procedures
+    ;Used procedures
   Procedure.s DayInText(dd)
     Protected d$
     Select DayOfWeek(dd)
@@ -370,8 +369,88 @@ CompilerIf #WEB
   EndProcedure
   
 CompilerEndIf
+  
+  Procedure RemoveDisconnect(ClientID)
+  LockMutex(ListMutex)
+  If FindMapElement(Clients(),Str(ClientID))
+    WriteLog("DISCONNECTING",Clients())
+    If areas(Clients()\area)\lock=ClientID
+      areas(Clients()\area)\lock=0
+      areas(Clients()\area)\mlock=0
+    EndIf
+    If Clients()\area>=0
+      areas(Clients()\area)\players-1
+    EndIf
+    If ListSize(Plugins())
+      ResetList(Plugins())
+      While NextElement(Plugins())
+        pStat=#NONE
+        CallFunctionFast(Plugins()\gcallback,#DISC)    
+        CallFunctionFast(Plugins()\rawfunction,Clients())
+      Wend
+    EndIf
+    DeleteMapElement(Clients(),Str(ClientID))
+    rf=1
+  EndIf
+  UnlockMutex(ListMutex)  
+EndProcedure
+
+Procedure SendTarget(user$,message$,*sender.Client)
+  Define everybody,i,omessage$,sresult
+  omessage$=message$
+  
+  If user$="*" Or user$="everybody"
+    everybody=1
+  Else
+    everybody=0
+  EndIf
+  
+  For i=0 To characternumber
+    If Characters(i)\name=user$
+      user$=Str(i)
+      Break
+    EndIf
+  Next
+  
+  LockMutex(ListMutex)
+  
+  If FindMapElement(Clients(),user$)
+    
+    If Clients()\type=#WEBSOCKET
+      CompilerIf #WEB
+        Websocket_SendTextFrame(Clients()\ClientID,message$)
+      CompilerEndIf
+    Else
+      Debug message$
+      sresult=SendNetworkString(Clients()\ClientID,message$)  
+      If sresult=-1
+        WriteLog("CLIENT DIED DIRECTLY",Clients())
+        RemoveDisconnect(Clients()\ClientID)
+      EndIf
+    EndIf
+  Else
+    ResetMap(Clients())
+    While NextMapElement(Clients())
+      If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$=Clients()\username Or user$="Area"+Str(Clients()\area) Or everybody
+        If Clients()\type=#WEBSOCKET
+          CompilerIf #WEB
+            Websocket_SendTextFrame(Clients()\ClientID,message$)
+          CompilerEndIf
+        Else
+          Debug message$
+          sresult=SendNetworkString(Clients()\ClientID,message$)
+          If sresult=-1
+            WriteLog("CLIENT DIED",Clients())
+            RemoveDisconnect(Clients()\ClientID)
+          EndIf
+        EndIf
+      EndIf
+    Wend   
+  EndIf
+  UnlockMutex(ListMutex)
+EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 138
-; FirstLine = 114
+; CursorPosition = 375
+; FirstLine = 353
 ; Folding = ---
 ; EnableXP

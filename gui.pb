@@ -240,11 +240,11 @@ DataSection
   hacker:
   IncludeBinary "hacker.png"
   dend:
-  IncludeBinary "serverd.png"
+  IncludeBinary "splash.png"
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 27
-; FirstLine = 26
+; CursorPosition = 242
+; FirstLine = 196
 ; Folding = -
 ; EnableXP

@@ -1,4 +1,0 @@
-[Version]
-Compile=1195
-Build=133
-0.0.0.0
