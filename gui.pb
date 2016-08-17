@@ -220,6 +220,7 @@ Repeat ; Start of the event loop
       EndIf
     EndIf 
     chill-1
+    Delay(1)
   EndIf
 Until Event = #PB_Event_CloseWindow ; End of the event loop
 Quit=1
@@ -244,7 +245,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 242
+; CursorPosition = 222
 ; FirstLine = 196
 ; Folding = -
 ; EnableXP

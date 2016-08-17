@@ -291,7 +291,7 @@ Procedure LoadSettings(reload)
   ClosePreferences()
   
   If Logging
-    If OpenFile(1,LogFile$,#PB_File_SharedRead | #PB_File_NoBuffering)
+    If OpenFile(1,LogFile$,#PB_File_Append)
       FileSeek(1,Lof(1))
       WriteLog("LOGGING STARTED",Server)
     Else
@@ -467,7 +467,7 @@ Procedure LoadSettings(reload)
       areas(loadareas)\bg=area$
       PreferenceGroup("hidden")
       areas(loadareas)\hidden=ReadPreferenceInteger(Str(loadareas+1),0)
-      PreferenceGroup("password")
+      PreferenceGroup("pass")
       areas(loadareas)\pw=Encode(ReadPreferenceString(Str(loadareas+1),""))
     Next  
     ClosePreferences()
@@ -569,20 +569,6 @@ Procedure LoadSettings(reload)
   EndIf
   
   
-EndProcedure
-
-Procedure MSWait(*usagePointer.Client)
-  Define wttime,wtarea
-  wtarea=*usagePointer\area
-  wttime=Len(Trim(StringField(*usagePointer\last,7,"#")))*60
-  wttime-20
-  If wttime<10
-    wttime=10
-  ElseIf wttime>5000
-    wttime=5000
-  EndIf
-  Delay(wttime)
-  areas(wtarea)\wait=0
 EndProcedure
 
 Procedure TrackWait(a)
@@ -739,11 +725,11 @@ Procedure SendDone(*usagePointer.Client)
   SendTarget(Str(*usagePointer\ClientID),"DONE#%",Server)
 EndProcedure
 
-Procedure SwitchAreas(*usagePointer.Client,narea$)
+Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
   Define sendd=0
   Define ir
   Debug narea$
-  For ir=0 To AreaNumber-1
+  For ir=0 To AreaNumber
     areas(ir)\players=0
     Debug areas(ir)\name
     If areas(ir)\name = narea$
@@ -789,23 +775,27 @@ Procedure SwitchAreas(*usagePointer.Client,narea$)
   Else
     If Val(narea$)<=AreaNumber-1 And Val(narea$)>=0
       If Not areas(Val(narea$))\lock Or *usagePointer\perm>areas(Val(narea$))\mlock
-        If areas(*usagePointer\area)\lock=*usagePointer\ClientID
-          areas(*usagePointer\area)\lock=0
-          areas(*usagePointer\area)\mlock=0
-        EndIf
-        areas(*usagePointer\area)\players-1
-        *usagePointer\area=Val(narea$)
-        areas(*usagePointer\area)\players+1
-        If sendd=1
-          *usagePointer\CID=-1
-          SendDone(*usagePointer)
-          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
+        If areas(Val(narea$))\pw="" Or areas(Val(narea$))\pw=apass$ Or *usagePointer\perm
+          If areas(*usagePointer\area)\lock=*usagePointer\ClientID
+            areas(*usagePointer\area)\lock=0
+            areas(*usagePointer\area)\mlock=0
+          EndIf
+          areas(*usagePointer\area)\players-1
+          *usagePointer\area=Val(narea$)
+          areas(*usagePointer\area)\players+1
+          If sendd=1
+            *usagePointer\CID=-1
+            SendDone(*usagePointer)
+            SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
+          Else
+            SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
+            SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
+          EndIf
+          SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+          SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
         Else
-          SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
-          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
+          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#wrong password#%",Server)
         EndIf
-        SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-        SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
       Else
         SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area locked#%",Server)
       EndIf
@@ -978,7 +968,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
                 SendTarget(Str(Clients()\ClientID),"DONE#%",Server)
               EndIf
             Case #MOVE
-              SwitchAreas(Clients(),param$)
+              SwitchAreas(Clients(),param$,"")
               
           EndSelect
           UnlockMutex(ActionMutex)
@@ -1185,7 +1175,7 @@ Procedure HandleAOCommand(ClientID)
           If Not (music=0 Or *usagePointer\CID <> Val(StringField(rawreceive$,4,"#")))
             If Left(StringField(rawreceive$,3,"#"),1)=">"
               
-              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,3,"#"),2))
+              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,3,"#"),2),"")
               
             Else
               If *usagePointer\ignoremc=0
@@ -1241,6 +1231,14 @@ Procedure HandleAOCommand(ClientID)
               EndSelect
               send=0
               
+            Case "/cmds"
+              SendTarget(Str(ClientID),"CT#$HOST#help,cmds,login,pos,change,switch,online,area,evi,roll,pm,version,smokeweed#%",Server)
+              If *usagePointer\perm
+                SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(un)dj,(ung)gimp#%",Server)
+              EndIf
+              If *usagePointer\perm>1
+                SendTarget(Str(ClientID),"CT#$HOST#public,send,sendall,reload,toggle,decryptor,snapshot,stop,loadreplay#%",Server)
+              EndIf
             Case "/ip"
               If *usagePointer\perm
                 If CommandThreading
@@ -1269,7 +1267,7 @@ Procedure HandleAOCommand(ClientID)
             Case "/change"
               nchar$=Mid(ctparam$,9)
               For nch=0 To CharacterNumber
-                If Characters(nch)\name=nchar$
+                If Characters(nch)\name=nchar$ And Characters(nch)\pw=""
                   If BlockTaken=1
                     LockMutex(ListMutex)
                     PushMapPosition(Clients())
@@ -1345,7 +1343,8 @@ Procedure HandleAOCommand(ClientID)
                 UnlockMutex(ListMutex)
               EndIf
               
-              narea$=StringField(ctparam$,2," ")              
+              narea$=StringField(ctparam$,2," ")
+              apass$=StringField(ctparam$,3," ")
               If narea$=""
                 arep$="CT#$HOST#Areas:"
                 For ir=0 To AreaNumber-1
@@ -1366,7 +1365,7 @@ Procedure HandleAOCommand(ClientID)
                 arep$+"#%"
                 SendTarget(Str(ClientID),arep$,Server)
               Else                  
-                SwitchAreas(*usagePointer,narea$)
+                SwitchAreas(*usagePointer,narea$,apass$)
               EndIf
               
             Case "/loadreplay"
@@ -2339,9 +2338,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1148
-; FirstLine = 1145
+; IDE Options = PureBasic 5.11 (Linux - x64)
+; CursorPosition = 1269
+; FirstLine = 1264
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

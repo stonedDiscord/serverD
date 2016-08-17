@@ -124,13 +124,13 @@ Procedure Open_Window_0()
     BalloonTip(GadgetID(#Button_si), #Button_si, "Stop ignoring this client", "", #TOOLTIP_INFO_ICON)
     ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
     ButtonGadget(#Button_Load, -30, 340, 100, 30, "LOAD", #PB_Button_Right)
-    ListIconGadget(#Listview_0, 70, 40, 220, 330, "IP", 100, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
+    ListIconGadget(#Listview_0, 70, 40, 220, 330, "IP", 90, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
     CompilerIf #PB_Compiler_OS=#PB_OS_Windows
       SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
     CompilerEndIf
-    AddGadgetColumn(#Listview_0, 1, "Character", 80)
-    AddGadgetColumn(#Listview_0, 2, "Area", 50)
-    AddGadgetColumn(#Listview_0, 3, "HDID", 80)
+    AddGadgetColumn(#Listview_0, 1, "Character", 70)
+    AddGadgetColumn(#Listview_0, 2, "Area", 70)
+    AddGadgetColumn(#Listview_0, 3, "HDID", 70)
     BalloonTip(GadgetID(#Listview_0), #Listview_0, "Shows all connected clients", "", #TOOLTIP_NO_ICON)
     ButtonGadget(#Button_dj, 40, 250, 30, 30, "DJ")
     BalloonTip(GadgetID(#Button_dj), #Button_dj, "Allows this client to change the music", "", #TOOLTIP_INFO_ICON)
@@ -244,8 +244,8 @@ Procedure ConfigWindow(var)
   ClosePreferences()
 EndProcedure 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 147
-; FirstLine = 125
+; CursorPosition = 132
+; FirstLine = 119
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0

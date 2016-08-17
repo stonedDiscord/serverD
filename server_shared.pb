@@ -5,7 +5,7 @@ CompilerElse
   Global libext$=".dll"
 CompilerEndIf
 
-XIncludeFile "shared_headers.pb"
+XIncludeFile "../serverD/shared_headers.pb"
 
 Global NewList Plugins.Plugin()
 
@@ -136,10 +136,26 @@ Procedure WriteLog(string$,*lclient.Client)
     PrintN(logstr$)
   CompilerElse
     If Quit=0
-      AddGadgetItem(#listbox_event,-1,"["+GetCharacterName(*lclient)+"]["+GetAreaName(*lclient)+"]"+string$)
+      CompilerIf #NICE
+        AddGadgetItem(#listbox_event,-1,string$)
+      CompilerElse
+        AddGadgetItem(#listbox_event,-1,"["+GetCharacterName(*lclient)+"]["+GetAreaName(*lclient)+"]"+string$)
+      CompilerEndIf
       SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
     EndIf
   CompilerEndIf   
+EndProcedure
+
+Procedure MSWait(*usagePointer.Client,message$)
+  Define wttime
+  Debug areas(*usagePointer\area)\wait
+  Debug *usagePointer\area
+  wttime=Len(Trim(message$))*60
+  If wttime>5000
+    wttime=5000
+  EndIf
+  Delay(wttime)
+  areas(*usagePointer\area)\wait=0
 EndProcedure
 
 ;- Signal handling on linux
@@ -310,7 +326,7 @@ CompilerIf #WEB
     ProcedureReturn Result
     
   EndProcedure
-    ;Used procedures
+  ;Used procedures
   Procedure.s DayInText(dd)
     Protected d$
     Select DayOfWeek(dd)
@@ -369,8 +385,8 @@ CompilerIf #WEB
   EndProcedure
   
 CompilerEndIf
-  
-  Procedure RemoveDisconnect(ClientID)
+
+Procedure RemoveDisconnect(ClientID)
   LockMutex(ListMutex)
   If FindMapElement(Clients(),Str(ClientID))
     WriteLog("DISCONNECTING",Clients())
@@ -381,10 +397,18 @@ CompilerEndIf
     If Clients()\area>=0
       areas(Clients()\area)\players-1
     EndIf
+    CompilerIf #NICE
+      If OpenFile(7,"base/scene/"+scene$+"/PlayerData/"+Clients()\username+".txt")
+        For ir=0 To itemamount
+          WriteStringN(7,Str(Clients()\Inventory[ir]))
+        Next
+        CloseFile(7)
+      EndIf
+    CompilerEndIf
     If ListSize(Plugins())
       ResetList(Plugins())
       While NextElement(Plugins())
-        pStat=#NONE
+        pStat=#NODATA
         CallFunctionFast(Plugins()\gcallback,#DISC)    
         CallFunctionFast(Plugins()\rawfunction,Clients())
       Wend
@@ -449,8 +473,8 @@ Procedure SendTarget(user$,message$,*sender.Client)
   EndIf
   UnlockMutex(ListMutex)
 EndProcedure
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 375
-; FirstLine = 353
+; IDE Options = PureBasic 5.11 (Linux - x64)
+; CursorPosition = 410
+; FirstLine = 395
 ; Folding = ---
 ; EnableXP

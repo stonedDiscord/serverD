@@ -17,8 +17,16 @@ Structure Plugin
   active.b
 EndStructure
 
+Enumeration ;ranks
+  #USER
+  #ANIM
+  #MOD
+  #ADMIN
+  #SERVER  
+EndEnumeration
+
 Enumeration ;plugin status
-  #NONE
+  #NODATA
   #DATA
   #CONN
   #DISC
@@ -26,12 +34,22 @@ Enumeration ;plugin status
 EndEnumeration
 
 Enumeration ;client type
-  #NONE
+  #NOTYPE
   #VANILLA
   #MASTER
   #VNO
   #WEBSOCKET
   #AOTWO  
+EndEnumeration
+
+Enumeration ;area status
+  #IDLE
+  #BUILDINGOPEN
+  #BUILDINGFULL
+  #CASINGOPEN
+  #CASINGFULL
+  #RECESS
+  #REPLAY
 EndEnumeration
 
 Structure area
@@ -45,9 +63,12 @@ Structure area
   players.w
   good.w
   evil.w
+  maxhp.w
+  replaymode.w
   track.s
   trackstart.l
   trackwait.i
+  status.w
 EndStructure
 
 Structure ACharacter
@@ -88,7 +109,7 @@ Structure Client
   judget.b
   username.s
   skip.b
-  Inventory.i[20]
+  Inventory.i[50]
 EndStructure
 
 Structure TempBan
@@ -114,6 +135,7 @@ Enumeration
   #SWITCH
   #MOVE
 EndEnumeration
-; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 33
+; IDE Options = PureBasic 5.11 (Linux - x64)
+; CursorPosition = 24
+; FirstLine = 4
 ; EnableXP
