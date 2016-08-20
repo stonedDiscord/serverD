@@ -90,6 +90,7 @@ Global NewList PReplay.s()
 Global Dim Evidences.Evidence(100)
 Global Dim Icons.l(2)
 Global Dim ReadyChar.s(100)
+Global newcready$="CHARS#%"
 Global Dim ReadyEvidence.s(100)
 Global Dim ReadyMusic.s(500)
 
@@ -352,6 +353,7 @@ Procedure LoadSettings(reload)
   ClosePreferences()
   
   ready$="CI#"
+  newcready$="CHARS#"
   charpage=0
   Debug CharacterNumber
   For loadcharsettings=0 To CharacterNumber
@@ -367,9 +369,14 @@ Procedure LoadSettings(reload)
       Characters(loadcharsettings)\evidence=Encode(ReadPreferenceString("evi",""))
     EndIf
     Characters(loadcharsettings)\pw=Encode(ReadPreferenceString("pass",""))
+    If Characters(loadcharsettings)\pw<>""
+      passworded$="1"
+    Else
+      passworded$="0"
+    EndIf
     ClosePreferences()
     ready$ = ready$ + Str(loadcharsettings)+"#"+Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&"+Str(Characters(loadcharsettings)\evinumber)+"&"+Characters(loadcharsettings)\evidence+"&"+Characters(loadcharsettings)\pw+"&0&#"
-    
+    newcready$ = newcready$ + Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&0&"+passworded$+"#"
     If loadcharsettings%10 = 9 Or loadcharsettings=CharacterNumber
       ready$=ready$+"#%"
       ReadyChar(charpage)=ready$
@@ -380,6 +387,7 @@ Procedure LoadSettings(reload)
       ready$="CI#"
     EndIf    
   Next
+  newcready$=newcready$+"%"
   
   If ReadFile(2, "base/musiclist.txt")
     tracks=0
@@ -1232,9 +1240,9 @@ Procedure HandleAOCommand(ClientID)
               send=0
               
             Case "/cmds"
-              SendTarget(Str(ClientID),"CT#$HOST#help,cmds,login,pos,change,switch,online,area,evi,roll,pm,version,smokeweed#%",Server)
+              SendTarget(Str(ClientID),"CT#$HOST#help,cmds,login,g,pos,change,switch,online,area,evi,roll,pm,version,smokeweed#%",Server)
               If *usagePointer\perm
-                SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(un)dj,(ung)gimp#%",Server)
+                SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(un)dj,(un)gimp#%",Server)
               EndIf
               If *usagePointer\perm>1
                 SendTarget(Str(ClientID),"CT#$HOST#public,send,sendall,reload,toggle,decryptor,snapshot,stop,loadreplay#%",Server)
@@ -1263,6 +1271,9 @@ Procedure HandleAOCommand(ClientID)
               Else
                 *usagePointer\pos=""
               EndIf
+              
+            Case "/g"
+              SendTarget("*","CT#[G]"+*usagePointer\username+"#"+Mid(StringField(rawreceive$,4,"#"),3)+"#%",*usagePointer)
               
             Case "/change"
               nchar$=Mid(ctparam$,9)
@@ -1834,6 +1845,11 @@ Procedure HandleAOCommand(ClientID)
               *usagePointer\perm=1
             EndIf
           Next
+          
+          If StringField(rawreceive$,4,"#")<>""
+            *usagePointer\type=#AOTWO
+          EndIf
+          
           SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%",Server)
           players=0
           
@@ -1864,6 +1880,9 @@ Procedure HandleAOCommand(ClientID)
         
       Case "askchar2" ; character list
         SendTarget(Str(ClientID),ReadyChar(0),Server)
+        
+      Case "askchar3"
+        SendTarget(Str(ClientID),newcready$,Server)
         
       Case "CC"
         akchar=0
@@ -2152,7 +2171,7 @@ Procedure Network(var)
           If ListSize(Plugins())
             ResetList(Plugins())
             While NextElement(Plugins())
-              pStat=#NONE
+              pStat=#NODATA
               CallFunctionFast(Plugins()\gcallback,#CONN)    
               CallFunctionFast(Plugins()\rawfunction,Clients())
             Wend
@@ -2251,7 +2270,7 @@ Procedure Network(var)
               If ListSize(Plugins())
                 ResetList(Plugins())
                 While NextElement(Plugins())
-                  pStat=#NONE
+                  pStat=#NODATA
                   CallFunctionFast(Plugins()\gcallback,#DATA)    
                   CallFunctionFast(Plugins()\rawfunction,*usagePointer)
                   pStat=CallFunctionFast(Plugins()\gcallback,#SEND)
@@ -2339,8 +2358,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 1269
-; FirstLine = 1264
+; CursorPosition = 378
+; FirstLine = 369
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
