@@ -64,7 +64,8 @@ Structure area
   good.w
   evil.w
   maxhp.w
-  replaymode.w
+  replaytime.w
+  replayfile.s
   track.s
   trackstart.l
   trackwait.i
@@ -135,7 +136,7 @@ Enumeration
   #SWITCH
   #MOVE
 EndEnumeration
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 24
-; FirstLine = 4
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 67
+; FirstLine = 27
 ; EnableXP

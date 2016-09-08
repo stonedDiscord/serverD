@@ -353,7 +353,7 @@ Procedure LoadSettings(reload)
   ClosePreferences()
   
   ready$="CI#"
-  newcready$="CHARS#"
+  newcready$="SC#"
   charpage=0
   Debug CharacterNumber
   For loadcharsettings=0 To CharacterNumber
@@ -394,6 +394,7 @@ Procedure LoadSettings(reload)
     ltracks=0
     musicpage=0
     ready$="EM#"
+    newmready$="SM#"
     While Eof(2) = 0
       AddElement(Music())
       trackn$=ReadString(2) 
@@ -404,6 +405,7 @@ Procedure LoadSettings(reload)
       Music()\TrackName = track$
       Music()\Length = dur*1000
       ready$ = ready$ + Str(tracks) + "#" + track$ + "#"
+      newmready$=newmready$+track$+"#"
       ltracks+1
       tracks+1
       If ltracks = 10
@@ -417,6 +419,7 @@ Procedure LoadSettings(reload)
     If Not ltracks = 10
       ReadyMusic(musicpage)=ready$+"#%"
     EndIf
+    newmready$+"%"
     ReDim ReadyMusic(musicpage) 
     CloseFile(2)
     
@@ -425,6 +428,7 @@ Procedure LoadSettings(reload)
     AddElement(Music())
     Music()\TrackName="NO MUSIC LIST"
     ReadyMusic(0)="EM#0#NO MUSIC LIST##%"
+    newmready$="SM#NO MUSIC LIST#%"
     musicpage=0
     tracks=1
   EndIf
@@ -466,6 +470,7 @@ Procedure LoadSettings(reload)
   If OpenPreferences( "base/scene/"+scene$+"/areas.ini")
     PreferenceGroup("Areas")
     AreaNumber=ReadPreferenceInteger("number",1)
+    newaready$="SB#"
     For loadareas=0 To AreaNumber-1
       PreferenceGroup("Areas")
       aname$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
@@ -477,7 +482,16 @@ Procedure LoadSettings(reload)
       areas(loadareas)\hidden=ReadPreferenceInteger(Str(loadareas+1),0)
       PreferenceGroup("pass")
       areas(loadareas)\pw=Encode(ReadPreferenceString(Str(loadareas+1),""))
-    Next  
+      If areas(loadareas)\pw=""
+        passworded$="0"
+      Else
+        passworded$="1"
+      EndIf
+      If areas(loadareas)\hidden=0
+        newaready$+area$+"#"+aname$+"#"+passworded$+"#"
+      EndIf
+    Next
+    newaready$+"%"
     ClosePreferences()
   Else
     If CreatePreferences("base/scene/"+scene$+"/areas.ini")
@@ -577,27 +591,6 @@ Procedure LoadSettings(reload)
   EndIf
   
   
-EndProcedure
-
-Procedure TrackWait(a)
-  Define stoploop,k,cw
-  cw=1000
-  Repeat
-    For k=0 To AreaNumber-1
-      If Areas(k)\trackwait>1
-        If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
-          Areas(k)\trackstart=ElapsedMilliseconds()
-          Debug "changed"
-          SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
-        Else
-          If Areas(k)\trackwait<cw
-            cw=(Areas(k)\trackstart+Areas(k)\trackwait)-ElapsedMilliseconds()
-          EndIf
-        EndIf
-      EndIf
-    Next
-    Delay(cw)
-  Until LoopMusic=0
 EndProcedure
 
 Procedure ListIP(ClientID)
@@ -1881,8 +1874,12 @@ Procedure HandleAOCommand(ClientID)
       Case "askchar2" ; character list
         SendTarget(Str(ClientID),ReadyChar(0),Server)
         
-      Case "askchar3"
+      Case "RC"
         SendTarget(Str(ClientID),newcready$,Server)
+      Case "RM"
+        SendTarget(Str(ClientID),newmready$,Server)
+      Case "RB"
+        SendTarget(Str(ClientID),newaready$,Server)
         
       Case "CC"
         akchar=0
@@ -2357,9 +2354,9 @@ CompilerElse
 CompilerEndIf
 
 End
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 378
-; FirstLine = 369
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 2355
+; FirstLine = 2329
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

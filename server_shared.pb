@@ -5,7 +5,7 @@ CompilerElse
   Global libext$=".dll"
 CompilerEndIf
 
-XIncludeFile "../serverD/shared_headers.pb"
+XIncludeFile "../server_private/shared_headers.pb"
 
 Global NewList Plugins.Plugin()
 
@@ -118,11 +118,11 @@ Procedure WriteLog(string$,*lclient.Client)
   Define mstr$,logstr$
   ; [23:21:05] David Skoland: (If mod)[M][IP][Timestamp, YYYYMMDDHHMM][Character][Message]
   Select *lclient\perm
-    Case 1
+    Case #MOD
       mstr$="[M]"
-    Case 2
+    Case #ADMIN
       mstr$="[A]"
-    Case 3
+    Case #SERVER
       mstr$="[S]"
     Default
       mstr$="[U]"
@@ -146,11 +146,11 @@ Procedure WriteLog(string$,*lclient.Client)
   CompilerEndIf   
 EndProcedure
 
-Procedure MSWait(*usagePointer.Client,message$)
+Procedure MSWait(*usagePointer.Client)
   Define wttime
   Debug areas(*usagePointer\area)\wait
   Debug *usagePointer\area
-  wttime=Len(Trim(message$))*60
+  wttime=Len(Trim(*usagePointer.Client\last))*6
   If wttime>5000
     wttime=5000
   EndIf
@@ -473,8 +473,30 @@ Procedure SendTarget(user$,message$,*sender.Client)
   EndIf
   UnlockMutex(ListMutex)
 EndProcedure
-; IDE Options = PureBasic 5.11 (Linux - x64)
-; CursorPosition = 410
-; FirstLine = 395
+
+Procedure TrackWait(a)
+  Define stoploop,k,cw
+  cw=1000
+  Debug "looping enabled"
+  Repeat
+    For k=0 To AreaNumber
+      If Areas(k)\trackwait>1
+        If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
+          Areas(k)\trackstart=ElapsedMilliseconds()
+          Debug "changed"
+          SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+        Else
+          If Areas(k)\trackwait<cw
+            cw=(Areas(k)\trackstart+Areas(k)\trackwait)-ElapsedMilliseconds()
+          EndIf
+        EndIf
+      EndIf
+    Next
+    Delay(cw)
+  Until LoopMusic=0
+EndProcedure
+; IDE Options = PureBasic 5.31 (Windows - x86)
+; CursorPosition = 479
+; FirstLine = 447
 ; Folding = ---
 ; EnableXP
