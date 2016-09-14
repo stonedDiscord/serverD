@@ -474,6 +474,56 @@ Procedure SendTarget(user$,message$,*sender.Client)
   UnlockMutex(ListMutex)
 EndProcedure
 
+Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
+  Define everybody,i,omessage$,sresult
+  
+  LockMutex(ListMutex)
+  
+  ResetMap(Clients())
+  While NextMapElement(Clients())
+    If Clients()\area=*seUser\area
+      Select Clients()\type
+          CompilerIf #WEB
+          Case #WEBSOCKET          
+            Websocket_SendTextFrame(Clients()\ClientID,message$)
+          CompilerEndIf
+        Case #AOTWO
+          message$="MS#chat#"+*ntmes\preemote+"#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+          message$+"0#0#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#0#"+Str(*seUser\CID)+"#%"
+          
+          sresult=SendNetworkString(Clients()\ClientID,message$)
+          If sresult=-1
+            WriteLog("CLIENT DIED",Clients())
+            RemoveDisconnect(Clients()\ClientID)
+          EndIf
+        Case #VNO
+          Select *ntmes\position
+            Case "def"
+              vpos=1;left
+            Case "pro"
+              vpos=2;right
+          EndSelect
+          message$="MS#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
+           sresult=SendNetworkString(Clients()\ClientID,message$)
+          If sresult=-1
+            WriteLog("CLIENT DIED",Clients())
+            RemoveDisconnect(Clients()\ClientID)
+          EndIf
+        Default
+          message$="MS#chat#"+*ntmes\preemote+"#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+          message$=message$+"0#"+Str(*seUser\CID)+"#0#0#0#"+Str(*seUser\CID)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
+          
+          sresult=SendNetworkString(Clients()\ClientID,message$)
+          If sresult=-1
+            WriteLog("CLIENT DIED",Clients())
+            RemoveDisconnect(Clients()\ClientID)
+          EndIf
+      EndSelect
+    EndIf
+  Wend
+  UnlockMutex(ListMutex)
+EndProcedure
+
 Procedure TrackWait(a)
   Define stoploop,k,cw
   cw=1000
@@ -496,7 +546,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 479
-; FirstLine = 447
+; CursorPosition = 505
+; FirstLine = 484
 ; Folding = ---
 ; EnableXP
