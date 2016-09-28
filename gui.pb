@@ -152,7 +152,7 @@ Repeat ; Start of the event loop
       Case #CheckBox_MS
         public=GetGadgetState(#CheckBox_MS)
         Debug public
-        If public
+        If public And msthread=0
           msthread=CreateThread(@MasterAdvert(),port)
         EndIf
         
@@ -172,6 +172,9 @@ Repeat ; Start of the event loop
           Else
             SetWindowColor(0, RGB(128,0,0))
             SetGadgetText(#Button_2,"RETRY")  
+          EndIf
+          If public And msthread=0
+            msthread=CreateThread(@MasterAdvert(),port)
           EndIf
         EndIf
         
@@ -245,7 +248,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 222
-; FirstLine = 196
+; CursorPosition = 248
+; FirstLine = 215
 ; Folding = -
 ; EnableXP

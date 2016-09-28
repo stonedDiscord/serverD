@@ -1,12 +1,12 @@
 # serverD
-## PUMP UP THE JAM
+## RED DANCING FLAMES
 You can find the downloads in the release tab
 
 ### changelog
-* added banning IP ranges
-* newAO support
-* fixed plugins
-* cleanups
+* AO2 now fully supported
+* cleaned up a ton of stuff
+* new message and wait system
+* handles other clients ok
  
 ### minimal setup (console version)
 > OS

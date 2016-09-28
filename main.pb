@@ -224,7 +224,6 @@ Procedure LoadSettings(reload)
   PreferenceGroup("net")
   opppass$=Encode(ReadPreferenceString("oppassword","change_me_people_can_use_this_to_take_passworded_chars"))
   Port=ReadPreferenceInteger("Port",27016)
-  
   public=ReadPreferenceInteger("public",0)
   CompilerIf #CONSOLE=0
     SetGadgetText(#String_5,Str(Port))
@@ -234,6 +233,7 @@ Procedure LoadSettings(reload)
     PrintN("Server Port:"+Str(Port))
     PrintN("Public server:"+Str(public))
   CompilerEndIf
+  
   PreferenceGroup("server")
   musicmode=ReadPreferenceInteger("musicmode",1)
   Replays=ReadPreferenceInteger("replaysave",0)
@@ -340,7 +340,7 @@ Procedure LoadSettings(reload)
   Next
   PreferenceGroup("desc")
   For loaddesc=0 To characternumber
-    Characters(loaddesc)\desc=Encode(ReadPreferenceString(Str(loadchars),"No description"))
+    Characters(loaddesc)\desc=Encode(ReadPreferenceString(Str(loadchars),""))
   Next
   ReDim Evidences(EviNumber)
   ReDim ReadyEvidence(EviNumber)
@@ -489,7 +489,7 @@ Procedure LoadSettings(reload)
   If OpenPreferences( "base/scene/"+scene$+"/areas.ini")
     PreferenceGroup("Areas")
     AreaNumber=ReadPreferenceInteger("number",1)
-    newaready$="SB#"
+    newaready$="SA#"
     For loadareas=0 To AreaNumber-1
       PreferenceGroup("Areas")
       aname$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
@@ -507,7 +507,7 @@ Procedure LoadSettings(reload)
         passworded$="1"
       EndIf
       If areas(loadareas)\hidden=0
-        newaready$+area$+"&"+aname$+"&"+passworded$+"#"
+        newaready$+aname$+"&"+area$+"&"+passworded$+"#"
       EndIf
     Next
     newaready$+"%"
@@ -724,14 +724,14 @@ Procedure SendDone(*usagePointer.Client)
   While NextMapElement(Clients())
     If Clients()\CID>=0 And Clients()\CID <= characternumber
       If Clients()\area=*usagePointer\area
-        APlayers(Clients()\CID)=-1
+        APlayers(Clients()\CID)=1
       EndIf
     EndIf
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
   For sentchar=0 To characternumber
-    If APlayers(sentchar)=-1 Or  Characters(sentchar)\pw<>""
+    If APlayers(sentchar)=1 Or Characters(sentchar)\pw<>""
       send$ = send$ + "#-1"
     Else
       send$ = send$ + "#0"
@@ -789,7 +789,13 @@ Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
       SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(0)\bg+"#%",Server)      
     EndIf
     If *usagePointer\type>=#AOTWO
-      SendTarget(Str(*usagePointer\ClientID),"AK#"+Str(Areas(0)\good)+"#"+Str(Areas(0)\evil)+"#"+Str(Areas(0)\maxhp)+"#%",Server)
+      SendTarget(Str(*usagePointer\ClientID),"OA#0#0#%",Server)
+      send$="TA"
+      For carea=0 To AreaNumber
+        send$ = send$ + "#"+Str(areas(carea)\players)
+      Next
+      send$ = send$ + "#%"
+      SendTarget(Str(*usagePointer\ClientID),send$,Server)
     Else
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
@@ -813,14 +819,24 @@ Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
             SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
           EndIf
           If *usagePointer\type>=#AOTWO
-            SendTarget(Str(*usagePointer\ClientID),"AK#"+Str(areas(*usagePointer\area)\good)+"#"+Str(areas(*usagePointer\area)\evil)+"#"+Str(areas(*usagePointer\area)\maxhp)+"#%",Server)
+            SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#0#%",Server)
+            send$="TA"
+            For carea=0 To AreaNumber
+              send$ = send$ + "#"+Str(areas(carea)\players)
+            Next
+            send$ = send$ + "#%"
+            SendTarget(Str(*usagePointer\ClientID),send$,Server)
           Else
             SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
           EndIf
         Else
-          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#wrong password#%",Server)
+          If *usagePointer\type>=#AOTWO
+            SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#1#%",Server)
+          Else
+            SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#wrong password#%",Server)
+          EndIf
         EndIf
       Else
         SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area locked#%",Server)
@@ -1092,17 +1108,6 @@ Procedure HandleAOCommand(ClientID)
         
         nmes.ChatMessage
         Select *usagePointer\type
-          Case #AOTWO
-            nmes\preemote=StringField(rawreceive$,3,"#")
-            nmes\char=StringField(rawreceive$,4,"#")
-            nmes\emote=StringField(rawreceive$,5,"#")
-            nmes\message=StringField(rawreceive$,6,"#")
-            nmes\position=StringField(rawreceive$,7,"#")
-            nmes\sfx=StringField(rawreceive$,8,"#")
-            nmes\emotemod=Val(StringField(rawreceive$,9,"#"))
-            nmes\realization=Val(StringField(rawreceive$,10,"#"))
-            nmes\color=Val(StringField(rawreceive$,12,"#"))
-            nmes\evidence=Val(StringField(rawreceive$,13,"#"))
           Case #VNO
             nmes\char=StringField(rawreceive$,2,"#")
             nmes\emote=StringField(rawreceive$,3,"#")
@@ -1118,102 +1123,40 @@ Procedure HandleAOCommand(ClientID)
             nmes\position=StringField(rawreceive$,7,"#")
             nmes\sfx=StringField(rawreceive$,8,"#")
             nmes\emotemod=Val(StringField(rawreceive$,9,"#"))
+            nmes\animdelay=Val(StringField(rawreceive$,11,"#"))
+            nmes\objmod=Val(StringField(rawreceive$,12,"#"))
             nmes\evidence=Val(StringField(rawreceive$,13,"#"))
             nmes\realization=Val(StringField(rawreceive$,15,"#"))
             nmes\color=Val(StringField(rawreceive$,16,"#"))
         EndSelect
-        SendChatMessage(nmes,*usagePointer)
-        ;         ElseIf ReplayMode=0
-        ;           WriteLog("[CHAT]"+StringField(rawreceive$,6,"#"),*usagePointer)
-        ;           If *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
-        ;             If areas(*usagePointer\area)\wait=0 Or *usagePointer\skip
-        ;               msreply$="MS#"
-        ;               For i=3 To 17
-        ;                 mss$=StringField(rawreceive$,i,"#")
-        ;                 If i=3
-        ;                   msreply$=msreply$+"chat#"
-        ;                 ElseIf i=5 And BlockINI And mss$<>GetCharacterName(*usagePointer)
-        ;                   msreply$=msreply$+GetCharacterName(*usagePointer)+"#"
-        ;                 ElseIf i=7
-        ;                   If *usagePointer\gimp
-        ;                     If SelectElement(gimps(),Random(ListSize(gimps())-1,0))
-        ;                       msreply$=msreply$+gimps()+"#"
-        ;                     Else
-        ;                       msreply$=msreply$+"gimp.txt is empty lol"+"#"
-        ;                     EndIf
-        ;                     SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,coff),*usagePointer)
-        ;                   ElseIf Len(mss$)>255
-        ;                     SendTarget(Str(ClientID),"MS#"+Mid(rawreceive$,coff),*usagePointer)
-        ;                     msreply$=msreply$+Left(mss$,255)+"#"
-        ;                   Else
-        ;                     msreply$=msreply$+mss$+"#"
-        ;                   EndIf              
-        ;                 ElseIf i=8 
-        ;                   If *usagePointer\pos<>""
-        ;                     msreply$=msreply$+*usagePointer\pos+"#"
-        ;                   ElseIf Len(mss$)<>3
-        ;                     msreply$=msreply$+"def#"
-        ;                   Else
-        ;                     msreply$=msreply$+mss$+"#"
-        ;                   EndIf
-        ;                 ElseIf i=10
-        ;                   ir=Val(mss$)
-        ;                   Select ir ;fuck off guys
-        ;                     Case 0
-        ;                       msreply$=msreply$+"0#"
-        ;                     Case 1
-        ;                       msreply$=msreply$+"1#"
-        ;                     Case 2
-        ;                       msreply$=msreply$+"2#"
-        ;                     Case 5
-        ;                       msreply$=msreply$+"5#"
-        ;                     Case 6
-        ;                       msreply$=msreply$+"6#"
-        ;                     Default
-        ;                       *usagePointer\hack=1
-        ;                   EndSelect
-        ;                 ElseIf i=17 And mss$=Str(modcol) And Not *usagePointer\perm
-        ;                   msreply$=msreply$+"0#"
-        ;                 Else
-        ;                   msreply$=msreply$+mss$+"#"
-        ;                 EndIf
-        ;               Next
-        ;               msreply$=msreply$+"%"
-        ;               Debug msreply$
-        ;               If *usagePointer\perm<>3
-        ;                 areas(*usagePointer\area)\wait=*usagePointer\ClientID
-        ;                 CreateThread(@MSWait(),*usagePointer)
-        ;               EndIf
-        ;               Sendtarget("Area"+Str(*usagePointer\area),msreply$,*usagePointer)
-        ;               WriteReplay(rawreceive$)
-        ;             EndIf
-        ;           EndIf
-        ;         Else
-        ;           Select Trim(StringField(rawreceive$,6,"#"))
-        ;             Case "<"
-        ;               If ListIndex(PReplay())>0
-        ;                 PreviousElement(PReplay())
-        ;                 Server\last=PReplay()
-        ;                 HandleAOCommand(-1)
-        ;               Else
-        ;                 SendTarget("*","MS#chat#dolannormal#Dolan#dolannormal#START!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-        ;               EndIf
-        ;             Case ">"
-        ;               Debug "next"
-        ;               If ListIndex(PReplay())<ListSize(PReplay())
-        ;                 NextElement(PReplay())
-        ;                 Server\last=PReplay()
-        ;                 Debug PReplay()
-        ;                 HandleAOCommand(-1)
-        ;               Else
-        ;                 SendTarget("*","MS#chat#dolannormal#Dolan#dolannormal#FIN!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-        ;               EndIf
-        ;             Case "Q"
-        ;               ReplayMode=0
-        ;             Default
-        ;               SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#EEK! Valid: <, >, Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-        ;           EndSelect
-        ;         EndIf
+        If ReplayMode=0 Or *usagePointer\perm=#SERVER
+          SendChatMessage(nmes,*usagePointer)
+        Else
+          Select Trim(nmes\message)
+            Case "<"
+              If ListIndex(PReplay())>0
+                PreviousElement(PReplay())
+                Server\last=PReplay()
+                HandleAOCommand(-1)
+              Else
+                SendTarget("*","MS#chat#dolannormal#Dolan#dolannormal#START!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              EndIf
+            Case ">"
+              Debug "next"
+              If ListIndex(PReplay())<ListSize(PReplay())
+                NextElement(PReplay())
+                Server\last=PReplay()
+                Debug PReplay()
+                HandleAOCommand(-1)
+              Else
+                SendTarget("*","MS#chat#dolannormal#Dolan#dolannormal#FIN!#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              EndIf
+            Case "Q"
+              ReplayMode=0
+            Default
+              SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#EEK! Valid: <, >, Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+          EndSelect
+        EndIf
         
       Case "MC"
         replaymusicfix:
@@ -1812,51 +1755,134 @@ Procedure HandleAOCommand(ClientID)
           EndIf
         EndIf
         
-        Case "Req"
-      start=Val(StringField(rawreceive$,2,"#"))-1
-      If start<characternumber And start>=0
-        If 1
-          If StringField(rawreceive$,3,"#")=Characters(start)\pw
-            *usagePointer\CID=start
-            SendTarget(Str(ClientID),"Allowed#"+GetCharacterName(*usagePointer)+"#%",Server)
-            SendTarget(Str(ClientID),"YI#0#"+Str(*usagePointer\Inventory[0])+"#%",Server)
-            WriteLog("[CHAR] "+*usagePointer\username+":"+*usagePointer\IP+":"+*usagePointer\AID+" selected "+GetCharacterName(*usagePointer),*usagePointer)
-            ;TODO RaC loop
-            For ac=0 To areas
-              If Areas(ac)\players>0
-                SendTarget(Str(ClientID),"RaC#"+Str(ac+1)+"#"+Areas(ac)\players+"#%",Server)
+      Case "CC"
+        akchar=0
+        char=Val(StringField(rawreceive$,3,"#"))
+        If char>=0 And char<=characternumber
+          If BlockTaken=1
+            LockMutex(ListMutex)
+            PushMapPosition(Clients())
+            ResetMap(Clients())
+            While NextMapElement(Clients())
+              If Clients()\CID=char
+                If Clients()\area=*usagePointer\area
+                  akchar=1
+                  Break
+                Else
+                  akchar=0
+                EndIf
+                If MultiChar=0
+                  akchar=1
+                  Break
+                EndIf
               EndIf
-            Next
-            rf=1
-          Else
-            SendTarget(Str(ClientID),"WP#%",Server)
+            Wend
+            PopMapPosition(Clients())
+            UnlockMutex(ListMutex)     
           EndIf
-        Else
-          SendTarget(Str(ClientID),"TKN#%",Server)
+          If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
+            SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
+            *usagePointer\CID=char                
+            WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+            SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+            SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+            If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
+              SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+            EndIf
+          EndIf 
+          rf=1
         EndIf
-      EndIf
+        
+      Case "Req"
+        akchar=0
+        start=Val(StringField(rawreceive$,2,"#"))-1
+        If start<characternumber And start>=0
+          If BlockTaken=1
+            LockMutex(ListMutex)
+            PushMapPosition(Clients())
+            ResetMap(Clients())
+            While NextMapElement(Clients())
+              If Clients()\CID=char
+                If Clients()\area=*usagePointer\area
+                  akchar=1
+                  Break
+                Else
+                  akchar=0
+                EndIf
+                If MultiChar=0
+                  akchar=1
+                  Break
+                EndIf
+              EndIf
+            Wend
+            PopMapPosition(Clients())
+            UnlockMutex(ListMutex)     
+          EndIf
+          If akchar=0
+            If StringField(rawreceive$,3,"#")=Characters(start)\pw
+              *usagePointer\CID=start
+              SendTarget(Str(ClientID),"Allowed#"+GetCharacterName(*usagePointer)+"#%",Server)
+              SendTarget(Str(ClientID),"YI#0#"+Str(*usagePointer\Inventory[0])+"#%",Server)
+              WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+              For ac=0 To areas
+                If Areas(ac)\players>0
+                  SendTarget(Str(ClientID),"RaC#"+Str(ac+1)+"#"+Areas(ac)\players+"#%",Server)
+                EndIf
+              Next
+              rf=1
+            Else
+              SendTarget(Str(ClientID),"WP#%",Server)
+            EndIf
+          Else
+            SendTarget(Str(ClientID),"TKN#%",Server)
+          EndIf
+        EndIf
         
       Case "UC"
-        nechar$=StringField(rawreceive$,2,"#")
         password$=StringField(rawreceive$,3,"#")
-        Debug nechar$
-        For n=0 To CharacterNumber
-          Debug n
-          Debug Characters(n)\name
-          If Characters(n)\name=nechar$
-            Debug "found char"
-            If Characters(n)\pw=password$ Or Characters(n)\pw=""
-              Debug "pw ok"
-              SendTarget(Str(ClientID),"OC#"+nechar$+"#0#%",Server)
-              *usagePointer\CID=n
-            Else
-              SendTarget(Str(ClientID),"OC#"+nechar$+"#2#%",Server)
-            EndIf
-            Break
+        akchar=0
+        char=Val(StringField(rawreceive$,2,"#"))
+        If char>=0 And char<=characternumber
+          If BlockTaken=1
+            LockMutex(ListMutex)
+            PushMapPosition(Clients())
+            ResetMap(Clients())
+            While NextMapElement(Clients())
+              If Clients()\CID=char
+                If Clients()\area=*usagePointer\area
+                  akchar=1
+                  Break
+                Else
+                  akchar=0
+                EndIf
+                If MultiChar=0
+                  akchar=1
+                  Break
+                EndIf
+              EndIf
+            Wend
+            PopMapPosition(Clients())
+            UnlockMutex(ListMutex)     
           EndIf
-        Next
+          If akchar=0
+            If Characters(ncid)\pw=password$
+              *usagePointer\CID=char
+              SendTarget(Str(ClientID),"OC#"+Str(char)+"#0#%",Server)
+              WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+            ElseIf password$=oppass$
+              *usagePointer\CID=char
+              *usagePointer\perm=1
+              SendTarget(Str(ClientID),"OC#"+Str(char)+"#3#%",Server)
+              WriteLog("chose character: "+GetCharacterName(*usagePointer)+" and logged in as mod",*usagePointer)
+            Else
+              SendTarget(Str(ClientID),"OC#"+Str(char)+"#2#%",Server)
+            EndIf
+          Else
+            SendTarget(Str(ClientID),"OC#"+Str(char)+"#1#%",Server)
+          EndIf
+        EndIf
         
-      Case "AC"
+      Case "AA"
         SwitchAreas(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
         
       Case "RT"
@@ -1889,13 +1915,46 @@ Procedure HandleAOCommand(ClientID)
         
       Case "RC"
         SendTarget(Str(ClientID),newcready$,Server)
+        Dim APlayers(characternumber)
+        send$="TC"
+        LockMutex(ListMutex)
+        PushMapPosition(Clients())
+        ResetMap(Clients())
+        While NextMapElement(Clients())
+          If Clients()\CID>=0 And Clients()\CID <= characternumber
+            If Clients()\area=*usagePointer\area
+              APlayers(Clients()\CID)=1
+            EndIf
+          EndIf
+        Wend
+        PopMapPosition(Clients())
+        UnlockMutex(ListMutex)
+        For sentchar=0 To characternumber
+          If APlayers(sentchar)=1 And Characters(sentchar)\pw<>""
+            send$ = send$ + "#3"
+          ElseIf APlayers(sentchar)=1
+            send$ = send$ + "#1"
+          ElseIf Characters(sentchar)\pw<>""
+            send$ = send$ + "#2"
+          Else
+            send$ = send$ + "#0"
+          EndIf
+        Next
+        send$ = send$ + "#%"
+        SendTarget(Str(*usagePointer\ClientID),send$,Server)
         
       Case "RM"
         SendTarget(Str(ClientID),newmready$,Server)
         SendTarget(Str(ClientID),"DONE#%",Server)
         
-      Case "RB"
+      Case "RA"
         SendTarget(Str(ClientID),newaready$,Server)
+        send$="TA"
+        For carea=0 To AreaNumber
+          send$ = send$ + "#"+Str(areas(carea)\players)
+        Next
+        send$ = send$ + "#%"
+        SendTarget(Str(*usagePointer\ClientID),send$,Server)
         
       Case "AN" ; character list
         start=Val(StringField(rawreceive$,2,"#"))
@@ -1931,7 +1990,7 @@ Procedure HandleAOCommand(ClientID)
         *usagePointer\type=#VNO
         If start=0
           SendTarget(Str(ClientID),"PC#"+Str(players)+"#"+Str(characternumber)+"#"+Str(characternumber)+"#"+Str(tracks)+"#"+Str(Aareas)+"#"+Str(itemamount)+"#%",Server)
-          EndIf
+        EndIf
         If start<characternumber And start>=0
           sendstring$="CAD#"+Str(start+1)+"#"+Characters(start)\name+"#"+Str(0)
           start+1
@@ -2023,6 +2082,7 @@ Procedure HandleAOCommand(ClientID)
           If StringField(rawreceive$,4,"#")<>""
             *usagePointer\type=#AOTWO
           EndIf
+          SendTarget(Str(ClientID),"HI#serverD#"+version$+"#%",Server)
           
           SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%",Server)
           players=0
@@ -2040,53 +2100,23 @@ Procedure HandleAOCommand(ClientID)
         EndIf
         rf=1
         
-      Case "CC"
-        akchar=0
-        char=Val(StringField(rawreceive$,3,"#"))
-        If char>=0 And char<=characternumber
-          If BlockTaken=1
-            LockMutex(ListMutex)
-            PushMapPosition(Clients())
-            ResetMap(Clients())
-            While NextMapElement(Clients())
-              If Clients()\CID=char
-                If Clients()\area=*usagePointer\area
-                  akchar=1
-                  Break
-                Else
-                  akchar=0
-                EndIf
-                If MultiChar=0
-                  akchar=1
-                  Break
-                EndIf
-              EndIf
-            Wend
-            PopMapPosition(Clients())
-            UnlockMutex(ListMutex)     
-          EndIf
-          If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
-            SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
-            *usagePointer\CID=char                
-            WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-            SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-            SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
-            If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
-              SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-            EndIf
-          EndIf 
-          rf=1
-        EndIf
         
       Case "DC"
         If areas(*usagePointer\area)\lock=ClientID
           areas(*usagePointer\area)\lock=0
           areas(*usagePointer\area)\mlock=0
         EndIf
+        *usagePointer\CID=-1
         *usagePointer\ignore=1
         
       Case "FC"
+        *usagePointer\CID=-1
         SendTarget(Str(*usagePointer\ClientID),"DONE#%",Server)
+        WriteLog("freed char",*usagePointer)
+        
+      Case "Change"
+        *usagePointer\CID=-1
+        WriteLog("freed char",*usagePointer)
         
       Case "CA"
         If *usagePointer\perm
@@ -2459,8 +2489,8 @@ EndProcedure
 
 ;-  PROGRAM START    
 
-If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/serverd.txt","serverd.txt")
-  OpenPreferences("serverd.txt")
+If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/version.txt","version.txt")
+  OpenPreferences("version.txt")
   PreferenceGroup("Version")
   newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
   If newbuild>#PB_Editor_BuildCount
@@ -2517,8 +2547,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1962
-; FirstLine = 1942
+; CursorPosition = 2495
+; FirstLine = 2484
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

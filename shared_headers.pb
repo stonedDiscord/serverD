@@ -55,7 +55,8 @@ EndEnumeration
 Structure area
   name.s
   bg.s
-  wait.l
+  waitstart.l
+  waitdur.l
   lock.l
   mlock.w
   pw.s
@@ -120,9 +121,12 @@ Structure ChatMessage
   preemote.s
   position.s
   sfx.s
+  sfxdelay.w
+  animdelay.w
   showname.s
   background.s
   emotemod.w
+  objmod.w
   realization.w
   color.w
   evidence.w
@@ -166,5 +170,5 @@ Enumeration
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
 ; CursorPosition = 124
-; FirstLine = 107
+; FirstLine = 104
 ; EnableXP

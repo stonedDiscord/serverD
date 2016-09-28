@@ -17,8 +17,9 @@ Prototype.i PPluginRAW()
 
 Global Dim areas.area(100)
 Define iniarea
-For iniarea=0 To 100 
-  areas(iniarea)\wait=0
+For iniarea=0 To 100
+  areas(iniarea)\waitstart=ElapsedMilliseconds()
+  areas(iniarea)\waitdur=0
   areas(iniarea)\lock=0
   areas(iniarea)\mlock=0
 Next
@@ -38,7 +39,7 @@ Server\ClientID=-1
 Server\IP="$HOST"
 Server\AID=-3
 Server\CID=-3
-Server\perm=3
+Server\perm=#SERVER
 Server\ignore=0
 Server\ignoremc=0
 Server\hack=0
@@ -144,18 +145,6 @@ Procedure WriteLog(string$,*lclient.Client)
       SetGadgetItemData(#listbox_event,CountGadgetItems(#listbox_event)-1,*lclient\ClientID)
     EndIf
   CompilerEndIf   
-EndProcedure
-
-Procedure MSWait(*usagePointer.Client)
-  Define wttime
-  Debug areas(*usagePointer\area)\wait
-  Debug *usagePointer\area
-  wttime=Len(Trim(*usagePointer.Client\last))*6
-  If wttime>5000
-    wttime=5000
-  EndIf
-  Delay(wttime)
-  areas(*usagePointer\area)\wait=0
 EndProcedure
 
 ;- Signal handling on linux
@@ -476,52 +465,71 @@ EndProcedure
 
 Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
   Define everybody,i,omessage$,sresult
-  
-  LockMutex(ListMutex)
-  
-  ResetMap(Clients())
-  While NextMapElement(Clients())
-    If Clients()\area=*seUser\area
-      Select Clients()\type
-          CompilerIf #WEB
-          Case #WEBSOCKET          
-            Websocket_SendTextFrame(Clients()\ClientID,message$)
-          CompilerEndIf
-        Case #AOTWO
-          message$="MS#chat#"+*ntmes\preemote+"#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
-          message$+"0#0#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#0#"+Str(*seUser\CID)+"#%"
-          
-          sresult=SendNetworkString(Clients()\ClientID,message$)
-          If sresult=-1
-            WriteLog("CLIENT DIED",Clients())
-            RemoveDisconnect(Clients()\ClientID)
-          EndIf
-        Case #VNO
-          Select *ntmes\position
-            Case "def"
-              vpos=1;left
-            Case "pro"
-              vpos=2;right
-          EndSelect
-          message$="MS#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
-           sresult=SendNetworkString(Clients()\ClientID,message$)
-          If sresult=-1
-            WriteLog("CLIENT DIED",Clients())
-            RemoveDisconnect(Clients()\ClientID)
-          EndIf
-        Default
-          message$="MS#chat#"+*ntmes\preemote+"#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
-          message$=message$+"0#"+Str(*seUser\CID)+"#0#0#0#"+Str(*seUser\CID)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
-          
-          sresult=SendNetworkString(Clients()\ClientID,message$)
-          If sresult=-1
-            WriteLog("CLIENT DIED",Clients())
-            RemoveDisconnect(Clients()\ClientID)
-          EndIf
-      EndSelect
+  WriteLog("[MAIN]"+*ntmes\message,*seUser)
+  If areas(*seUser\area)\waitstart+areas(*seUser\area)\waitdur<=ElapsedMilliseconds() Or *seUser\skip
+    If BlockINI
+      *ntmes\char=GetCharacterName(*seUser)
     EndIf
-  Wend
-  UnlockMutex(ListMutex)
+    If *ntmes\color=modcol And *seUser\perm<#MOD
+      *ntmes\color=0
+    EndIf
+    
+    If *seUser\gimp
+      If SelectElement(gimps(),Random(ListSize(gimps())-1,0))
+        *ntmes\message=gimps()
+      Else
+        *ntmes\message="gimp.txt is empty lol"
+      EndIf
+    EndIf
+    
+    Select *ntmes\position
+      Case "def"
+        vpos=1;left
+      Case "pro"
+        vpos=2;right
+    EndSelect
+    areas(*seUser\area)\waitstart=ElapsedMilliseconds()
+    areas(*seUser\area)\waitdur=Len(*ntmes\message)*40
+    LockMutex(ListMutex)  
+    ResetMap(Clients())
+    While NextMapElement(Clients())
+      If Clients()\area=*seUser\area
+        Select Clients()\type
+            CompilerIf #WEB
+            Case #WEBSOCKET          
+              Websocket_SendTextFrame(Clients()\ClientID,message$)
+            CompilerEndIf
+            ;         Case #AOTWO
+            ;           message$="MS#chat#"+*ntmes\preemote+"#"+GetCharacterName(*seUser)+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+            ;           message$+Str(*ntmes\emotemod)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#"+Str(*ntmes\evidence)+"#"+Str(*seUser\CID)+"#%"
+            ;           
+            ;           sresult=SendNetworkString(Clients()\ClientID,message$)
+            ;           If sresult=-1
+            ;             WriteLog("CLIENT DIED",Clients())
+            ;             RemoveDisconnect(Clients()\ClientID)
+            ;           EndIf
+          Case #VNO
+            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
+            sresult=SendNetworkString(Clients()\ClientID,message$)
+            If sresult=-1
+              WriteLog("CLIENT DIED",Clients())
+              RemoveDisconnect(Clients()\ClientID)
+            EndIf
+          Default
+            ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
+            message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+            message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
+            
+            sresult=SendNetworkString(Clients()\ClientID,message$)
+            If sresult=-1
+              WriteLog("CLIENT DIED",Clients())
+              RemoveDisconnect(Clients()\ClientID)
+            EndIf
+        EndSelect
+      EndIf
+    Wend
+    UnlockMutex(ListMutex)
+  EndIf
 EndProcedure
 
 Procedure TrackWait(a)
@@ -546,7 +554,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 505
-; FirstLine = 484
+; CursorPosition = 468
+; FirstLine = 464
 ; Folding = ---
 ; EnableXP
