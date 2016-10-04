@@ -33,7 +33,7 @@ Global MultiChar=1
 Global nthread=0
 Global error=0
 Global lasterror=0
-Global WebSockets=0
+Global WebSockets=1
 Global Logging.b=0
 Global LagShield=10
 Global public.b=0
@@ -266,7 +266,7 @@ Procedure LoadSettings(reload)
       WritePreferenceInteger("MultiChar",1)
       WritePreferenceInteger("WTCE",1)
       WritePreferenceInteger("ExpertLog",0)
-      WritePreferenceInteger("WebSockets",0)
+      WritePreferenceInteger("WebSockets",1)
       WritePreferenceString("LoginReply","CT#sD#got it#%")
       WritePreferenceString("LogFile","base/serverlog.log")
     EndIf
@@ -283,7 +283,7 @@ Procedure LoadSettings(reload)
   MultiChar=ReadPreferenceInteger("MultiChar",1)
   rt=ReadPreferenceInteger("WTCE",1)
   ExpertLog=ReadPreferenceInteger("ExpertLog",0)
-  WebSockets=ReadPreferenceInteger("WebSockets",0)
+  WebSockets=ReadPreferenceInteger("WebSockets",1)
   LoginReply$=ReadPreferenceString("LoginReply","CT#$HOST#Successfully connected as mod#%")
   LogFile$=ReadPreferenceString("LogFile","base/serverlog.log")
   decryptor$=ReadPreferenceString("decryptor","34")
@@ -635,6 +635,32 @@ Procedure ListIP(ClientID)
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
   iplist$=iplist$+"#%"
+  SendTarget(Str(ClientID),iplist$,Server) 
+EndProcedure
+
+Procedure ListIPSI(ClientID)
+  Define iplist$
+  Define charname$
+  iplist$="SI#"
+  LockMutex(ListMutex)
+  PushMapPosition(Clients())
+  ResetMap(Clients())
+  While NextMapElement(Clients())
+    Select Clients()\perm
+      Case 1
+        charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
+      Case 2
+        charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
+      Case 3
+        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
+      Default
+        charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
+    EndSelect
+    iplist$=iplist$+Clients()\IP+"&"+charname$+"&"+Str(Clients()\CID)+"#"
+  Wend
+  PopMapPosition(Clients())
+  UnlockMutex(ListMutex)
+  iplist$=iplist$+"%"
   SendTarget(Str(ClientID),iplist$,Server) 
 EndProcedure
 
@@ -1120,7 +1146,11 @@ Procedure HandleAOCommand(ClientID)
             nmes\char=StringField(rawreceive$,4,"#")
             nmes\emote=StringField(rawreceive$,5,"#")
             nmes\message=StringField(rawreceive$,6,"#")
-            nmes\position=StringField(rawreceive$,7,"#")
+            If *usagePointer\pos=""
+              nmes\position=StringField(rawreceive$,7,"#")
+            Else
+              nmes\position=*usagePointer\pos
+            EndIf
             nmes\sfx=StringField(rawreceive$,8,"#")
             nmes\emotemod=Val(StringField(rawreceive$,9,"#"))
             nmes\animdelay=Val(StringField(rawreceive$,11,"#"))
@@ -1217,7 +1247,13 @@ Procedure HandleAOCommand(ClientID)
               Select Mid(ctparam$,8)
                 Case oppass$
                   If oppass$<>""
-                    SendTarget(Str(ClientID),LoginReply$,Server) 
+                    SendTarget(Str(ClientID),LoginReply$,Server)
+                    Select *usagePointer\type
+                      Case #VNO
+                        SendTarget(Str(ClientID),"MODOK#%",Server)
+                      Case #AOTWO
+                        SendTarget(Str(ClientID),"MK#%",Server)
+                    EndSelect
                     *usagePointer\perm=1
                     *usagePointer\ooct=1
                     rf=1
@@ -1225,6 +1261,12 @@ Procedure HandleAOCommand(ClientID)
                 Case adminpass$
                   If adminpass$<>""
                     SendTarget(Str(ClientID),LoginReply$,Server)
+                    Select *usagePointer\type
+                      Case #VNO
+                        SendTarget(Str(ClientID),"MODOK#%",Server)
+                      Case #AOTWO
+                        SendTarget(Str(ClientID),"MK#%",Server)
+                    EndSelect
                     *usagePointer\perm=2
                     *usagePointer\ooct=1
                     rf=1
@@ -1242,8 +1284,8 @@ Procedure HandleAOCommand(ClientID)
               EndIf
             Case "/ip"
               If *usagePointer\perm
-                If CommandThreading
-                  CreateThread(@ListIP(),ClientID)
+                If *usagePointer\type=#AOTWO
+                  ListIPSI(ClientID)
                 Else
                   ListIP(ClientID)
                 EndIf
@@ -1780,17 +1822,19 @@ Procedure HandleAOCommand(ClientID)
             PopMapPosition(Clients())
             UnlockMutex(ListMutex)     
           EndIf
-          If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
-            SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
-            *usagePointer\CID=char                
-            WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-            SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-            SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
-            If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
-              SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
-            EndIf
-          EndIf 
-          rf=1
+          If *usagePointer\perm Or Characters(char)\pw=""
+            If akchar=0 Or *usagePointer\CID=char Or BlockTaken=0
+              SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
+              *usagePointer\CID=char                
+              WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
+              SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
+              SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+              If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
+                SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              EndIf
+              rf=1
+            EndIf          
+          EndIf
         EndIf
         
       Case "Req"
@@ -1802,7 +1846,7 @@ Procedure HandleAOCommand(ClientID)
             PushMapPosition(Clients())
             ResetMap(Clients())
             While NextMapElement(Clients())
-              If Clients()\CID=char
+              If Clients()\CID=start
                 If Clients()\area=*usagePointer\area
                   akchar=1
                   Break
@@ -1865,7 +1909,7 @@ Procedure HandleAOCommand(ClientID)
             UnlockMutex(ListMutex)     
           EndIf
           If akchar=0
-            If Characters(ncid)\pw=password$
+            If Characters(char)\pw=password$
               *usagePointer\CID=char
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#0#%",Server)
               WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
@@ -1873,6 +1917,7 @@ Procedure HandleAOCommand(ClientID)
               *usagePointer\CID=char
               *usagePointer\perm=1
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#3#%",Server)
+              SendTarget(Str(ClientID),"MK#%",Server)
               WriteLog("chose character: "+GetCharacterName(*usagePointer)+" and logged in as mod",*usagePointer)
             Else
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#2#%",Server)
@@ -2547,8 +2592,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2495
-; FirstLine = 2484
+; CursorPosition = 2592
+; FirstLine = 2559
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

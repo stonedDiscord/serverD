@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-09-28 13:57" user="Sven" host="SPC"/>
+    <lastopen date="2016-10-04 19:42" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,7 +20,7 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="4bf57431008883109ff2e45f57d0c7c3"/>
+      <fingerprint md5="7839532054d1fff17269e43abeee2e3b"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -41,8 +41,8 @@
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1286"/>
-      <buildcount enable="1" value="143"/>
+      <compilecount enable="1" value="1293"/>
+      <buildcount enable="1" value="145"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2.%COMPILECOUNT.%BUILDCOUNT,0"/>
@@ -76,8 +76,8 @@
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1286"/>
-      <buildcount enable="1" value="143"/>
+      <compilecount enable="1" value="1293"/>
+      <buildcount enable="1" value="145"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -100,7 +100,7 @@
         <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 1" enable="1"/>
         <constant value="#ServerSideMasking = 0" enable="1"/>
-        <constant value="#WEB=0" enable="1"/>
+        <constant value="#WEB=1" enable="1"/>
         <constant value="#NICE=0" enable="1"/>
       </constants>
     </target>
