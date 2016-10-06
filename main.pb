@@ -296,7 +296,7 @@ Procedure LoadSettings(reload)
   ClosePreferences()
   
   If Logging
-    If OpenFile(1,LogFile$,#PB_File_Append)
+    If OpenFile(1,LogFile$,#PB_File_Append|#PB_File_SharedRead)
       FileSeek(1,Lof(1))
       WriteLog("LOGGING STARTED",Server)
     Else
@@ -1156,6 +1156,7 @@ Procedure HandleAOCommand(ClientID)
             nmes\animdelay=Val(StringField(rawreceive$,11,"#"))
             nmes\objmod=Val(StringField(rawreceive$,12,"#"))
             nmes\evidence=Val(StringField(rawreceive$,13,"#"))
+            nmes\flip=Val(StringField(rawreceive$,14,"#"))
             nmes\realization=Val(StringField(rawreceive$,15,"#"))
             nmes\color=Val(StringField(rawreceive$,16,"#"))
         EndSelect
@@ -1209,18 +1210,18 @@ Procedure HandleAOCommand(ClientID)
             If Left(StringField(rawreceive$,2,"#"),1)=">"              
               SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")              
             Else
-              If *usagePointer\ignoremc=0
+              If *usagePointer\ignoremc=0 And *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
                 If Characters(*usagePointer\CID)\dj
                   Debug mdur
                   areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
                   areas(*usagePointer\area)\trackwait=mdur
                   areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
                   Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,2,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
+                  WriteLog("changed music to "+StringField(rawreceive$,2,"#"),*usagePointer)
                   WriteReplay(rawreceive$)
                 EndIf
               EndIf
             EndIf
-            WriteLog("changed music to "+StringField(rawreceive$,2,"#"),*usagePointer)
           Else
             *usagePointer\hack=1
             rf=1
@@ -1915,10 +1916,16 @@ Procedure HandleAOCommand(ClientID)
               WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
             ElseIf password$=oppass$
               *usagePointer\CID=char
-              *usagePointer\perm=1
+              *usagePointer\perm=#MOD
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#3#%",Server)
               SendTarget(Str(ClientID),"MK#%",Server)
               WriteLog("chose character: "+GetCharacterName(*usagePointer)+" and logged in as mod",*usagePointer)
+            ElseIf password$=adminpass$
+              *usagePointer\CID=char
+              *usagePointer\perm=#ADMIN
+              SendTarget(Str(ClientID),"OC#"+Str(char)+"#3#%",Server)
+              SendTarget(Str(ClientID),"MK#%",Server)
+              WriteLog("chose character: "+GetCharacterName(*usagePointer)+" and logged in as admin",*usagePointer)
             Else
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#2#%",Server)
             EndIf
@@ -2592,8 +2599,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2592
-; FirstLine = 2559
+; CursorPosition = 136
+; FirstLine = 133
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

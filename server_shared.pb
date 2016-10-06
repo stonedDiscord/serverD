@@ -515,6 +515,16 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
               WriteLog("CLIENT DIED",Clients())
               RemoveDisconnect(Clients()\ClientID)
             EndIf
+          Case #AOTWO
+            ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
+            message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+            message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*ntmes\flip)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
+            
+            sresult=SendNetworkString(Clients()\ClientID,message$)
+            If sresult=-1
+              WriteLog("CLIENT DIED",Clients())
+              RemoveDisconnect(Clients()\ClientID)
+            EndIf
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
             message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
@@ -554,7 +564,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 468
-; FirstLine = 464
+; CursorPosition = 564
+; FirstLine = 531
 ; Folding = ---
 ; EnableXP
