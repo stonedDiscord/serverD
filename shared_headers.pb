@@ -38,6 +38,7 @@ Enumeration ;client type
   #VANILLA
   #MASTER
   #VNO
+  #AOA
   #WEBSOCKET
   #AOTWO  
 EndEnumeration
@@ -126,6 +127,7 @@ Structure ChatMessage
   showname.s
   background.s
   emotemod.w
+  flip.b
   objmod.w
   realization.w
   color.w
@@ -169,6 +171,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 124
-; FirstLine = 104
+; CursorPosition = 40
+; FirstLine = 23
 ; EnableXP

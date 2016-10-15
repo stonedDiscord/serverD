@@ -1952,7 +1952,7 @@ Procedure HandleAOCommand(ClientID)
       Case "askchaa" ;what is left to load
         *usagePointer\cconnect=1
         If CharacterNumber>100
-          If *usagePointer\type>=#WEBSOCKET
+          If *usagePointer\type>=#AOA
             SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
           Else
             SendTarget(Str(ClientID),"SI#100#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
@@ -2010,7 +2010,7 @@ Procedure HandleAOCommand(ClientID)
         
       Case "AN" ; character list
         start=Val(StringField(rawreceive$,2,"#"))
-        If start*10<characternumber And start>=0 And ( start*10<100 Or *usagePointer\type>4 )
+        If start*10<characternumber And start>=0 ;And ( start*10<100 Or *usagePointer\type>4 )
           Debug "huh"
           SendTarget(Str(ClientID),ReadyChar(start),Server)
         ElseIf EviNumber>0
@@ -2599,8 +2599,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 136
-; FirstLine = 133
+; CursorPosition = 1954
+; FirstLine = 1949
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
