@@ -51,6 +51,7 @@ Global slots$="100"
 Global oBG.s="gs4"
 Global rt.b=1
 Global loghd.b=0
+Global CharLimit=1
 Global background.s
 Global PV=1
 Global msname$="serverD"
@@ -264,6 +265,7 @@ Procedure LoadSettings(reload)
       WritePreferenceString("MOTD","Take that!")
       WritePreferenceInteger("LoopMusic",0)
       WritePreferenceInteger("MultiChar",1)
+      WritePreferenceInteger("CharLimit",1)
       WritePreferenceInteger("WTCE",1)
       WritePreferenceInteger("ExpertLog",0)
       WritePreferenceInteger("WebSockets",1)
@@ -281,6 +283,7 @@ Procedure LoadSettings(reload)
   LoopMusic=ReadPreferenceInteger("LoopMusic",0)
   MOTDevi=ReadPreferenceInteger("MOTDevi",0)
   MultiChar=ReadPreferenceInteger("MultiChar",1)
+  CharLimit=ReadPreferenceInteger("CharLimit",1)
   rt=ReadPreferenceInteger("WTCE",1)
   ExpertLog=ReadPreferenceInteger("ExpertLog",0)
   WebSockets=ReadPreferenceInteger("WebSockets",1)
@@ -363,7 +366,7 @@ Procedure LoadSettings(reload)
   For loadcharsettings=0 To CharacterNumber
     OpenPreferences("base/scene/"+scene$+"/char"+Str(loadcharsettings)+".ini")
     PreferenceGroup("desc")
-    Characters(loadcharsettings)\desc=Encode(ReadPreferenceString("text","No description"))
+    Characters(loadcharsettings)\desc=Encode(ReadPreferenceString("text",""))
     Characters(loadcharsettings)\dj=ReadPreferenceInteger("dj",musicmode)
     Characters(loadcharsettings)\evinumber=ReadPreferenceInteger("evinumber",0)
     If MOTDevi
@@ -821,7 +824,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
         send$ = send$ + "#"+Str(areas(carea)\players)
       Next
       send$ = send$ + "#%"
-      SendTarget(Str(*usagePointer\ClientID),send$,Server)
+      SendTarget("*",send$,Server)
     Else
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
@@ -851,7 +854,7 @@ Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
               send$ = send$ + "#"+Str(areas(carea)\players)
             Next
             send$ = send$ + "#%"
-            SendTarget(Str(*usagePointer\ClientID),send$,Server)
+            SendTarget("*",send$,Server)
           Else
             SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
@@ -1929,6 +1932,7 @@ Procedure HandleAOCommand(ClientID)
             Else
               SendTarget(Str(ClientID),"OC#"+Str(char)+"#2#%",Server)
             EndIf
+            rf=1
           Else
             SendTarget(Str(ClientID),"OC#"+Str(char)+"#1#%",Server)
           EndIf
@@ -1952,7 +1956,7 @@ Procedure HandleAOCommand(ClientID)
       Case "askchaa" ;what is left to load
         *usagePointer\cconnect=1
         If CharacterNumber>100
-          If *usagePointer\type>=#AOA
+          If *usagePointer\type>=#AOA Or CharLimit=0
             SendTarget(Str(ClientID),"SI#"+Str(characternumber)+"#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
           Else
             SendTarget(Str(ClientID),"SI#100#"+Str(EviNumber)+"#"+Str(tracks)+"#%",Server)
@@ -2599,9 +2603,9 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1954
-; FirstLine = 1949
-; Folding = ---
+; CursorPosition = 1344
+; FirstLine = 1341
+; Folding = -----
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0

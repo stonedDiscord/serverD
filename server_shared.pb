@@ -5,7 +5,7 @@ CompilerElse
   Global libext$=".dll"
 CompilerEndIf
 
-XIncludeFile "../server_private/shared_headers.pb"
+XIncludeFile "../serverD/shared_headers.pb"
 
 Global NewList Plugins.Plugin()
 
@@ -488,6 +488,11 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
       Case "pro"
         vpos=2;right
     EndSelect
+    If CharLimit
+      oldCID = *seUser\CID % 100
+    Else
+      oldCID = *seUser\CID
+    EndIf
     areas(*seUser\area)\waitstart=ElapsedMilliseconds()
     areas(*seUser\area)\waitdur=Len(*ntmes\message)*40
     LockMutex(ListMutex)  
@@ -528,7 +533,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
             message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
-            message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
+            message$=message$+Str(*ntmes\emotemod)+"#"+Str(oldCID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(oldCID)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
             
             sresult=SendNetworkString(Clients()\ClientID,message$)
             If sresult=-1
@@ -564,7 +569,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 564
-; FirstLine = 531
-; Folding = ---
+; CursorPosition = 569
+; FirstLine = 541
+; Folding = ------
 ; EnableXP

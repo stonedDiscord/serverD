@@ -66,26 +66,12 @@ Enumeration
   #Button_31
   #Button_About
   #Button_Load
+  #Checkbox_AOA
 EndEnumeration
 
 Procedure BalloonTip(WindowID, Gadget, Text$ , Title$, Icon)
-  CompilerIf #PB_Compiler_OS = #PB_OS_Windows
-    Define ToolTip=0
-    Define Balloon.TOOLINFO
-    ToolTip=CreateWindowEx_(0,"ToolTips_Class32","",#WS_POPUP | #TTS_NOPREFIX | #TTS_BALLOON,0,0,0,0,WindowID,0,GetModuleHandle_(0),0)
-    SendMessage_(ToolTip,#TTM_SETTIPTEXTCOLOR,GetSysColor_(#COLOR_INFOTEXT),0)
-    SendMessage_(ToolTip,#TTM_SETTIPBKCOLOR,GetSysColor_(#COLOR_INFOBK),0)
-    SendMessage_(ToolTip,#TTM_SETMAXTIPWIDTH,0,180)
-    Balloon.TOOLINFO\cbSize=SizeOf(TOOLINFO)
-    Balloon\uFlags=#TTF_IDISHWND | #TTF_SUBCLASS
-    Balloon\hWnd=GadgetID(Gadget)
-    Balloon\uId=GadgetID(Gadget)
-    Balloon\lpszText=@Text$
-    SendMessage_(ToolTip, #TTM_ADDTOOL, 0, Balloon)
-    If Title$ > ""
-      SendMessage_(ToolTip, #TTM_SETTITLE, Icon, @Title$)
-    EndIf
-  CompilerElse
+  GadgetToolTip(Gadget,Text$)
+  CompilerIf #PB_Compiler_OS <> #PB_OS_Windows
     #TOOLTIP_NO_ICON=0
     #TOOLTIP_INFO_ICON=0
     #TOOLTIP_WARNING_ICON=0
@@ -125,9 +111,6 @@ Procedure Open_Window_0()
     ButtonGadget(#Button_About, -30, 310, 100, 30, "ABOUT", #PB_Button_Right)
     ButtonGadget(#Button_Load, -30, 340, 100, 30, "LOAD", #PB_Button_Right)
     ListIconGadget(#Listview_0, 70, 40, 220, 330, "IP", 90, #PB_ListIcon_GridLines | #PB_ListIcon_FullRowSelect | #PB_ListIcon_AlwaysShowSelection)
-    CompilerIf #PB_Compiler_OS=#PB_OS_Windows
-      SendMessage_ (GadgetID(#Listview_0), #LVS_SHOWSELALWAYS, 1, 0)
-    CompilerEndIf
     AddGadgetColumn(#Listview_0, 1, "Character", 70)
     AddGadgetColumn(#Listview_0, 2, "Area", 70)
     AddGadgetColumn(#Listview_0, 3, "HDID", 70)
@@ -154,7 +137,7 @@ Procedure Open_Window_0()
 EndProcedure
 
 Procedure Open_Window_1()
-  If OpenWindow(#Window_1, 303, 568, 150, 195, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
+  If OpenWindow(#Window_1, 200, 400, 150, 220, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
     
     TextGadget(#Text_6, 10, 10, 40, 20, "OP pass")
     StringGadget(#String_OP, 60, 10, 80, 20, "", #PB_String_Password)
@@ -172,9 +155,9 @@ Procedure Open_Window_1()
     ComboBoxGadget(#Combo_3, 70, 85, 70, 20)
     TextGadget(#Text_8, 10, 105, 50, 30, "MOTD evidence:")
     ComboBoxGadget(#Combo_4, 60, 115, 80, 20)
-    CheckBoxGadget(#Checkbox_BlockIni,10,145,120,20,"Block Ini char swap")
-    
-    ButtonGadget(#Button_5, 0, 165, 150, 30, "DONE")
+    CheckBoxGadget(#Checkbox_BlockIni,10,145,120,20,"Block INI char swap")
+    CheckBoxGadget(#Checkbox_AOA,10,165,120,20,"100 char limit")
+    ButtonGadget(#Button_5, 0, 190, 150, 30, "DONE")
   EndIf
 EndProcedure
 
@@ -191,6 +174,7 @@ Procedure ConfigWindow(var)
   SetGadgetText(#String_AD,adminpass$)
   SetGadgetState(#CheckBox_4,Logging)
   SetGadgetState(#Checkbox_BlockIni,blockini)
+  SetGadgetState(#Checkbox_BlockIni,CharLimit)
   SetGadgetState(#Combo_3,modcol)
   AddGadgetItem(#Combo_4,0,"NONE")
   For loadevi=1 To EviNumber
@@ -227,6 +211,8 @@ Procedure ConfigWindow(var)
         motdevi=GetGadgetState(#Combo_4)
       ElseIf GadgetID = #Checkbox_BlockIni  
         blockini=GetGadgetState(#Checkbox_BlockIni)
+        ElseIf GadgetID = #Checkbox_AOA
+        CharLimit=GetGadgetState(#Checkbox_AOA)
       ElseIf GadgetID = #Button_9
         LogFile$=SaveFileRequester("Choose log file",LogFile$,"Log files (*.log)|*.log",0)
       EndIf
@@ -244,8 +230,8 @@ Procedure ConfigWindow(var)
   ClosePreferences()
 EndProcedure 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 132
-; FirstLine = 119
+; CursorPosition = 139
+; FirstLine = 139
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0
