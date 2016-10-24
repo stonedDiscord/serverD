@@ -38,6 +38,7 @@ Enumeration ;client type
   #VANILLA
   #MASTER
   #VNO
+  #AOA
   #WEBSOCKET
   #AOTWO  
 EndEnumeration
@@ -55,7 +56,8 @@ EndEnumeration
 Structure area
   name.s
   bg.s
-  wait.l
+  waitstart.l
+  waitdur.l
   lock.l
   mlock.w
   pw.s
@@ -113,6 +115,38 @@ Structure Client
   Inventory.i[50]
 EndStructure
 
+Structure ChatMessage
+  message.s
+  char.s
+  emote.s
+  preemote.s
+  position.s
+  sfx.s
+  sfxdelay.w
+  animdelay.w
+  showname.s
+  background.s
+  emotemod.w
+  flip.b
+  objmod.w
+  realization.w
+  color.w
+  evidence.w
+EndStructure
+
+; SENDING MESSAGES
+; okay.. this is the big bomb
+; 
+; Client: MS#message#character#side#sfx#pre_emote#emote#emote_modifier#objection_modifier#realization#text_color#evidence#%
+; MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#emote_modifier#objection_modifier#realization#text_color#evidence#%
+; side = wit, def, pro, jud, hld, hlp
+; sfx = sound effect(.wav) that should be played
+; emote_modifier = 
+; 0: do Not play preanimation Or sound effect unless objection_modifier is Not 0
+; 1: play preanimation And sound effect
+; 5: ZOOM - hide desk And set background As speedlines, direction based on side
+
+
 Structure TempBan
   banned.s
   reason.s
@@ -137,6 +171,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 67
-; FirstLine = 27
+; CursorPosition = 40
+; FirstLine = 23
 ; EnableXP

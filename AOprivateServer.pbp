@@ -7,28 +7,28 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-09-08 17:34" user="Sven" host="SPC"/>
+    <lastopen date="2016-10-24 13:25" user="mir" host="DESKTOP-BMBHDF9"/>
   </section>
   <section name="files">
     <file name="Common.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="09660d0dc80f8b37b0ebea120aab4ade"/>
+      <fingerprint md5="b79d97149705f3c5b882718e146533d1"/>
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="25ec1a31f56333066c3a2f6efda1a027"/>
+      <fingerprint md5="1fdfde66a4c88cd989bc2d84b384c4a4"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="c511df03dc522145f3cd251ae297144b"/>
+      <fingerprint md5="7a59a74f13a1ed861a3d40a4cc3d5d46"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="b681484961f858fa550ad315c5471e57"/>
+      <fingerprint md5="6a5e62b269d7fbc93c1d1c33c79482a9"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="eb1b0626c585fce079b8d8baa10e7e06"/>
+      <fingerprint md5="770c1aa3cb4a374dece24c9cfe765fa5"/>
     </file>
   </section>
   <section name="targets">
@@ -41,8 +41,8 @@
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1220"/>
-      <buildcount enable="1" value="136"/>
+      <compilecount enable="1" value="1310"/>
+      <buildcount enable="1" value="147"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2.%COMPILECOUNT.%BUILDCOUNT,0"/>
@@ -76,8 +76,8 @@
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1202"/>
-      <buildcount enable="1" value="136"/>
+      <compilecount enable="1" value="1301"/>
+      <buildcount enable="1" value="147"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -100,7 +100,7 @@
         <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 1" enable="1"/>
         <constant value="#ServerSideMasking = 0" enable="1"/>
-        <constant value="#WEB=0" enable="1"/>
+        <constant value="#WEB=1" enable="1"/>
         <constant value="#NICE=0" enable="1"/>
       </constants>
     </target>
