@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-10-24 13:25" user="mir" host="DESKTOP-BMBHDF9"/>
+    <lastopen date="2016-11-27 19:29" user="stnd" host="SLAPTOP"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,7 +20,7 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="7a59a74f13a1ed861a3d40a4cc3d5d46"/>
+      <fingerprint md5="576a46da58b788cd6d25d4d46bc1c8a9"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -41,7 +41,7 @@
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1310"/>
+      <compilecount enable="1" value="1311"/>
       <buildcount enable="1" value="147"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>

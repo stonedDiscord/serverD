@@ -51,6 +51,7 @@ Global slots$="100"
 Global oBG.s="gs4"
 Global rt.b=1
 Global loghd.b=0
+Global AllowCutoff.b=0
 Global CharLimit=1
 Global background.s
 Global PV=1
@@ -268,6 +269,7 @@ Procedure LoadSettings(reload)
       WritePreferenceInteger("CharLimit",1)
       WritePreferenceInteger("WTCE",1)
       WritePreferenceInteger("ExpertLog",0)
+      WritePreferenceInteger("AllowCutoff",0)
       WritePreferenceInteger("WebSockets",1)
       WritePreferenceString("LoginReply","CT#sD#got it#%")
       WritePreferenceString("LogFile","base/serverlog.log")
@@ -286,6 +288,7 @@ Procedure LoadSettings(reload)
   CharLimit=ReadPreferenceInteger("CharLimit",1)
   rt=ReadPreferenceInteger("WTCE",1)
   ExpertLog=ReadPreferenceInteger("ExpertLog",0)
+  AllowCutoff=ReadPreferenceInteger("AllowCutoff",0)
   WebSockets=ReadPreferenceInteger("WebSockets",1)
   LoginReply$=ReadPreferenceString("LoginReply","CT#$HOST#Successfully connected as mod#%")
   LogFile$=ReadPreferenceString("LogFile","base/serverlog.log")
@@ -382,7 +385,7 @@ Procedure LoadSettings(reload)
       passworded$="0"
     EndIf
     ClosePreferences()
-    ready$ = ready$ + Str(loadcharsettings)+"#"+Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&"+Str(Characters(loadcharsettings)\evinumber)+"&"+Characters(loadcharsettings)\evidence+"&"+Characters(loadcharsettings)\pw+"&0&#"
+    ready$ = ready$ + Str(loadcharsettings)+"#"+Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&"+Str(Characters(loadcharsettings)\evinumber)+"&"+Characters(loadcharsettings)\evidence+"&"+Characters(loadcharsettings)\pw+"&"+Str(Characters(loadcharsettings)\evinumber)+"&#"
     newcready$ = newcready$ + Characters(loadcharsettings)\name+"&"+Characters(loadcharsettings)\desc+"&0&"+passworded$+"#"
     If loadcharsettings%10 = 9 Or loadcharsettings=CharacterNumber
       ready$=ready$+"#%"
@@ -1970,6 +1973,7 @@ Procedure HandleAOCommand(ClientID)
         *usagePointer\type=#VANILLA
         
       Case "RC"
+        *usagePointer\type=#AOTWO
         SendTarget(Str(ClientID),newcready$,Server)
         Dim APlayers(characternumber)
         send$="TC"
@@ -2083,6 +2087,19 @@ Procedure HandleAOCommand(ClientID)
           SendTarget(Str(ClientID),"LCA#"+*usagePointer\username+"#$NO#%",Server)
         EndIf
         
+      Case "EE"
+        If *usagePointer\perm>=#ANIM
+          eeid=Val(StringField(rawreceive$,2,"#"))
+          If eeid>=0 And eeid<=EviNumber
+            eepar$=StringField(rawreceive$,3,"#")
+            Evidences(eeid)\name=StringField(eepar$,1,"&")
+            Evidences(eeid)\desc=StringField(eepar$,2,"&")
+            Evidences(eeid)\type=Val(StringField(eepar$,3,"&"))
+            Evidences(eeid)\image=StringField(eepar$,4,"&")
+            ;SendUpdatedEvi()
+          EndIf
+        EndIf
+        
       Case "ITD" ; item list
         start=Val(StringField(rawreceive$,2,"#"))-1
         If start<=itemamount-1 And start>=0          
@@ -2135,7 +2152,7 @@ Procedure HandleAOCommand(ClientID)
             EndIf
           Next
           
-          If StringField(rawreceive$,4,"#")<>""
+          If StringField(rawreceive$,4,"#")<>"" Or Left(*usagePointer\HD,2)="2."
             *usagePointer\type=#AOTWO
           EndIf
           SendTarget(Str(ClientID),"HI#serverD#"+version$+"#%",Server)
@@ -2603,8 +2620,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1344
-; FirstLine = 1341
+; CursorPosition = 53
+; FirstLine = 44
 ; Folding = -----
 ; EnableXP
 ; EnableCompileCount = 0

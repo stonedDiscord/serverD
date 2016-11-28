@@ -466,7 +466,7 @@ EndProcedure
 Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
   Define everybody,i,omessage$,sresult
   WriteLog("[MAIN]"+*ntmes\message,*seUser)
-  If areas(*seUser\area)\waitstart+areas(*seUser\area)\waitdur<=ElapsedMilliseconds() Or *seUser\skip
+  If areas(*seUser\area)\waitstart+areas(*seUser\area)\waitdur<=ElapsedMilliseconds() Or AllowCutoff Or *seUser\skip
     If BlockINI
       *ntmes\char=GetCharacterName(*seUser)
     EndIf
@@ -569,7 +569,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 569
-; FirstLine = 541
+; CursorPosition = 468
+; FirstLine = 445
 ; Folding = ------
 ; EnableXP
