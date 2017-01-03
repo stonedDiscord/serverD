@@ -17,6 +17,11 @@ Structure Plugin
   active.b
 EndStructure
 
+Structure Track
+  TrackName.s
+  Length.i
+EndStructure
+
 Enumeration ;ranks
   #USER
   #ANIM
@@ -71,6 +76,7 @@ Structure area
   track.s
   trackstart.l
   trackwait.i
+  List PlayList.Track()
   status.w
 EndStructure
 
@@ -171,6 +177,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 40
-; FirstLine = 23
+; CursorPosition = 78
+; FirstLine = 59
 ; EnableXP

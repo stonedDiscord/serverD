@@ -27,12 +27,7 @@ Next
 
 Global Dim Characters.ACharacter(100)
 
-Structure Track
-  TrackName.s
-  Length.i
-EndStructure
 Global NewList Music.Track()
-
 
 Global Server.Client
 Server\ClientID=-1
@@ -58,8 +53,10 @@ Procedure.s ValidateChars(source.s)
   *ptrChar = @source
   For i = 1 To length
     If *ptrChar\c > 31
-      If *ptrChar\c<>127 And *ptrChar\c<>129
+      If *ptrChar\c<>127
         result + Chr(*ptrChar\c)
+      Else
+        Debug *ptrChar\c
       EndIf
     EndIf
     *ptrChar + SizeOf(Character)
@@ -408,6 +405,23 @@ Procedure RemoveDisconnect(ClientID)
   UnlockMutex(ListMutex)  
 EndProcedure
 
+Procedure SendString(ClientID,message$)
+  Select Clients()\type
+    Case #WEBSOCKET
+      CompilerIf #WEB
+        Websocket_SendTextFrame(ClientID,message$)
+      CompilerEndIf
+    Case #AOTWO
+      sresult=SendNetworkString(ClientID,message$,#PB_UTF8)
+    Default
+      sresult=SendNetworkString(ClientID,message$)
+  EndSelect
+  If sresult=-1
+    WriteLog("CLIENT DIED DIRECTLY",Server)
+    RemoveDisconnect(ClientID)
+  EndIf
+EndProcedure
+
 Procedure SendTarget(user$,message$,*sender.Client)
   Define everybody,i,omessage$,sresult
   omessage$=message$
@@ -428,35 +442,12 @@ Procedure SendTarget(user$,message$,*sender.Client)
   LockMutex(ListMutex)
   
   If FindMapElement(Clients(),user$)
-    
-    If Clients()\type=#WEBSOCKET
-      CompilerIf #WEB
-        Websocket_SendTextFrame(Clients()\ClientID,message$)
-      CompilerEndIf
-    Else
-      Debug message$
-      sresult=SendNetworkString(Clients()\ClientID,message$)  
-      If sresult=-1
-        WriteLog("CLIENT DIED DIRECTLY",Clients())
-        RemoveDisconnect(Clients()\ClientID)
-      EndIf
-    EndIf
+    SendString(Clients()\ClientID,message$)
   Else
     ResetMap(Clients())
     While NextMapElement(Clients())
       If user$=Str(Clients()\CID) Or user$=Clients()\HD Or user$=Clients()\IP Or user$=Clients()\username Or user$="Area"+Str(Clients()\area) Or everybody
-        If Clients()\type=#WEBSOCKET
-          CompilerIf #WEB
-            Websocket_SendTextFrame(Clients()\ClientID,message$)
-          CompilerEndIf
-        Else
-          Debug message$
-          sresult=SendNetworkString(Clients()\ClientID,message$)
-          If sresult=-1
-            WriteLog("CLIENT DIED",Clients())
-            RemoveDisconnect(Clients()\ClientID)
-          EndIf
-        EndIf
+        SendString(Clients()\ClientID,message$)
       EndIf
     Wend   
   EndIf
@@ -557,7 +548,16 @@ Procedure TrackWait(a)
         If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
           Areas(k)\trackstart=ElapsedMilliseconds()
           Debug "changed"
-          SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+          If GetExtensionPart(Areas(k)\track)="m3u"
+            If ListIndex(Areas(k)\Playlist())>=ListSize(Areas(k)\Playlist())-1
+              ResetList(Areas(k)\Playlist())
+            EndIf
+            NextElement(Areas(k)\Playlist())
+            Areas(k)\trackwait=Areas(k)\Playlist()\Length
+            SendTarget("Area"+Str(k),"MC#"+Areas(k)\Playlist()\TrackName+"#"+Str(characternumber)+"#%",Server)
+          Else
+            SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+          EndIf
         Else
           If Areas(k)\trackwait<cw
             cw=(Areas(k)\trackstart+Areas(k)\trackwait)-ElapsedMilliseconds()
@@ -569,7 +569,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 468
-; FirstLine = 445
-; Folding = ------
+; CursorPosition = 569
+; FirstLine = 536
+; Folding = ---
 ; EnableXP

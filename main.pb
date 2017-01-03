@@ -1214,15 +1214,44 @@ Procedure HandleAOCommand(ClientID)
           
           If music=1
             If Left(StringField(rawreceive$,2,"#"),1)=">"              
-              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")              
+              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")
             Else
               If *usagePointer\ignoremc=0 And *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
                 If Characters(*usagePointer\CID)\dj
-                  Debug mdur
-                  areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
-                  areas(*usagePointer\area)\trackwait=mdur
-                  areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
-                  Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,2,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
+                  
+                  If GetExtensionPart(StringField(rawreceive$,2,"#"))="m3u"
+                    
+                    If ReadFile(23, "base\"+GetFilePart(StringField(rawreceive$,2,"#"))) 
+                      
+                      Repeat
+                        playliststring$=ReadString(23)
+                        If Left(playliststring$,4)="#EXT"
+                          If Left(playliststring$,8)="#EXTINF:"
+                            playliststring$=Mid(playliststring$,9)
+                            AddElement(areas(*usagePointer\area)\Playlist())
+                            Debug StringField(playliststring$,1,",")
+                            areas(*usagePointer\area)\Playlist()\Length = Val(StringField(playliststring$,1,","))*1000
+                          EndIf
+                        Else
+                          areas(*usagePointer\area)\Playlist()\TrackName = GetFilePart(playliststring$)
+                        EndIf
+                      Until Eof(23)                      
+                      CloseFile(23)
+                      ResetList(areas(*usagePointer\area)\Playlist())
+                      NextElement(areas(*usagePointer\area)\Playlist())
+                      areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                      areas(*usagePointer\area)\trackwait=areas(*usagePointer\area)\Playlist()\Length
+                      areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
+                      Sendtarget("Area"+Str(*usagePointer\area),"MC#"+areas(*usagePointer\area)\Playlist()\TrackName+"#"+Str(CharacterNumber)+"#%",*usagePointer)                      
+                    EndIf                    
+                    
+                  Else
+                    Debug mdur
+                    areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                    areas(*usagePointer\area)\trackwait=mdur
+                    areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
+                    Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,2,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
+                  EndIf
                   WriteLog("changed music to "+StringField(rawreceive$,2,"#"),*usagePointer)
                   WriteReplay(rawreceive$)
                 EndIf
@@ -2620,9 +2649,9 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 53
-; FirstLine = 44
-; Folding = -----
+; CursorPosition = 1229
+; FirstLine = 1222
+; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0
