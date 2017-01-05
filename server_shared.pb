@@ -84,6 +84,21 @@ Procedure.s Escape(smes$)
   ProcedureReturn smes$
 EndProcedure
 
+Procedure.s GetRankName(rank)
+  Select rank
+    Case #ANIM
+      ProcedureReturn "(animator)"
+    Case #MOD
+      ProcedureReturn "(mod)"
+    Case #ADMIN
+      ProcedureReturn "(admin)"
+    Case #SERVER
+      ProcedureReturn "(server)"
+    Default
+      ProcedureReturn ""
+  EndSelect
+EndProcedure
+
 Procedure.s GetCharacterName(*nclient.Client)
   Define name$
   If *nclient\CID>=0 And *nclient\CID<=CharacterNumber
@@ -569,7 +584,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 569
+; CursorPosition = 584
 ; FirstLine = 536
-; Folding = ---
+; Folding = ----
 ; EnableXP

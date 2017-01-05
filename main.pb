@@ -626,16 +626,7 @@ Procedure ListIP(ClientID)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-    Select Clients()\perm
-      Case 1
-        charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
-      Case 2
-        charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
-      Case 3
-        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
-      Default
-        charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
-    EndSelect
+    charname$=GetCharacterName(Clients())+GetRankName(Clients()\perm)+" in "+GetAreaName(Clients())
     iplist$=iplist$+Clients()\IP+"|"+charname$+"|"+Str(Clients()\CID)+"|*"
   Wend
   PopMapPosition(Clients())
@@ -652,16 +643,7 @@ Procedure ListIPSI(ClientID)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-    Select Clients()\perm
-      Case 1
-        charname$=GetCharacterName(Clients())+"(mod)"+" in "+GetAreaName(Clients())
-      Case 2
-        charname$=GetCharacterName(Clients())+"(admin)"+" in "+GetAreaName(Clients())
-      Case 3
-        charname$=GetCharacterName(Clients())+"(server) also this is not good, you better see a sDoctor"
-      Default
-        charname$=GetCharacterName(Clients())+" in "+GetAreaName(Clients())
-    EndSelect
+    charname$=GetCharacterName(Clients())+GetRankName(Clients()\perm)+" in "+GetAreaName(Clients())
     iplist$=iplist$+Clients()\IP+"&"+charname$+"&"+Str(Clients()\CID)+"#"
   Wend
   PopMapPosition(Clients())
@@ -1197,7 +1179,7 @@ Procedure HandleAOCommand(ClientID)
         
       Case "MC"
         replaymusicfix:
-        If *usagePointer\perm=3
+        If *usagePointer\perm=#SERVER
           Sendtarget("*","MC#"+Mid(rawreceive$,coff),*usagePointer)
         Else
           music=0
@@ -1290,7 +1272,7 @@ Procedure HandleAOCommand(ClientID)
                       Case #AOTWO
                         SendTarget(Str(ClientID),"MK#%",Server)
                     EndSelect
-                    *usagePointer\perm=1
+                    *usagePointer\perm=#MOD
                     *usagePointer\ooct=1
                     rf=1
                   EndIf
@@ -1303,7 +1285,7 @@ Procedure HandleAOCommand(ClientID)
                       Case #AOTWO
                         SendTarget(Str(ClientID),"MK#%",Server)
                     EndSelect
-                    *usagePointer\perm=2
+                    *usagePointer\perm=#ADMIN
                     *usagePointer\ooct=1
                     rf=1
                   EndIf
@@ -1315,7 +1297,7 @@ Procedure HandleAOCommand(ClientID)
               If *usagePointer\perm
                 SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(un)dj,(un)gimp#%",Server)
               EndIf
-              If *usagePointer\perm>1
+              If *usagePointer\perm>=#ADMIN
                 SendTarget(Str(ClientID),"CT#$HOST#public,send,sendall,reload,toggle,decryptor,snapshot,stop,loadreplay#%",Server)
               EndIf
             Case "/ip"
@@ -1451,7 +1433,7 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/loadreplay"
-              If *usagePointer\perm>1                  
+              If *usagePointer\perm>=#MOD
                 ReplayFile$="base/replays/"+Mid(ctparam$,13)
                 If ReadFile(8, ReplayFile$)
                   Debug "loaded replay"
@@ -1485,7 +1467,7 @@ Procedure HandleAOCommand(ClientID)
                       SendTarget(Str(ClientID),"CT#$HOST#area locked#%",Server)
                     EndIf
                   Case "2"
-                    If *usagePointer\perm>1
+                    If *usagePointer\perm>#MOD
                       areas(*usagePointer\area)\lock=*usagePointer\ClientID
                       areas(*usagePointer\area)\mlock=1
                       SendTarget(Str(ClientID),"CT#$HOST#area superlocked#%",Server)
@@ -1512,7 +1494,7 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/toggle"
-              If *usagePointer\perm
+              If *usagePointer\perm>#MOD
                 status$="invalid"
                 Select StringField(ctparam$,2," ")
                   Case "WTCE"
@@ -1552,14 +1534,14 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/decryptor"
-              If *usagePointer\perm>1
+              If *usagePointer\perm>#MOD
                 decryptor$=StringField(ctparam$,2," ")
                 key=Val(DecryptStr(HexToString(decryptor$),322))
                 SendTarget("*","decryptor#"+decryptor$+"#%",Server)
               EndIf
               
             Case "/snapshot"
-              If *usagePointer\perm>1
+              If *usagePointer\perm>#MOD
                 If CreateFile(33,"snap.txt")
                   LockMutex(ListMutex)
                   PushMapPosition(Clients())
@@ -1606,7 +1588,7 @@ Procedure HandleAOCommand(ClientID)
                 EndIf
                 SendTarget(Str(ClientID),pr$+"public#%",Server)
               Else
-                If *usagePointer\perm>1
+                If *usagePointer\perm>#MOD
                   public=Val(StringField(ctparam$,2," "))
                   If public
                     msthread=CreateThread(@MasterAdvert(),Port)
@@ -1643,7 +1625,7 @@ Procedure HandleAOCommand(ClientID)
               SendTarget(Str(ClientID),"CT#PM You to "+StringField(ctparam$,2," ")+"#"+Mid(ctparam$,6+Len(StringField(ctparam$,2," ")))+"#%",Server)
               
             Case "/send"  
-              If *usagePointer\perm>1
+              If *usagePointer\perm>#MOD
                 sname$=StringField(ctparam$,2," ")
                 Debug sname$
                 smes$=Mid(ctparam$,8+Len(sname$),Len(ctparam$)-6)
@@ -1652,26 +1634,26 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/sendall"
-              If *usagePointer\perm
+              If *usagePointer\perm>#MOD
                 smes$=Mid(ctparam$,10)
                 smes$=Escape(smes$)
                 SendTarget("*",smes$,Server)
               EndIf
               
             Case "/reload"
-              If *usagePointer\perm>1
+              If *usagePointer\perm>#MOD
                 LoadSettings(1)
                 SendTarget(Str(ClientID),"CT#$HOST#serverD reloaded#%",Server)
               EndIf
               
             Case "/play"
-              If *usagePointer\perm                
+              If *usagePointer\perm
                 song$=Right(ctparam$,Len(ctparam$)-6)
                 SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
               EndIf
               
             Case "/hd"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 kick$=Mid(ctparam$,5,Len(ctparam$)-2)
                 If kick$="" Or kick$="*"
                   everybody=1
@@ -1693,7 +1675,7 @@ Procedure HandleAOCommand(ClientID)
               
               
             Case "/unban"
-              If *usagePointer\perm>1
+              If *usagePointer\perm>#MOD
                 ub$=Mid(ctparam$,8,Len(ctparam$))
                 Debug ub$
                 If CreateFile(2,"base/banlist.txt")
@@ -1721,67 +1703,67 @@ Procedure HandleAOCommand(ClientID)
               EndIf
               
             Case "/stop"
-              If *usagePointer\perm>1
+              If *usagePointer\perm>=#ADMIN
                 public=0
                 WriteLog("stopping server...",*usagePointer)
                 Quit=1
               EndIf
               
             Case "/kick"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#KICK,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server) 
               EndIf
               
             Case "/disconnect"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,13),StringField(ctparam$,3," "),#DISCO,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#disconnected "+Str(akck)+" clients#%",Server) 
               EndIf
               
             Case "/ban"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,6),StringField(ctparam$,3," "),#BAN,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
               EndIf
               
             Case "/mute"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#MUTE,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
               EndIf
               
               
             Case "/unmute"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNMUTE,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
               EndIf
               
               
             Case "/ignore"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#CIGNORE,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
               EndIf
               
               
             Case "/unignore"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,11),StringField(ctparam$,3," "),#UNIGNORE,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
               EndIf
               
               
             Case "/undj"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#UNDJ,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#muted "+Str(akck)+" clients#%",Server)
               EndIf
               
               
             Case "/dj"
-              If *usagePointer\perm
+              If *usagePointer\perm>=#MOD
                 akck=KickBan(Mid(ctparam$,5),StringField(ctparam$,3," "),#DJ,*usagePointer)
                 SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
               EndIf
@@ -2177,7 +2159,7 @@ Procedure HandleAOCommand(ClientID)
         If hdbanned=0
           ForEach HDmods()
             If *usagePointer\HD = HDmods()
-              *usagePointer\perm=1
+              *usagePointer\perm=#ANIM
             EndIf
           Next
           
@@ -2231,14 +2213,14 @@ Procedure HandleAOCommand(ClientID)
         EndIf 
         
       Case "opKICK"
-        If *usagePointer\perm
+        If *usagePointer\perm>=#MOD
           akck=KickBan(StringField(rawreceive$,2,"#"),"",#KICK,*usagePointer)
           SendTarget(Str(ClientID),"CT#$HOST#kicked "+Str(akck)+" clients#%",Server)
         EndIf
         WriteLog("["+GetCharacterName(*usagePointer)+"] used opKICK",*usagePointer)
         
       Case "opBAN"
-        If *usagePointer\perm
+        If *usagePointer\perm>=#MOD
           akck=KickBan(StringField(rawreceive$,2,"#"),"",#BAN,*usagePointer)
           SendTarget(Str(ClientID),"CT#$HOST#banned "+Str(akck)+" clients#%",Server)
         EndIf
@@ -2425,10 +2407,10 @@ Procedure Network(var)
           PV+1
           Clients()\CID=-1
           Clients()\hack=0
-          Clients()\perm=0
+          Clients()\perm=#USER
           ForEach HDmods()
             If ip$ = HDmods()
-              Clients()\perm=1
+              Clients()\perm=#ANIM
             EndIf
           Next
           Clients()\area=0
@@ -2649,8 +2631,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1229
-; FirstLine = 1222
+; CursorPosition = 2631
+; FirstLine = 2583
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
