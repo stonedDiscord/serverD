@@ -158,9 +158,9 @@ by default it's running on port 27016
 - Q: Then why is the result 3/52 on kurwaTotal?
 - A: False positives. Google the virus names and you'll see.
 - Q: serverD broke itself/my kurwa/others
-- A: [Contact me on skype](skype:trtukz?chat)
+[Contact me on skype: trtukz](skype:trtukz?chat)
 - Q: I have another question
-- A: [Contact me on skype](skype:trtukz?chat)
+[Contact me on skype: trtukz](skype:trtukz?chat)
 - Q: kurwa?
 - A: :joy: :joy: :joy:
  
