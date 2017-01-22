@@ -58,9 +58,17 @@ If OpenWindow(2,#PB_Ignore,#PB_Ignore,420,263,"serverD",#PB_Window_BorderLess|#P
 EndIf
 
 If ProgramParameter()="-auto"
-  SetWindowColor(0, RGB(255,255,0))
-  SetGadgetText(#Button_2,"RELOAD")
-  nthread=CreateThread(@Network(),0)  
+  success=CreateNetworkServer(0,port,#PB_Network_TCP)
+  If success
+    SetWindowColor(0, RGB(0,128,0))
+    SetGadgetText(#Button_2,"RELOAD")  
+  Else
+    SetWindowColor(0, RGB(128,0,0))
+    SetGadgetText(#Button_2,"RETRY")  
+  EndIf
+  If public And msthread=0
+    msthread=CreateThread(@MasterAdvert(),port)
+  EndIf
 EndIf        
 
 ;- WINDOW EVENT LOOP 
@@ -248,7 +256,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 248
-; FirstLine = 215
+; CursorPosition = 256
+; FirstLine = 208
 ; Folding = -
 ; EnableXP

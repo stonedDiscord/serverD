@@ -58,7 +58,7 @@ Enumeration ;area status
   #REPLAY
 EndEnumeration
 
-Structure area
+Structure Channel
   name.s
   bg.s
   waitstart.l
@@ -177,6 +177,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 78
-; FirstLine = 59
+; CursorPosition = 67
+; FirstLine = 45
 ; EnableXP

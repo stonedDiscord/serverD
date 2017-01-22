@@ -15,13 +15,13 @@ Prototype.l PPluginDescription()
 Prototype.i PPluginRAW()
 
 
-Global Dim areas.area(100)
-Define iniarea
-For iniarea=0 To 100
-  areas(iniarea)\waitstart=ElapsedMilliseconds()
-  areas(iniarea)\waitdur=0
-  areas(iniarea)\lock=0
-  areas(iniarea)\mlock=0
+Global Dim Channels.Channel(100)
+Define InitChannel
+For InitChannel=0 To 100
+  Channels(InitChannel)\waitstart=ElapsedMilliseconds()
+  Channels(InitChannel)\waitdur=0
+  Channels(InitChannel)\lock=0
+  Channels(InitChannel)\mlock=0
 Next
 
 
@@ -118,7 +118,7 @@ EndProcedure
 Procedure.s GetAreaName(*nclient.Client)
   Define name$
   If *nclient\area>=0 And *nclient\area<=AreaNumber
-    name$=Areas(*nclient\area)\name
+    name$=Channels(*nclient\area)\name
   ElseIf *nclient\area=-3
     name$="RAM"
   Else
@@ -391,12 +391,12 @@ Procedure RemoveDisconnect(ClientID)
   LockMutex(ListMutex)
   If FindMapElement(Clients(),Str(ClientID))
     WriteLog("DISCONNECTING",Clients())
-    If areas(Clients()\area)\lock=ClientID
-      areas(Clients()\area)\lock=0
-      areas(Clients()\area)\mlock=0
+    If Channels(Clients()\area)\lock=ClientID
+      Channels(Clients()\area)\lock=0
+      Channels(Clients()\area)\mlock=0
     EndIf
     If Clients()\area>=0
-      areas(Clients()\area)\players-1
+      Channels(Clients()\area)\players-1
     EndIf
     CompilerIf #NICE
       If OpenFile(7,"base/scene/"+scene$+"/PlayerData/"+Clients()\username+".txt")
@@ -472,7 +472,7 @@ EndProcedure
 Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
   Define everybody,i,omessage$,sresult
   WriteLog("[MAIN]"+*ntmes\message,*seUser)
-  If areas(*seUser\area)\waitstart+areas(*seUser\area)\waitdur<=ElapsedMilliseconds() Or AllowCutoff Or *seUser\skip
+  If Channels(*seUser\area)\waitstart+Channels(*seUser\area)\waitdur<=ElapsedMilliseconds() Or AllowCutoff Or *seUser\skip
     If BlockINI
       *ntmes\char=GetCharacterName(*seUser)
     EndIf
@@ -499,8 +499,8 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
     Else
       oldCID = *seUser\CID
     EndIf
-    areas(*seUser\area)\waitstart=ElapsedMilliseconds()
-    areas(*seUser\area)\waitdur=Len(*ntmes\message)*40
+    Channels(*seUser\area)\waitstart=ElapsedMilliseconds()
+    Channels(*seUser\area)\waitdur=Len(*ntmes\message)*40
     LockMutex(ListMutex)  
     ResetMap(Clients())
     While NextMapElement(Clients())
@@ -559,23 +559,23 @@ Procedure TrackWait(a)
   Debug "looping enabled"
   Repeat
     For k=0 To AreaNumber
-      If Areas(k)\trackwait>1
-        If (Areas(k)\trackstart+Areas(k)\trackwait)<ElapsedMilliseconds()
-          Areas(k)\trackstart=ElapsedMilliseconds()
+      If Channels(k)\trackwait>1
+        If (Channels(k)\trackstart+Channels(k)\trackwait)<ElapsedMilliseconds()
+          Channels(k)\trackstart=ElapsedMilliseconds()
           Debug "changed"
-          If GetExtensionPart(Areas(k)\track)="m3u"
-            If ListIndex(Areas(k)\Playlist())>=ListSize(Areas(k)\Playlist())-1
-              ResetList(Areas(k)\Playlist())
+          If GetExtensionPart(Channels(k)\track)="m3u"
+            If ListIndex(Channels(k)\Playlist())>=ListSize(Channels(k)\Playlist())-1
+              ResetList(Channels(k)\Playlist())
             EndIf
-            NextElement(Areas(k)\Playlist())
-            Areas(k)\trackwait=Areas(k)\Playlist()\Length
-            SendTarget("Area"+Str(k),"MC#"+Areas(k)\Playlist()\TrackName+"#"+Str(characternumber)+"#%",Server)
+            NextElement(Channels(k)\Playlist())
+            Channels(k)\trackwait=Channels(k)\Playlist()\Length
+            SendTarget("Area"+Str(k),"MC#"+Channels(k)\Playlist()\TrackName+"#"+Str(characternumber)+"#%",Server)
           Else
-            SendTarget("Area"+Str(k),"MC#"+Areas(k)\track+"#"+Str(characternumber)+"#%",Server)
+            SendTarget("Area"+Str(k),"MC#"+Channels(k)\track+"#"+Str(characternumber)+"#%",Server)
           EndIf
         Else
-          If Areas(k)\trackwait<cw
-            cw=(Areas(k)\trackstart+Areas(k)\trackwait)-ElapsedMilliseconds()
+          If Channels(k)\trackwait<cw
+            cw=(Channels(k)\trackstart+Channels(k)\trackwait)-ElapsedMilliseconds()
           EndIf
         EndIf
       EndIf
@@ -584,7 +584,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 584
-; FirstLine = 536
+; CursorPosition = 23
+; FirstLine = 18
 ; Folding = ----
 ; EnableXP

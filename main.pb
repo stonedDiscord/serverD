@@ -30,7 +30,6 @@ Global ReplayLength=0
 Global ReplayFile$=""
 Global LoopMusic=0
 Global MultiChar=1
-Global nthread=0
 Global error=0
 Global lasterror=0
 Global WebSockets=1
@@ -81,7 +80,7 @@ Global RefreshMutex = CreateMutex()
 Global ActionMutex = CreateMutex()
 Global musicmode=1
 Global update=0
-Global AreaNumber=1
+Global ChannelCount=1
 Global decryptor$
 Global key
 Global newbuild
@@ -115,7 +114,7 @@ Global NewList SDbans.TempBan()
 ; Initialize The Network
 If InitNetwork() = 0
   CompilerIf #CONSOLE=0
-    MessageRequester("serverD "+version$, "Can't initialize the network!",#MB_ICONERROR)
+    MessageRequester("serverD "+version$,"Can't initialize the network!",#MB_ICONERROR)
   CompilerEndIf
   End
 EndIf
@@ -147,7 +146,7 @@ EndProcedure
 ProcedureDLL.s HexToString(hex.s)
   Define str.s="",i
   For i = 1 To Len(hex.s) Step 2
-    str.s = str.s + Chr(Val("$"+Mid(hex.s, i, 2)))
+    str.s = str.s + Chr(Val("$"+Mid(hex.s,i,2)))
   Next i
   ProcedureReturn str.s
 EndProcedure
@@ -157,7 +156,7 @@ ProcedureDLL.s StringToHex(str.s)
   Define hexchar.s = ""
   Define x
   For x = 1 To Len(str)
-    hexchar.s = Hex(Asc(Mid(str, x, 1)))
+    hexchar.s = Hex(Asc(Mid(str,x,1)))
     If Len(hexchar) = 1
       hexchar = "0" + hexchar
     EndIf
@@ -166,7 +165,7 @@ ProcedureDLL.s StringToHex(str.s)
   ProcedureReturn StringToHexR.s
 EndProcedure
 
-Procedure.s EncryptStr(S.s, Key.u)
+Procedure.s EncryptStr(S.s,Key.u)
   Define Result.s = S.s
   Define I
   Define *S.CharacterArray = @S
@@ -180,7 +179,7 @@ Procedure.s EncryptStr(S.s, Key.u)
   ProcedureReturn Result.s
 EndProcedure
 
-ProcedureDLL.s DecryptStr(S.s, Key.u)
+ProcedureDLL.s DecryptStr(S.s,Key.u)
   Define Result.s = S.s
   Define I
   Define *S.CharacterArray = @S
@@ -196,8 +195,8 @@ EndProcedure
 
 ;- Load Settings function
 Procedure LoadSettings(reload)
-  Define loadchars,loadcharsettings,loaddesc, loadevi, loadareas
-  Define iniarea,charpage,page,dur,ltracks,nplg
+  Define loadchars,loadcharsettings,loaddesc,loadevi,loadareas
+  Define InitChannel,charpage,page,dur,ltracks,nplg
   Define track$,trackn$,hdmod$,hdban$,ipban$,ready$,area$,lgimp$,aname$
   WriteLog("Loading serverD "+version$+" settings",Server)
   If update
@@ -215,12 +214,12 @@ Procedure LoadSettings(reload)
       WritePreferenceString("oppassword","change_me_people_can_use_this_to_take_passworded_chars") 
       WritePreferenceInteger("Port",27016)
       PreferenceGroup("server")
-      WritePreferenceString("Name", "DEFAULT")
-      WritePreferenceString("Desc", "DEFAULT")
+      WritePreferenceString("Name","DEFAULT")
+      WritePreferenceString("Desc","DEFAULT")
       WritePreferenceInteger("musicmode",1)
       WritePreferenceInteger("replaysave",0)
       WritePreferenceInteger("replayline",400)
-      WritePreferenceString("case", "AAOPublic2")
+      WritePreferenceString("case","AAOPublic2")
     EndIf
   EndIf
   PreferenceGroup("net")
@@ -324,11 +323,11 @@ Procedure LoadSettings(reload)
   PreferenceGroup("Global")
   EviNumber=ReadPreferenceInteger("EviNumber",0)
   oBG.s=Encode(ReadPreferenceString("BackGround","gs4"))
-  For iniarea=0 To 100
-    areas(iniarea)\bg=oBG.s
-    areas(iniarea)\name=oBG.s
-    areas(iniarea)\good=10
-    areas(iniarea)\evil=10
+  For InitChannel=0 To 100
+    Channels(InitChannel)\bg=oBG.s
+    Channels(InitChannel)\name=oBG.s
+    Channels(InitChannel)\good=10
+    Channels(InitChannel)\evil=10
   Next
   PreferenceGroup("chars")
   characternumber=ReadPreferenceInteger("number",1)
@@ -399,7 +398,7 @@ Procedure LoadSettings(reload)
   Next
   newcready$=newcready$+"%"
   
-  If ReadFile(2, "base/musiclist.txt")
+  If ReadFile(2,"base/musiclist.txt")
     tracks=0
     ltracks=0
     musicpage=0
@@ -458,7 +457,7 @@ Procedure LoadSettings(reload)
     tracks=1
   EndIf
   
-  If ReadFile(2, "base/op.txt")
+  If ReadFile(2,"base/op.txt")
     ClearList(HDmods())
     While Eof(2) = 0
       hdmod$=ReadString(2)
@@ -469,13 +468,13 @@ Procedure LoadSettings(reload)
     Wend
     CloseFile(2)
   Else
-    If CreateFile(2, "base/op.txt")
-      WriteStringN(2, "127.0.0.1")
+    If CreateFile(2,"base/op.txt")
+      WriteStringN(2,"127.0.0.1")
       CloseFile(2)
     EndIf
   EndIf
   
-  If ReadFile(2, "base/gimp.txt")
+  If ReadFile(2,"base/gimp.txt")
     ClearList(gimps())
     While Eof(2) = 0
       lgimp$=ReadString(2)
@@ -486,33 +485,33 @@ Procedure LoadSettings(reload)
     Wend
     CloseFile(2)
   Else
-    If CreateFile(2, "base/gimp.txt")
-      WriteStringN(2, "<3")
+    If CreateFile(2,"base/gimp.txt")
+      WriteStringN(2,"<3")
       CloseFile(2)
     EndIf
   EndIf
   
   If OpenPreferences( "base/scene/"+scene$+"/areas.ini")
     PreferenceGroup("Areas")
-    AreaNumber=ReadPreferenceInteger("number",1)
+    ChannelCount=ReadPreferenceInteger("number",1)
     newaready$="SA#"
-    For loadareas=0 To AreaNumber-1
+    For loadareas=0 To ChannelCount-1
       PreferenceGroup("Areas")
       aname$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
-      areas(loadareas)\name=aname$
+      Channels(loadareas)\name=aname$
       PreferenceGroup("filename")
       area$=Encode(ReadPreferenceString(Str(loadareas+1),oBG.s))
-      areas(loadareas)\bg=area$
+      Channels(loadareas)\bg=area$
       PreferenceGroup("hidden")
-      areas(loadareas)\hidden=ReadPreferenceInteger(Str(loadareas+1),0)
+      Channels(loadareas)\hidden=ReadPreferenceInteger(Str(loadareas+1),0)
       PreferenceGroup("pass")
-      areas(loadareas)\pw=Encode(ReadPreferenceString(Str(loadareas+1),""))
-      If areas(loadareas)\pw=""
+      Channels(loadareas)\pw=Encode(ReadPreferenceString(Str(loadareas+1),""))
+      If Channels(loadareas)\pw=""
         passworded$="0"
       Else
         passworded$="1"
       EndIf
-      If areas(loadareas)\hidden=0
+      If Channels(loadareas)\hidden=0
         newaready$+aname$+"&"+area$+"&"+passworded$+"#"
       EndIf
     Next
@@ -525,13 +524,13 @@ Procedure LoadSettings(reload)
       WritePreferenceString("1",oBG.s)
       PreferenceGroup("filename")
       WritePreferenceString("1",oBG.s)
-      areas(0)\bg=oBG.s
-      AreaNumber=1
+      Channels(0)\bg=oBG.s
+      ChannelCount=1
       ClosePreferences()
     EndIf
   EndIf
   
-  If ReadFile(2, "serverd.txt")
+  If ReadFile(2,"serverd.txt")
     ReadString(2)
     ReadString(2)
     ReadString(2)
@@ -549,7 +548,7 @@ Procedure LoadSettings(reload)
     CloseFile(2)
   EndIf
   
-  If ReadFile(2, "base/HDbanlist.txt")
+  If ReadFile(2,"base/HDbanlist.txt")
     ClearList(HDbans())
     While Eof(2) = 0
       hdban$=ReadString(2)
@@ -568,7 +567,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf
   
-  If ReadFile(2, "base/banlist.txt")
+  If ReadFile(2,"base/banlist.txt")
     ClearList(IPbans())
     While Eof(2) = 0
       ipban$=ReadString(2)
@@ -584,7 +583,7 @@ Procedure LoadSettings(reload)
   EndIf
   
   CloseLibrary(#PB_All)
-  If ExamineDirectory(0, "plugins/", "*"+libext$)  
+  If ExamineDirectory(0,"plugins/","*"+libext$)  
     While NextDirectoryEntry(0)
       If DirectoryEntryType(0) = #PB_DirectoryEntry_File
         Debug "file"
@@ -664,7 +663,7 @@ ProcedureDLL MasterAdvert(Port)
   msPort=ReadPreferenceInteger("Port",27016)
   ClosePreferences()
   
-  WriteLog("Using master "+master$, Server)
+  WriteLog("Using master "+master$,Server)
   
   If public
     Repeat
@@ -686,7 +685,7 @@ ProcedureDLL MasterAdvert(Port)
             msrec$=PeekS(*null,msinfo)
             Debug msrec$
             If msrec$="NOSERV#%"
-              WriteLog("Fell off the serverlist, fixing...",Server)
+              WriteLog("Fell off the serverlist,fixing...",Server)
               sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#serverD "+version$+"#%"+Chr(0))
               WriteLog("Server published!",Server)
             EndIf
@@ -753,20 +752,20 @@ Procedure SendDone(*usagePointer.Client)
   Next
   send$ = send$ + "#%"
   SendTarget(Str(*usagePointer\ClientID),send$,Server)
-  SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
+  SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(*usagePointer\area)\bg+"#%",Server)
   SendTarget(Str(*usagePointer\ClientID),"OPPASS#"+StringToHex(EncryptStr(opppass$,key))+"#%",Server)
   SendTarget(Str(*usagePointer\ClientID),"MM#"+Str(musicmode)+"#%",Server)
   SendTarget(Str(*usagePointer\ClientID),"DONE#%",Server)
 EndProcedure
 
-Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
+Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
   Define sendd=0
   Define ir
   Debug narea$
-  For ir=0 To AreaNumber
-    areas(ir)\players=0
-    Debug areas(ir)\name
-    If areas(ir)\name = narea$
+  For ir=0 To ChannelCount
+    Channels(ir)\players=0
+    Debug Channels(ir)\name
+    If Channels(ir)\name = narea$
       narea$ = Str(ir)
       Break
     EndIf
@@ -782,68 +781,68 @@ Procedure SwitchAreas(*usagePointer.Client,narea$,apass$)
       EndIf
     EndIf
     If Clients()\area>=0
-      areas(Clients()\area)\players+1
+      Channels(Clients()\area)\players+1
     EndIf
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
   
   If narea$="0"
-    If areas(*usagePointer\area)\lock=*usagePointer\ClientID
-      areas(*usagePointer\area)\lock=0
-      areas(*usagePointer\area)\mlock=0
+    If Channels(*usagePointer\area)\lock=*usagePointer\ClientID
+      Channels(*usagePointer\area)\lock=0
+      Channels(*usagePointer\area)\mlock=0
     EndIf
-    areas(*usagePointer\area)\players-1
+    Channels(*usagePointer\area)\players-1
     *usagePointer\area=0
-    areas(0)\players+1
+    Channels(0)\players+1
     If sendd=1
       *usagePointer\CID=-1
       SendDone(*usagePointer)
     Else
-      SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(0)\bg+"#%",Server)      
+      SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(0)\bg+"#%",Server)      
     EndIf
     If *usagePointer\type>=#AOTWO
       SendTarget(Str(*usagePointer\ClientID),"OA#0#0#%",Server)
       send$="TA"
-      For carea=0 To AreaNumber
-        send$ = send$ + "#"+Str(areas(carea)\players)
+      For carea=0 To ChannelCount
+        send$ = send$ + "#"+Str(Channels(carea)\players)
       Next
       send$ = send$ + "#%"
       SendTarget("*",send$,Server)
     Else
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
-      SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(0)\good)+"#%",Server)
-      SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(0)\evil)+"#%",Server)
+      SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(0)\good)+"#%",Server)
+      SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(0)\evil)+"#%",Server)
     EndIf
   Else
-    If Val(narea$)<=AreaNumber-1 And Val(narea$)>=0
-      If Not areas(Val(narea$))\lock Or *usagePointer\perm>areas(Val(narea$))\mlock
-        If areas(Val(narea$))\pw="" Or areas(Val(narea$))\pw=apass$ Or *usagePointer\perm
-          If areas(*usagePointer\area)\lock=*usagePointer\ClientID
-            areas(*usagePointer\area)\lock=0
-            areas(*usagePointer\area)\mlock=0
+    If Val(narea$)<=ChannelCount-1 And Val(narea$)>=0
+      If Not Channels(Val(narea$))\lock Or *usagePointer\perm>Channels(Val(narea$))\mlock
+        If Channels(Val(narea$))\pw="" Or Channels(Val(narea$))\pw=apass$ Or *usagePointer\perm
+          If Channels(*usagePointer\area)\lock=*usagePointer\ClientID
+            Channels(*usagePointer\area)\lock=0
+            Channels(*usagePointer\area)\mlock=0
           EndIf
-          areas(*usagePointer\area)\players-1
+          Channels(*usagePointer\area)\players-1
           *usagePointer\area=Val(narea$)
-          areas(*usagePointer\area)\players+1
+          Channels(*usagePointer\area)\players+1
           If sendd=1
             *usagePointer\CID=-1
             SendDone(*usagePointer)
           Else
-            SendTarget(Str(*usagePointer\ClientID),"BN#"+areas(*usagePointer\area)\bg+"#%",Server)
+            SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(*usagePointer\area)\bg+"#%",Server)
           EndIf
           If *usagePointer\type>=#AOTWO
             SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#0#%",Server)
             send$="TA"
-            For carea=0 To AreaNumber
-              send$ = send$ + "#"+Str(areas(carea)\players)
+            For carea=0 To ChannelCount
+              send$ = send$ + "#"+Str(Channels(carea)\players)
             Next
             send$ = send$ + "#%"
             SendTarget("*",send$,Server)
           Else
             SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
-            SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-            SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+            SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
+            SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
           EndIf
         Else
           If *usagePointer\type>=#AOTWO
@@ -1024,7 +1023,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
                 SendTarget(Str(Clients()\ClientID),"DONE#%",Server)
               EndIf
             Case #MOVE
-              SwitchAreas(Clients(),param$,"")
+              SwitchChannels(Clients(),param$,"")
               
           EndSelect
           UnlockMutex(ActionMutex)
@@ -1039,7 +1038,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
   UnlockMutex(ListMutex)
   Debug "akick$"
   Debug kick$
-  WriteLog(actionn$+" "+kick$+", "+Str(akck)+" people died.",*usagePointer)
+  WriteLog(actionn$+" "+kick$+","+Str(akck)+" people died.",*usagePointer)
   rf=1
   ProcedureReturn akck
 EndProcedure
@@ -1173,7 +1172,7 @@ Procedure HandleAOCommand(ClientID)
             Case "Q"
               ReplayMode=0
             Default
-              SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#EEK! Valid: <, >, Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#EEK! Valid: <,>,Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
           EndSelect
         EndIf
         
@@ -1196,42 +1195,42 @@ Procedure HandleAOCommand(ClientID)
           
           If music=1
             If Left(StringField(rawreceive$,2,"#"),1)=">"              
-              SwitchAreas(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")
+              SwitchChannels(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")
             Else
               If *usagePointer\ignoremc=0 And *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
                 If Characters(*usagePointer\CID)\dj
                   
                   If GetExtensionPart(StringField(rawreceive$,2,"#"))="m3u"
                     
-                    If ReadFile(23, "base\"+GetFilePart(StringField(rawreceive$,2,"#"))) 
+                    If ReadFile(23,"base\"+GetFilePart(StringField(rawreceive$,2,"#"))) 
                       
                       Repeat
                         playliststring$=ReadString(23)
                         If Left(playliststring$,4)="#EXT"
                           If Left(playliststring$,8)="#EXTINF:"
                             playliststring$=Mid(playliststring$,9)
-                            AddElement(areas(*usagePointer\area)\Playlist())
+                            AddElement(Channels(*usagePointer\area)\Playlist())
                             Debug StringField(playliststring$,1,",")
-                            areas(*usagePointer\area)\Playlist()\Length = Val(StringField(playliststring$,1,","))*1000
+                            Channels(*usagePointer\area)\Playlist()\Length = Val(StringField(playliststring$,1,","))*1000
                           EndIf
                         Else
-                          areas(*usagePointer\area)\Playlist()\TrackName = GetFilePart(playliststring$)
+                          Channels(*usagePointer\area)\Playlist()\TrackName = GetFilePart(playliststring$)
                         EndIf
                       Until Eof(23)                      
                       CloseFile(23)
-                      ResetList(areas(*usagePointer\area)\Playlist())
-                      NextElement(areas(*usagePointer\area)\Playlist())
-                      areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
-                      areas(*usagePointer\area)\trackwait=areas(*usagePointer\area)\Playlist()\Length
-                      areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
-                      Sendtarget("Area"+Str(*usagePointer\area),"MC#"+areas(*usagePointer\area)\Playlist()\TrackName+"#"+Str(CharacterNumber)+"#%",*usagePointer)                      
+                      ResetList(Channels(*usagePointer\area)\Playlist())
+                      NextElement(Channels(*usagePointer\area)\Playlist())
+                      Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                      Channels(*usagePointer\area)\trackwait=Channels(*usagePointer\area)\Playlist()\Length
+                      Channels(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
+                      Sendtarget("Area"+Str(*usagePointer\area),"MC#"+Channels(*usagePointer\area)\Playlist()\TrackName+"#"+Str(CharacterNumber)+"#%",*usagePointer)                      
                     EndIf                    
                     
                   Else
                     Debug mdur
-                    areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
-                    areas(*usagePointer\area)\trackwait=mdur
-                    areas(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
+                    Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                    Channels(*usagePointer\area)\trackwait=mdur
+                    Channels(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
                     Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,2,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
                   EndIf
                   WriteLog("changed music to "+StringField(rawreceive$,2,"#"),*usagePointer)
@@ -1313,7 +1312,7 @@ Procedure HandleAOCommand(ClientID)
             Case "/bg"
               If *usagePointer\perm                            
                 bgcomm$=Mid(ctparam$,5)
-                areas(*usagePointer\area)\bg=bgcomm$
+                Channels(*usagePointer\area)\bg=bgcomm$
                 Sendtarget("Area"+Str(*usagePointer\area),"BN#"+bgcomm$+"#%",*usagePointer)                      
               EndIf
               
@@ -1357,8 +1356,8 @@ Procedure HandleAOCommand(ClientID)
                     SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(nch)+"#%",Server)               
                     *usagePointer\CID=nch       
                     WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-                    SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-                    SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+                    SendTarget(Str(ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
+                    SendTarget(Str(ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
                   EndIf
                   Break
                   rf=1
@@ -1391,8 +1390,8 @@ Procedure HandleAOCommand(ClientID)
               
             Case "/area"
               If *usagePointer\perm
-                For ir=0 To AreaNumber-1
-                  areas(ir)\players=0
+                For ir=0 To ChannelCount-1
+                  Channels(ir)\players=0
                 Next
                 
                 LockMutex(ListMutex)
@@ -1400,7 +1399,7 @@ Procedure HandleAOCommand(ClientID)
                 ResetMap(Clients())
                 While NextMapElement(Clients())
                   If Clients()\area>=0
-                    areas(Clients()\area)\players+1
+                    Channels(Clients()\area)\players+1
                   EndIf
                 Wend
                 PopMapPosition(Clients())
@@ -1411,17 +1410,17 @@ Procedure HandleAOCommand(ClientID)
               apass$=StringField(ctparam$,3," ")
               If narea$=""
                 arep$="CT#$HOST#Areas:"
-                For ir=0 To AreaNumber-1
-                  If areas(ir)\hidden=0 Or *usagePointer\perm
+                For ir=0 To ChannelCount-1
+                  If Channels(ir)\hidden=0 Or *usagePointer\perm
                     arep$+#CRLF$
-                    arep$=arep$+areas(ir)\name+": "+Str(areas(ir)\players)+" users"
+                    arep$=arep$+Channels(ir)\name+": "+Str(Channels(ir)\players)+" users"
                     If ir=*usagePointer\area
                       arep$+" (including you)"
                     EndIf
-                    If areas(ir)\mlock
+                    If Channels(ir)\mlock
                       arep$+" super"
                     EndIf
-                    If areas(ir)\lock
+                    If Channels(ir)\lock
                       arep$+"locked"                      
                     EndIf
                   EndIf
@@ -1429,13 +1428,13 @@ Procedure HandleAOCommand(ClientID)
                 arep$+"#%"
                 SendTarget(Str(ClientID),arep$,Server)
               Else                  
-                SwitchAreas(*usagePointer,narea$,apass$)
+                SwitchChannels(*usagePointer,narea$,apass$)
               EndIf
               
             Case "/loadreplay"
               If *usagePointer\perm>=#MOD
                 ReplayFile$="base/replays/"+Mid(ctparam$,13)
-                If ReadFile(8, ReplayFile$)
+                If ReadFile(8,ReplayFile$)
                   Debug "loaded replay"
                   ClearList(PReplay())
                   ResetList(PReplay())
@@ -1455,26 +1454,26 @@ Procedure HandleAOCommand(ClientID)
                 lock$=StringField(ctparam$,2," ")
                 Select lock$
                   Case "0"
-                    If areas(*usagePointer\area)\lock=*usagePointer\ClientID Or *usagePointer\perm>areas(*usagePointer\area)\mlock
-                      areas(*usagePointer\area)\lock=0
-                      areas(*usagePointer\area)\mlock=0
+                    If Channels(*usagePointer\area)\lock=*usagePointer\ClientID Or *usagePointer\perm>Channels(*usagePointer\area)\mlock
+                      Channels(*usagePointer\area)\lock=0
+                      Channels(*usagePointer\area)\mlock=0
                       SendTarget(Str(ClientID),"CT#$HOST#area unlocked#%",Server)
                     EndIf
                   Case "1"
                     If *usagePointer\perm
-                      areas(*usagePointer\area)\lock=*usagePointer\ClientID
-                      areas(*usagePointer\area)\mlock=0
+                      Channels(*usagePointer\area)\lock=*usagePointer\ClientID
+                      Channels(*usagePointer\area)\mlock=0
                       SendTarget(Str(ClientID),"CT#$HOST#area locked#%",Server)
                     EndIf
                   Case "2"
                     If *usagePointer\perm>#MOD
-                      areas(*usagePointer\area)\lock=*usagePointer\ClientID
-                      areas(*usagePointer\area)\mlock=1
+                      Channels(*usagePointer\area)\lock=*usagePointer\ClientID
+                      Channels(*usagePointer\area)\mlock=1
                       SendTarget(Str(ClientID),"CT#$HOST#area superlocked#%",Server)
                     EndIf
                   Default
                     pr$="CT#$HOST#area is "
-                    If areas(*usagePointer\area)\lock=0
+                    If Channels(*usagePointer\area)\lock=0
                       pr$+"not "
                     EndIf
                     SendTarget(Str(ClientID),pr$+"locked#%",Server)
@@ -1560,13 +1559,13 @@ Procedure HandleAOCommand(ClientID)
                   LockMutex(ListMutex)
                   For sa=0 To areas
                     WriteStringN(33,"Area "+Str(sa))
-                    WriteStringN(33,Areas(sa)\name)
-                    WriteStringN(33,Areas(sa)\bg)
-                    WriteStringN(33,Str(Areas(sa)\players))
-                    WriteStringN(33,Str(Areas(sa)\lock))
-                    WriteStringN(33,Str(Areas(sa)\mlock))
-                    WriteStringN(33,Areas(sa)\track)
-                    WriteStringN(33,Str(Areas(sa)\trackwait))
+                    WriteStringN(33,Channels(sa)\name)
+                    WriteStringN(33,Channels(sa)\bg)
+                    WriteStringN(33,Str(Channels(sa)\players))
+                    WriteStringN(33,Str(Channels(sa)\lock))
+                    WriteStringN(33,Str(Channels(sa)\mlock))
+                    WriteStringN(33,Channels(sa)\track)
+                    WriteStringN(33,Str(Channels(sa)\trackwait))
                   Next
                   CloseFile(33)
                 EndIf
@@ -1649,9 +1648,9 @@ Procedure HandleAOCommand(ClientID)
             Case "/play"
               If *usagePointer\perm
                 song$=Right(ctparam$,Len(ctparam$)-6)
-                areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
-                      areas(*usagePointer\area)\trackwait=0
-                      areas(*usagePointer\area)\track=song$
+                Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                      Channels(*usagePointer\area)\trackwait=0
+                      Channels(*usagePointer\area)\track=song$
                 SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
               EndIf
               
@@ -1804,11 +1803,11 @@ Procedure HandleAOCommand(ClientID)
           If bar>=0 And bar<=10
             WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
             If StringField(rawreceive$,2,"#")="1"
-              Areas(*usagePointer\area)\good=bar
-              SendTarget("Area"+Str(*usagePointer\area),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",*usagePointer)
+              Channels(*usagePointer\area)\good=bar
+              SendTarget("Area"+Str(*usagePointer\area),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",*usagePointer)
             ElseIf StringField(rawreceive$,2,"#")="2"
-              Areas(*usagePointer\area)\evil=bar
-              SendTarget("Area"+Str(*usagePointer\area),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",*usagePointer)
+              Channels(*usagePointer\area)\evil=bar
+              SendTarget("Area"+Str(*usagePointer\area),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",*usagePointer)
             EndIf
             send=1
           Else
@@ -1848,8 +1847,8 @@ Procedure HandleAOCommand(ClientID)
               SendTarget(Str(ClientID),"PV#"+Str(*usagePointer\AID)+"#CID#"+Str(char)+"#%",Server)               
               *usagePointer\CID=char                
               WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
-              SendTarget(Str(ClientID),"HP#1#"+Str(Areas(*usagePointer\area)\good)+"#%",Server)
-              SendTarget(Str(ClientID),"HP#2#"+Str(Areas(*usagePointer\area)\evil)+"#%",Server)
+              SendTarget(Str(ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
+              SendTarget(Str(ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
               If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
                 SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
               EndIf
@@ -1890,8 +1889,8 @@ Procedure HandleAOCommand(ClientID)
               SendTarget(Str(ClientID),"YI#0#"+Str(*usagePointer\Inventory[0])+"#%",Server)
               WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
               For ac=0 To areas
-                If Areas(ac)\players>0
-                  SendTarget(Str(ClientID),"RaC#"+Str(ac+1)+"#"+Areas(ac)\players+"#%",Server)
+                If Channels(ac)\players>0
+                  SendTarget(Str(ClientID),"RaC#"+Str(ac+1)+"#"+Channels(ac)\players+"#%",Server)
                 EndIf
               Next
               rf=1
@@ -1956,7 +1955,7 @@ Procedure HandleAOCommand(ClientID)
         EndIf
         
       Case "AA"
-        SwitchAreas(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
+        SwitchChannels(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
         
       Case "RT"
         If *usagePointer\CID>=0
@@ -2024,8 +2023,8 @@ Procedure HandleAOCommand(ClientID)
       Case "RA"
         SendTarget(Str(ClientID),newaready$,Server)
         send$="TA"
-        For carea=0 To AreaNumber
-          send$ = send$ + "#"+Str(areas(carea)\players)
+        For carea=0 To ChannelCount
+          send$ = send$ + "#"+Str(Channels(carea)\players)
         Next
         send$ = send$ + "#%"
         SendTarget(Str(*usagePointer\ClientID),send$,Server)
@@ -2082,18 +2081,18 @@ Procedure HandleAOCommand(ClientID)
         If start<=tracks-1 And start>=0
           SendTarget(Str(ClientID),ReadyVMusic(start),Server)
         Else
-          SendTarget(Str(ClientID),"AD#1#" + Areas(0)\name + "#"+Str(Areas(0)\players)+"#"+ Areas(0)\bg + "##%",Server)
+          SendTarget(Str(ClientID),"AD#1#" + Channels(0)\name + "#"+Str(Channels(0)\players)+"#"+ Channels(0)\bg + "##%",Server)
         EndIf
         
       Case "RAD" ; area list
         start=Val(StringField(rawreceive$,2,"#"))-1
-        If start<=AreaNumber And start>=0
-          If areas(start)\pw<>""
+        If start<=ChannelCount And start>=0
+          If Channels(start)\pw<>""
             passworded$="LOCK"
           Else
             passworded$=""
           EndIf
-          Readyv$ = "AD#" + Str(start+1) + "#" + Areas(start)\name + "#0#"+ Areas(start)\bg + "#"+passworded$ + "#%"
+          Readyv$ = "AD#" + Str(start+1) + "#" + Channels(start)\name + "#0#"+ Channels(start)\bg + "#"+passworded$ + "#%"
           SendTarget(Str(ClientID),Readyv$,Server)        
         ElseIf itemamount>0
           SendTarget(Str(ClientID),ReadyVItem(0),Server)
@@ -2148,7 +2147,7 @@ Procedure HandleAOCommand(ClientID)
         If hdbanned=0
           ForEach HDbans()
             If *usagePointer\HD = HDbans()\banned
-              WriteLog("HD: "+*usagePointer\HD+" is banned, reason: "+HDbans()\reason,*usagePointer)
+              WriteLog("HD: "+*usagePointer\HD+" is banned,reason: "+HDbans()\reason,*usagePointer)
               SendTarget(Str(ClientID),"BD#%",Server)
               LockMutex(ListMutex)
               CloseNetworkConnection(ClientID)
@@ -2189,9 +2188,9 @@ Procedure HandleAOCommand(ClientID)
         
         
       Case "DC"
-        If areas(*usagePointer\area)\lock=ClientID
-          areas(*usagePointer\area)\lock=0
-          areas(*usagePointer\area)\mlock=0
+        If Channels(*usagePointer\area)\lock=ClientID
+          Channels(*usagePointer\area)\lock=0
+          Channels(*usagePointer\area)\mlock=0
         EndIf
         *usagePointer\CID=-1
         *usagePointer\ignore=1
@@ -2270,22 +2269,22 @@ Procedure HandleAOCommand(ClientID)
             RequestedFile$ = "index.html"
           EndIf
           
-          If ReadFile(0, "cbase/"+RequestedFile$)
+          If ReadFile(0,"cbase/"+RequestedFile$)
             
             FileLength = Lof(0)
             ContentType$ = MIME(RequestedFile$)
             RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
-            RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+", "+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
+            RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+","+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
             *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
             HLength=PokeS(*FileBuffer,RHeader$)  
             *BufferOffset = *FileBuffer+HLength
             WriteLog(ip$+" requested file "+RequestedFile$,Server)
-            ReadData(0, *BufferOffset, FileLength)
+            ReadData(0,*BufferOffset,FileLength)
             Debug "headerlength"
             Debug HLength
             CloseFile(0)
-            Debug PeekS(*FileBuffer, HLength+FileLength)
-            SendNetworkData(ClientID, *FileBuffer, HLength+FileLength)
+            Debug PeekS(*FileBuffer,HLength+FileLength)
+            SendNetworkData(ClientID,*FileBuffer,HLength+FileLength)
             FreeMemory(*FileBuffer)
           EndIf     
         CompilerEndIf
@@ -2303,17 +2302,15 @@ Procedure Network(var)
   Define *usagePointer.Client
   
   SEvent = NetworkServerEvent()
-  
+  ClientID = EventClient()
   Select SEvent
     Case 0
       Delay(LagShield)
       
-    Case #PB_NetworkEvent_Disconnect
-      ClientID = EventClient() 
+    Case #PB_NetworkEvent_Disconnect      
       RemoveDisconnect(ClientID)
       
     Case #PB_NetworkEvent_Connect
-      ClientID = EventClient()
       cType=0
       If ClientID
         send=1
@@ -2322,7 +2319,7 @@ Procedure Network(var)
         ForEach IPbans()
           If Left(ip$,Len(IPbans()\banned)) = IPbans()\banned
             send=0
-            WriteLog("IP: "+ip$+" is banned, reason: "+IPbans()\reason,Server)
+            WriteLog("IP: "+ip$+" is banned,reason: "+IPbans()\reason,Server)
             CloseNetworkConnection(ClientID)                   
             Break
           EndIf
@@ -2330,7 +2327,7 @@ Procedure Network(var)
         
         CompilerIf #WEB
           Delay(100)
-          length=ReceiveNetworkData(ClientID, *Buffer, 2048)
+          length=ReceiveNetworkData(ClientID,*Buffer,2048)
           Debug "eaoe"
           Debug length
           If length<>-1
@@ -2343,11 +2340,11 @@ Procedure Network(var)
             If length>=0 And Left(rawreceive$,3)="GET"
               cType=#WEBSOCKET
               Debug "get request"
-              For i = 1 To CountString(rawreceive$, #CRLF$)
-                headeririda$ = StringField(rawreceive$, i, #CRLF$)
-                headeririda$ = RemoveString(headeririda$, #CR$)
-                headeririda$ = RemoveString(headeririda$, #LF$)
-                If Left(headeririda$, 3) = "GET"
+              For i = 1 To CountString(rawreceive$,#CRLF$)
+                headeririda$ = StringField(rawreceive$,i,#CRLF$)
+                headeririda$ = RemoveString(headeririda$,#CR$)
+                headeririda$ = RemoveString(headeririda$,#LF$)
+                If Left(headeririda$,3) = "GET"
                   Debug "getline"
                   RequestedFile$=StringField(StringField(headeririda$,2," "),1,"?")
                   Debug "rfile"
@@ -2356,30 +2353,30 @@ Procedure Network(var)
                     Break
                   EndIf
                   
-                  If ReadFile(0, "cbase/"+RequestedFile$)
+                  If ReadFile(0,"cbase/"+RequestedFile$)
                     
                     FileLength = Lof(0)
                     
                     ContentType$=MIME(RequestedFile$)
                     RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
-                    RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+", "+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
+                    RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+","+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
                     *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
                     HLength=PokeS(*FileBuffer,RHeader$)  
                     *BufferOffset = *FileBuffer+HLength
                     WriteLog(ip$+" requested file "+RequestedFile$,Server)
-                    ReadData(0, *BufferOffset, FileLength)
+                    ReadData(0,*BufferOffset,FileLength)
                     Debug "headerlength"
                     Debug HLength
                     CloseFile(0)
-                    Debug PeekS(*FileBuffer, HLength+FileLength)
-                    SendNetworkData(ClientID, *FileBuffer, HLength+FileLength)
+                    Debug PeekS(*FileBuffer,HLength+FileLength)
+                    SendNetworkData(ClientID,*FileBuffer,HLength+FileLength)
                     FreeMemory(*FileBuffer)
                     CloseNetworkConnection(ClientID)
                     send=0
                   EndIf
                 EndIf
-                If Left(headeririda$, 17) = "Sec-WebSocket-Key"
-                  wkey$ = Right(headeririda$, Len(headeririda$) - 19)
+                If Left(headeririda$,17) = "Sec-WebSocket-Key"
+                  wkey$ = Right(headeririda$,Len(headeririda$) - 19)
                   Debug wkey$
                   rkey$ = SecWebsocketAccept(wkey$)
                   Debug rkey$
@@ -2390,7 +2387,7 @@ Procedure Network(var)
                   vastus$ = vastus$ + "Upgrade: websocket"+ #CRLF$ + #CRLF$
                   Debug vastus$
                   send=1
-                  SendNetworkString(ClientID, vastus$)
+                  SendNetworkString(ClientID,vastus$)
                 EndIf
               Next
             EndIf
@@ -2417,7 +2414,7 @@ Procedure Network(var)
             EndIf
           Next
           Clients()\area=0
-          areas(0)\players+1
+          Channels(0)\players+1
           Clients()\ignore=0
           Clients()\judget=0
           Clients()\ooct=0
@@ -2456,11 +2453,10 @@ Procedure Network(var)
         EndIf
       EndIf
       
-    Case #PB_NetworkEvent_Data ;//////////////////////////Data
-      ClientID = EventClient()
+    Case #PB_NetworkEvent_Data ;- Received Data
       *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
       If *usagePointer
-        length=ReceiveNetworkData(ClientID, *Buffer, 1024)
+        length=ReceiveNetworkData(ClientID,*Buffer,1024)
         If length
           rawreceive$=PeekS(*Buffer,length)
           Debug rawreceive$
@@ -2497,7 +2493,7 @@ Procedure Network(var)
                 n = 0
                 For i = Ptr To Ptr + 3
                   MaskKey(n) = PeekA(*Buffer + i)
-                  Debug "MaskKey " + Str(n + 1) + ": " + RSet(Hex(MaskKey(n)), 2, "0")
+                  Debug "MaskKey " + Str(n + 1) + ": " + RSet(Hex(MaskKey(n)),2,"0")
                   n + 1
                 Next i
                 Ptr + 4
@@ -2512,13 +2508,13 @@ Procedure Network(var)
                       n + 1
                     Next i
                   Else
-                    vastus$ = PeekS(*Buffer + Ptr, Payload)
+                    vastus$ = PeekS(*Buffer + Ptr,Payload)
                   EndIf
                   rawreceive$=vastus$
                 Case #PingFrame
                   Byte = PeekA(*Buffer) & %11110000
-                  PokeA(*Buffer, Byte | #PongFrame)
-                  SendNetworkData(ClientID, *Buffer, bytesidkokku)
+                  PokeA(*Buffer,Byte | #PongFrame)
+                  SendNetworkData(ClientID,*Buffer,bytesidkokku)
                 Case #ConnectionCloseFrame
                   RemoveDisconnect(ClientID)
               EndSelect
@@ -2527,9 +2523,7 @@ Procedure Network(var)
           
           sc=1
           While StringField(rawreceive$,sc,"%")<>""
-            subcommand$=StringField(rawreceive$,sc,"%")+"%"
-            
-            subcommand$=ValidateChars(subcommand$)
+            subcommand$=ValidateChars(StringField(rawreceive$,sc,"%")+"%")
             length=Len(subcommand$)
             
             If ExpertLog
@@ -2634,8 +2628,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2163
-; FirstLine = 2153
+; CursorPosition = 62
+; FirstLine = 56
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
