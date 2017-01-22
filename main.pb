@@ -1649,6 +1649,9 @@ Procedure HandleAOCommand(ClientID)
             Case "/play"
               If *usagePointer\perm
                 song$=Right(ctparam$,Len(ctparam$)-6)
+                areas(*usagePointer\area)\trackstart=ElapsedMilliseconds()
+                      areas(*usagePointer\area)\trackwait=0
+                      areas(*usagePointer\area)\track=song$
                 SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
               EndIf
               
@@ -2159,7 +2162,7 @@ Procedure HandleAOCommand(ClientID)
         If hdbanned=0
           ForEach HDmods()
             If *usagePointer\HD = HDmods()
-              *usagePointer\perm=#ANIM
+              *usagePointer\perm=#MOD
             EndIf
           Next
           
@@ -2631,8 +2634,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2631
-; FirstLine = 2583
+; CursorPosition = 2163
+; FirstLine = 2153
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
