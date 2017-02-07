@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2016-11-27 19:29" user="stnd" host="SLAPTOP"/>
+    <lastopen date="2017-02-07 18:01" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -16,19 +16,19 @@
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="1fdfde66a4c88cd989bc2d84b384c4a4"/>
+      <fingerprint md5="00a1fec2370fe0dab6aa4bcfac2410ab"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="576a46da58b788cd6d25d4d46bc1c8a9"/>
+      <fingerprint md5="9a30e6412343653f196209041bcc6d80"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="6a5e62b269d7fbc93c1d1c33c79482a9"/>
+      <fingerprint md5="91f4c39125ccd122a835887b731774fe"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="770c1aa3cb4a374dece24c9cfe765fa5"/>
+      <fingerprint md5="09d32caa4e823c57864c18ecc116224b"/>
     </file>
   </section>
   <section name="targets">
@@ -41,8 +41,8 @@
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1311"/>
-      <buildcount enable="1" value="147"/>
+      <compilecount enable="1" value="1342"/>
+      <buildcount enable="1" value="148"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2.%COMPILECOUNT.%BUILDCOUNT,0"/>
@@ -76,8 +76,8 @@
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1301"/>
-      <buildcount enable="1" value="147"/>
+      <compilecount enable="1" value="1335"/>
+      <buildcount enable="1" value="148"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>

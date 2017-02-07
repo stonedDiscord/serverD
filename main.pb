@@ -1649,8 +1649,8 @@ Procedure HandleAOCommand(ClientID)
               If *usagePointer\perm
                 song$=Right(ctparam$,Len(ctparam$)-6)
                 Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
-                      Channels(*usagePointer\area)\trackwait=0
-                      Channels(*usagePointer\area)\track=song$
+                Channels(*usagePointer\area)\trackwait=0
+                Channels(*usagePointer\area)\track=song$
                 SendTarget("Area"+Str(*usagePointer\area),"MC#"+song$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)                
               EndIf
               
@@ -1983,7 +1983,6 @@ Procedure HandleAOCommand(ClientID)
         
       Case "askchar2" ; character list
         SendTarget(Str(ClientID),ReadyChar(0),Server)
-        *usagePointer\type=#VANILLA
         
       Case "RC"
         *usagePointer\type=#AOTWO
@@ -2261,11 +2260,11 @@ Procedure HandleAOCommand(ClientID)
         UnlockMutex(ListMutex)
         CompilerIf #WEB
         Case "GET"
-          *usagePointer\type=#WEBSOCKET
+          *usagePointer\type=#WEBBROWSER
           RequestedFile$=StringField(StringField(rawreceive$,2," "),1,"?")
           Debug "rfile"
           Debug RequestedFile$
-          If RequestedFile$ = ""
+          If RequestedFile$ = "" Or RequestedFile$ = "/"
             RequestedFile$ = "index.html"
           EndIf
           
@@ -2337,9 +2336,7 @@ Procedure Network(var)
             If ExpertLog
               WriteLog(rawreceive$,Clients())
             EndIf
-            If length>=0 And Left(rawreceive$,3)="GET"
-              cType=#WEBSOCKET
-              Debug "get request"
+            If length>=0
               For i = 1 To CountString(rawreceive$,#CRLF$)
                 headeririda$ = StringField(rawreceive$,i,#CRLF$)
                 headeririda$ = RemoveString(headeririda$,#CR$)
@@ -2352,7 +2349,7 @@ Procedure Network(var)
                   If RequestedFile$ = ""
                     Break
                   EndIf
-                  
+                  cType=#WEBBROWSER
                   If ReadFile(0,"cbase/"+RequestedFile$)
                     
                     FileLength = Lof(0)
@@ -2374,8 +2371,8 @@ Procedure Network(var)
                     CloseNetworkConnection(ClientID)
                     send=0
                   EndIf
-                EndIf
-                If Left(headeririda$,17) = "Sec-WebSocket-Key"
+                ElseIf Left(headeririda$,17) = "Sec-WebSocket-Key"
+                  cType=#WEBSOCKET
                   wkey$ = Right(headeririda$,Len(headeririda$) - 19)
                   Debug wkey$
                   rkey$ = SecWebsocketAccept(wkey$)
@@ -2517,6 +2514,7 @@ Procedure Network(var)
                   SendNetworkData(ClientID,*Buffer,bytesidkokku)
                 Case #ConnectionCloseFrame
                   RemoveDisconnect(ClientID)
+                  rawreceive$=""
               EndSelect
             EndIf
           CompilerEndIf
@@ -2628,8 +2626,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 62
-; FirstLine = 56
+; CursorPosition = 1984
+; FirstLine = 1965
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

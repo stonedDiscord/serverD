@@ -45,6 +45,7 @@ Enumeration ;client type
   #VNO
   #AOA
   #WEBSOCKET
+  #WEBBROWSER
   #AOTWO  
 EndEnumeration
 
@@ -177,6 +178,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 67
-; FirstLine = 45
+; CursorPosition = 47
+; FirstLine = 21
 ; EnableXP
