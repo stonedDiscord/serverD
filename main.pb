@@ -21,7 +21,7 @@ EndStructure
 
 #C1 = 53761
 #C2 = 32618
-Global version$="v"+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
+Global version$=Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
 Global CommandThreading=0
 Global Dim MaskKey.a(3)
 Global Quit=0
@@ -1127,6 +1127,7 @@ Procedure HandleAOCommand(ClientID)
             nmes\message=StringField(rawreceive$,4,"#")
             nmes\showname=StringField(rawreceive$,5,"#")
             nmes\background=StringField(rawreceive$,8,"#")
+            nmes\color=Val(StringField(rawreceive$,10,"#"))
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
             nmes\preemote=StringField(rawreceive$,3,"#")
@@ -1371,6 +1372,10 @@ Procedure HandleAOCommand(ClientID)
               Else
                 KickBan(StringField(ctparam$,2," "),StringField(ctparam$,3," "),#SWITCH,*usagePointer)
               EndIf
+              
+            Case "/charselect"
+              *usagePointer\cid=-1
+              SendDone(*usagePointer)
               
             Case "/move"
               KickBan(StringField(ctparam$,2," "),StringField(ctparam$,3," "),#MOVE,*usagePointer)
@@ -1773,13 +1778,13 @@ Procedure HandleAOCommand(ClientID)
             Case "/gimp"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,7),StringField(ctparam$,3," "),#GIMP,*usagePointer)
-                SendNetworkString(ClientID,"CT#$HOST#gimped "+Str(akck)+" clients#%")
+                SendTarget(Str(ClientID),"CT#$HOST#gimped "+Str(akck)+" clients#%",Server)
               EndIf
               
             Case "/ungimp"
               If *usagePointer\perm
                 akck=KickBan(Mid(ctparam$,9),StringField(ctparam$,3," "),#UNGIMP,*usagePointer)
-                SendNetworkString(ClientID,"CT#$HOST#ungimped "+Str(akck)+" clients#%")
+                SendTarget(Str(ClientID),"CT#$HOST#ungimped "+Str(akck)+" clients#%",Server)
               EndIf
               
             Case "/version"
@@ -1987,37 +1992,39 @@ Procedure HandleAOCommand(ClientID)
       Case "RC"
         *usagePointer\type=#AOTWO
         SendTarget(Str(ClientID),newcready$,Server)
-        Dim APlayers(characternumber)
-        send$="TC"
-        LockMutex(ListMutex)
-        PushMapPosition(Clients())
-        ResetMap(Clients())
-        While NextMapElement(Clients())
-          If Clients()\CID>=0 And Clients()\CID <= characternumber
-            If Clients()\area=*usagePointer\area
-              APlayers(Clients()\CID)=1
-            EndIf
-          EndIf
-        Wend
-        PopMapPosition(Clients())
-        UnlockMutex(ListMutex)
-        For sentchar=0 To characternumber
-          If APlayers(sentchar)=1 And Characters(sentchar)\pw<>""
-            send$ = send$ + "#3"
-          ElseIf APlayers(sentchar)=1
-            send$ = send$ + "#1"
-          ElseIf Characters(sentchar)\pw<>""
-            send$ = send$ + "#2"
-          Else
-            send$ = send$ + "#0"
-          EndIf
-        Next
-        send$ = send$ + "#%"
-        SendTarget(Str(*usagePointer\ClientID),send$,Server)
+;         Dim APlayers(characternumber)
+;         send$="TC"
+;         LockMutex(ListMutex)
+;         PushMapPosition(Clients())
+;         ResetMap(Clients())
+;         While NextMapElement(Clients())
+;           If Clients()\CID>=0 And Clients()\CID <= characternumber
+;             If Clients()\area=*usagePointer\area
+;               APlayers(Clients()\CID)=1
+;             EndIf
+;           EndIf
+;         Wend
+;         PopMapPosition(Clients())
+;         UnlockMutex(ListMutex)
+;         For sentchar=0 To characternumber
+;           If APlayers(sentchar)=1 And Characters(sentchar)\pw<>""
+;             send$ = send$ + "#3"
+;           ElseIf APlayers(sentchar)=1
+;             send$ = send$ + "#1"
+;           ElseIf Characters(sentchar)\pw<>""
+;             send$ = send$ + "#2"
+;           Else
+;             send$ = send$ + "#0"
+;           EndIf
+;         Next
+;         send$ = send$ + "#%"
+;         SendTarget(Str(ClientID),send$,Server)
         
       Case "RM"
         SendTarget(Str(ClientID),newmready$,Server)
-        SendTarget(Str(ClientID),"DONE#%",Server)
+        
+        Case "RD"
+        SendDone(*usagePointer)
         
       Case "RA"
         SendTarget(Str(ClientID),newaready$,Server)
@@ -2120,6 +2127,11 @@ Procedure HandleAOCommand(ClientID)
           SendTarget(Str(ClientID),"LCA#"+*usagePointer\username+"#$NO#%",Server)
         EndIf
         
+      Case "ID"
+        If StringField(rawreceive$,2,"#")="AO2"
+          *usagePointer\type=#AOTWO
+        EndIf
+        
       Case "HI" ;what is this server
         hdbanned=0
         *usagePointer\HD = StringField(rawreceive$,2,"#")
@@ -2169,7 +2181,7 @@ Procedure HandleAOCommand(ClientID)
           EndIf
           SendTarget(Str(ClientID),"HI#serverD#"+version$+"#%",Server)
           
-          SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#"+version$+"#%",Server)
+          SendTarget(Str(ClientID),"ID#"+Str(*usagePointer\AID)+"#serverD&"+version$+"#%",Server)
           players=0
           
           LockMutex(ListMutex)    
@@ -2182,6 +2194,7 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(ListMutex)                      
           
           SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
+          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#%",Server)
         EndIf
         rf=1
         
@@ -2626,8 +2639,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1984
-; FirstLine = 1965
+; CursorPosition = 745
+; FirstLine = 726
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0
