@@ -1130,6 +1130,7 @@ Procedure HandleAOCommand(ClientID)
             nmes\color=Val(StringField(rawreceive$,10,"#"))
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
+            nmes\deskmod=StringField(rawreceive$,2,"#")
             nmes\preemote=StringField(rawreceive$,3,"#")
             nmes\char=StringField(rawreceive$,4,"#")
             nmes\emote=StringField(rawreceive$,5,"#")
@@ -2639,9 +2640,9 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 745
-; FirstLine = 726
-; Folding = ---
+; CursorPosition = 1132
+; FirstLine = 1126
+; Folding = -----
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0

@@ -123,6 +123,7 @@ Structure Client
 EndStructure
 
 Structure ChatMessage
+  deskmod.s
   message.s
   char.s
   emote.s
@@ -178,6 +179,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 47
-; FirstLine = 21
+; CursorPosition = 125
+; FirstLine = 111
 ; EnableXP
