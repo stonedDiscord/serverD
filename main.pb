@@ -668,7 +668,7 @@ ProcedureDLL MasterAdvert(Port)
   If public
     Repeat
       
-      If msID
+      If msID!=0
         
         If tick>10
           sr=SendNetworkString(msID,"PING#%")
@@ -2195,7 +2195,7 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(ListMutex)                      
           
           SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
-          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#%",Server)
+          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#deskmod#%",Server)
         EndIf
         rf=1
         
@@ -2640,8 +2640,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1132
-; FirstLine = 1126
+; CursorPosition = 2197
+; FirstLine = 2194
 ; Folding = -----
 ; EnableXP
 ; EnableCompileCount = 0
