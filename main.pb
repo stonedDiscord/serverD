@@ -249,7 +249,7 @@ Procedure LoadSettings(reload)
     PrintN("Musicmode:"+Str(musicmode))
     PrintN("Scene:"+scene$)
   CompilerEndIf
-  
+  Debug "done loading oldsettings"
   
   If OpenPreferences("poker.ini")=0
     If CreatePreferences("poker.ini")=0
@@ -668,7 +668,7 @@ ProcedureDLL MasterAdvert(Port)
   If public
     Repeat
       
-      If msID!=0
+      If msID<>0
         
         If tick>10
           sr=SendNetworkString(msID,"PING#%")
@@ -2643,15 +2643,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-<<<<<<< HEAD
-; CursorPosition = 2219
-; FirstLine = 2087
+; CursorPosition = 251
+; FirstLine = 208
 ; Folding = ---
-=======
-; CursorPosition = 2197
-; FirstLine = 2194
-; Folding = -----
->>>>>>> origin/master
 ; EnableXP
-; EnableCompileCount = 0
-; EnableBuildCount = 0

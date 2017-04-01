@@ -578,13 +578,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-<<<<<<< HEAD
 ; CursorPosition = 578
-; FirstLine = 530
+; FirstLine = 526
 ; Folding = ----
-=======
-; CursorPosition = 530
-; FirstLine = 511
-; Folding = ------
->>>>>>> origin/master
 ; EnableXP

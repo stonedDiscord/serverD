@@ -3,8 +3,7 @@
 You can find the downloads in the release tab
 
 ### changelog
-* AO2 bugfixes
-* VNO bugfixes
+* General system stability improvements to enhance the user's experience
  
 ### minimal setup (console version)
 > OS

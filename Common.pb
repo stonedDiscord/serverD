@@ -60,6 +60,7 @@ Enumeration
   #Text_8
   #Combo_4
   #Checkbox_BlockIni
+  #Checkbox_LoopMusic
   #String_AD
   #Text_AD
   #String_13
@@ -126,18 +127,18 @@ Procedure Open_Window_0()
     ButtonGadget(#Button_31,680,350,50,20,"SEND")
     BalloonTip(GadgetID(#ListIcon_2), #ListIcon_2, "Shows the OOC chat history", "", #TOOLTIP_NO_ICON)
     Frame3DGadget(#Frame_5, 520, 0, 210, 370, "OOC")
-      ListViewGadget(#listbox_event, 290, 20, 230, 350)
-      AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
-      AddGadgetItem(#listbox_event,0,"Check out https://github.com/stonedDiscord/serverD/ for updates")
-      If update
-        AddGadgetItem(#listbox_event,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
-      EndIf
+    ListViewGadget(#listbox_event, 290, 20, 230, 350)
+    AddGadgetItem(#listbox_event,0,"serverD "+Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount))
+    AddGadgetItem(#listbox_event,0,"Check out https://github.com/stonedDiscord/serverD/ for updates")
+    If update
+      AddGadgetItem(#listbox_event,0,"UPDATE AVAILABLE",#PB_ListIcon_AlwaysShowSelection)
+    EndIf
     BalloonTip(GadgetID(#listbox_event), #listbox_event, "Shows all activity", "", #TOOLTIP_NO_ICON)
   EndIf
 EndProcedure
 
 Procedure Open_Window_1()
-  If OpenWindow(#Window_1, 200, 400, 150, 220, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
+  If OpenWindow(#Window_1, 200, 400, 150, 250, "Config",  #PB_Window_SystemMenu | #PB_Window_TitleBar )
     
     TextGadget(#Text_6, 10, 10, 40, 20, "OP pass")
     StringGadget(#String_OP, 60, 10, 80, 20, "", #PB_String_Password)
@@ -157,7 +158,8 @@ Procedure Open_Window_1()
     ComboBoxGadget(#Combo_4, 60, 115, 80, 20)
     CheckBoxGadget(#Checkbox_BlockIni,10,145,120,20,"Block INI char swap")
     CheckBoxGadget(#Checkbox_AOA,10,165,120,20,"100 char limit")
-    ButtonGadget(#Button_5, 0, 190, 150, 30, "DONE")
+    CheckBoxGadget(#Checkbox_LoopMusic,10,185,120,20,"Loop music")
+    ButtonGadget(#Button_5, 0, 220, 150, 30, "DONE")
   EndIf
 EndProcedure
 
@@ -174,7 +176,8 @@ Procedure ConfigWindow(var)
   SetGadgetText(#String_AD,adminpass$)
   SetGadgetState(#CheckBox_4,Logging)
   SetGadgetState(#Checkbox_BlockIni,blockini)
-  SetGadgetState(#Checkbox_BlockIni,CharLimit)
+  SetGadgetState(#Checkbox_AOA,CharLimit)
+  SetGadgetState(#Checkbox_LoopMusic,LoopMusic)
   SetGadgetState(#Combo_3,modcol)
   AddGadgetItem(#Combo_4,0,"NONE")
   For loadevi=1 To EviNumber
@@ -211,8 +214,10 @@ Procedure ConfigWindow(var)
         motdevi=GetGadgetState(#Combo_4)
       ElseIf GadgetID = #Checkbox_BlockIni  
         blockini=GetGadgetState(#Checkbox_BlockIni)
-        ElseIf GadgetID = #Checkbox_AOA
+      ElseIf GadgetID = #Checkbox_AOA
         CharLimit=GetGadgetState(#Checkbox_AOA)
+      ElseIf GadgetID = #Checkbox_LoopMusic
+        CharLimit=GetGadgetState(#Checkbox_LoopMusic)
       ElseIf GadgetID = #Button_9
         LogFile$=SaveFileRequester("Choose log file",LogFile$,"Log files (*.log)|*.log",0)
       EndIf
@@ -227,11 +232,13 @@ Procedure ConfigWindow(var)
   WritePreferenceInteger("ModCol",GetGadgetState(#Combo_3))
   WritePreferenceInteger("motdevi",GetGadgetState(#Combo_4))
   WritePreferenceInteger("BlockIni",GetGadgetState(#Checkbox_BlockIni))
+  WritePreferenceInteger("CharLimit",GetGadgetState(#Checkbox_AOA))
+  WritePreferenceInteger("LoopMusic",GetGadgetState(#Checkbox_LoopMusic))
   ClosePreferences()
 EndProcedure 
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 139
-; FirstLine = 139
+; CursorPosition = 160
+; FirstLine = 134
 ; Folding = -
 ; EnableXP
 ; EnableCompileCount = 0
