@@ -522,7 +522,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
             EndIf
           Case #AOTWO
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
-            message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+            message$="MS#"+*ntmes\deskmod+"#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
             message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*ntmes\flip)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%%"
             
             sresult=SendString(Clients()\ClientID,message$)
@@ -578,7 +578,13 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
+<<<<<<< HEAD
 ; CursorPosition = 578
 ; FirstLine = 530
 ; Folding = ----
+=======
+; CursorPosition = 530
+; FirstLine = 511
+; Folding = ------
+>>>>>>> origin/master
 ; EnableXP

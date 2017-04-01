@@ -668,7 +668,7 @@ ProcedureDLL MasterAdvert(Port)
   If public
     Repeat
       
-      If msID
+      If msID!=0
         
         If tick>10
           sr=SendNetworkString(msID,"PING#%")
@@ -1130,6 +1130,7 @@ Procedure HandleAOCommand(ClientID)
             nmes\color=Val(StringField(rawreceive$,10,"#"))
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
+            nmes\deskmod=StringField(rawreceive$,2,"#")
             nmes\preemote=StringField(rawreceive$,3,"#")
             nmes\char=StringField(rawreceive$,4,"#")
             nmes\emote=StringField(rawreceive$,5,"#")
@@ -2194,7 +2195,7 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(ListMutex)                      
           
           SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
-          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#%",Server)
+          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#deskmod#%",Server)
         EndIf
         rf=1
         
@@ -2642,9 +2643,15 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
+<<<<<<< HEAD
 ; CursorPosition = 2219
 ; FirstLine = 2087
 ; Folding = ---
+=======
+; CursorPosition = 2197
+; FirstLine = 2194
+; Folding = -----
+>>>>>>> origin/master
 ; EnableXP
 ; EnableCompileCount = 0
 ; EnableBuildCount = 0
