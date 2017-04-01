@@ -2216,6 +2216,9 @@ Procedure HandleAOCommand(ClientID)
         *usagePointer\CID=-1
         WriteLog("freed char",*usagePointer)
         
+      Case "ARC"
+        SwitchChannels(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
+        
       Case "CA"
         If *usagePointer\perm
           If CommandThreading
@@ -2639,8 +2642,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 745
-; FirstLine = 726
+; CursorPosition = 2219
+; FirstLine = 2087
 ; Folding = ---
 ; EnableXP
 ; EnableCompileCount = 0

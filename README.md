@@ -1,12 +1,10 @@
 # serverD
-## RED DANCING FLAMES
+## It's *ST*
 You can find the downloads in the release tab
 
 ### changelog
-* AO2 now fully supported
-* cleaned up a ton of stuff
-* new message and wait system
-* handles other clients ok
+* AO2 bugfixes
+* VNO bugfixes
  
 ### minimal setup (console version)
 > OS
@@ -41,7 +39,8 @@ You can find the downloads in the release tab
 3. ur done lol
 by default it's running on port 27016
 
-## Congratulations, your new serverD is now kurwa! Try [this](https://docs.google.com/document/d/1NWOQxmxZ4BKN0W1ApAr-5Z386T259qC3T97RNRA5udA/edit) if you're having trouble
+## Congratulations, your new serverD is now kurwa!
+[This guide](https://docs.google.com/document/d/1NWOQxmxZ4BKN0W1ApAr-5Z386T259qC3T97RNRA5udA/edit) can help you if you need more help
 
 ### commands
 - /area
@@ -165,4 +164,4 @@ by default it's running on port 27016
 - A: :joy: :joy: :joy:
  
 ## Configuration
-See the comments in the files at this repository
+See the comments in the files at this repository or check out the config editor i made on my github page
