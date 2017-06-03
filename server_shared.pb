@@ -569,7 +569,7 @@ Procedure TrackWait(a)
           EndIf
         Else
           If Channels(k)\trackwait<cw
-            cw=(Channels(k)\trackstart+Channels(k)\trackwait)-ElapsedMilliseconds()
+            ;cw=(Channels(k)\trackstart+Channels(k)\trackwait)-ElapsedMilliseconds()
           EndIf
         EndIf
       EndIf
@@ -578,7 +578,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 578
-; FirstLine = 526
+; CursorPosition = 571
+; FirstLine = 527
 ; Folding = ----
 ; EnableXP

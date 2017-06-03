@@ -75,6 +75,7 @@ Global motd$="Take that!"
 Global musicpage=0
 Global EviNumber=0
 Global ListMutex = CreateMutex()
+Global EviMutex = CreateMutex()
 Global MusicMutex = CreateMutex()
 Global RefreshMutex = CreateMutex()
 Global ActionMutex = CreateMutex()
@@ -637,13 +638,13 @@ EndProcedure
 Procedure ListIPSI(ClientID)
   Define iplist$
   Define charname$
-  iplist$="SI#"
+  iplist$="CT#"
   LockMutex(ListMutex)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
     charname$=GetCharacterName(Clients())+GetRankName(Clients()\perm)+" in "+GetAreaName(Clients())
-    iplist$=iplist$+Clients()\IP+"&"+charname$+"&"+Str(Clients()\CID)+"#"
+    iplist$=iplist$+Clients()\IP+" "+charname$+" "+Str(Clients()\CID)+#CRLF$
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
@@ -724,6 +725,149 @@ ProcedureDLL MasterAdvert(Port)
   msthread=0
 EndProcedure
 
+Procedure MasterAdvertVNO(port)
+  Define msID=0,msinfo,NEvent,MVNO=0,msport=6543,retries
+  Define sr=-1
+  Define  *null=AllocateMemory(100)
+  Define master$,msrec$,mspass$,mscpass$,msuser$
+  WriteLog("Masterserver adverter thread started",Server)
+  OpenPreferences("base/AS.ini")
+  PreferenceGroup("AS")
+  master$=ReadPreferenceString("1","99.105.12.119")
+  PreferenceGroup("login")
+  msuser$=ReadPreferenceString("user","Username")
+  mspass$=ReadPreferenceString("pass","Password")
+  mscpass$=UCase(MD5Fingerprint(@mspass$,StringByteLength(mspass$)))
+  msport=6543
+  ClosePreferences() 
+  desc$=ReplaceString(desc$,"$n","|")  
+  desc$=ReplaceString(desc$,"%n","|") 
+  desc$=ReplaceString(desc$,"#","!") 
+  desc$=ReplaceString(desc$,"%","!") 
+  
+  WriteLog("Using master "+master$, Server)
+  Global msstop=0
+  Repeat      
+    If msID
+      NEvent=NetworkClientEvent(msID)
+      If NEvent=#PB_NetworkEvent_Disconnect
+        sr=-1
+        msID=0
+        Server\ClientID=msID
+      ElseIf NEvent=#PB_NetworkEvent_Data
+        msinfo=ReceiveNetworkData(msID,*null,100)
+        If msinfo=-1
+          sr=-1
+        Else
+          tick=0
+          retries=0
+          mrawreceive$=PeekS(*null,msinfo)
+          If ExpertLog
+            WriteLog(msrec$,Server)
+          EndIf
+          
+          mcommandlist=1
+          While StringField(mrawreceive$,mcommandlist,"%")<>""
+            msrec$=StringField(mrawreceive$,mcommandlist,"%")+"%"
+            Debug msrec$
+            
+            Select StringField(msrec$,1,"#")    
+              Case "CV"
+                sr=SendNetworkString(msID,"VER#S#1.5#%")
+                CompilerIf #NICE
+                  Delay(50)
+                  sr=SendNetworkString(msID,"CO#Username#DC647EB65E6711E155375218212B3964#%")
+                  Delay(50)
+                CompilerEndIf
+                Debug mscpass$
+                sr=SendNetworkString(msID,"CO#"+msuser$+"#"+mscpass$+"#%")
+              Case "VEROK"
+                WriteLog("Running latest VNO server version.",Server)
+              Case "VERPB"
+                WriteLog("VNO Protocol outdated!",Server)
+                public=0
+              Case "VNAL"
+                If public
+                  sr=SendNetworkString(msID,"RequestPub#"+msname$+"#"+Str(port)+"#"+desc$+"#"+www$+"#%")
+                EndIf
+              Case "No"
+                WriteLog("Wrong master credentials",Server)
+              Case "VNOBD"
+                WriteLog("Banned from master",Server)
+                public=0
+              Case "NOPUB"
+                WriteLog("Banned from hosting",Server)
+                public=0
+              Case "OKAY"                
+                LockMutex(ListMutex)
+                ResetMap(Clients())
+                While NextMapElement(Clients())
+                  Debug "ip "+StringField(msrec$,3,"#")
+                  If Clients()\IP=StringField(msrec$,3,"#")
+                    Clients()\username=StringField(msrec$,2,"#")
+                    WriteLog("[AUTH.] "+Clients()\username+":"+Clients()\IP+":"+Str(Clients()\AID),Server)
+                    If ReadFile(7,"base/scene/"+scene$+"/PlayerData/"+Clients()\username+".txt")
+                      While Eof(7) = 0
+                        Clients()\Inventory[ir]=Val(ReadString(7))
+                        ir+1
+                      Wend
+                      
+                      CloseFile(7)
+                    EndIf
+                  EndIf
+                Wend
+                UnlockMutex(ListMutex)
+            EndSelect
+            mcommandlist+1
+          Wend
+        EndIf
+      EndIf
+      
+      If sr=-1
+        retries+1
+        WriteLog("Masterserver adverter thread connecting...",Server)
+        msID=OpenNetworkConnection(master$,msport)
+        Server\ClientID=msID
+      EndIf 
+      
+    Else
+      retries+1
+      WriteLog("Masterserver adverter thread connecting...",Server)
+      msID=OpenNetworkConnection(master$,msport)
+      Server\ClientID=msID
+      If msID
+      EndIf
+    EndIf
+    If retries>50
+      WriteLog("Too many masterserver connect retries, aborting...",Server)
+      public=0
+    EndIf
+    Delay(1000)
+  Until msstop=1
+  
+  WriteLog("Masterserver adverter thread stopped",Server)
+  If msID
+    CompilerIf #NICE
+      sr=SendNetworkString(msID,"KSID#%")
+      Delay(50)
+    CompilerEndIf
+    CloseNetworkConnection(msID)
+  EndIf
+  FreeMemory(*null)
+  msthread=0
+EndProcedure
+
+Procedure SendUpdatedEvi(target$)
+  evilist$="LE#"
+    For k=0 To EviNumber
+
+    evilist$+Evidences(loadevi)\name+"&"+Evidences(loadevi)\desc+"&"+Evidences(loadevi)\image+"#"
+    
+  Next
+  evilist$+"%"
+  SendTarget(target$,evilist$,Server)
+EndProcedure
+
 Procedure SendDone(*usagePointer.Client)
   Define send$
   Define sentchar
@@ -755,6 +899,7 @@ Procedure SendDone(*usagePointer.Client)
   SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(*usagePointer\area)\bg+"#%",Server)
   SendTarget(Str(*usagePointer\ClientID),"OPPASS#"+StringToHex(EncryptStr(opppass$,key))+"#%",Server)
   SendTarget(Str(*usagePointer\ClientID),"MM#"+Str(musicmode)+"#%",Server)
+  SendUpdatedEvi(Str(*usagePointer\ClientID))
   SendTarget(Str(*usagePointer\ClientID),"DONE#%",Server)
 EndProcedure
 
@@ -1419,9 +1564,12 @@ Procedure HandleAOCommand(ClientID)
                 For ir=0 To ChannelCount-1
                   If Channels(ir)\hidden=0 Or *usagePointer\perm
                     arep$+#CRLF$
-                    arep$=arep$+Channels(ir)\name+": "+Str(Channels(ir)\players)+" users"
+                    arep$=arep$+Channels(ir)\name
+                    If Channels(ir)\hideplayers=0
+                      arep$=arep$+": "+Str(Channels(ir)\players)+" users"
+                      EndIf
                     If ir=*usagePointer\area
-                      arep$+" (including you)"
+                      arep$+" (you are here)"
                     EndIf
                     If Channels(ir)\mlock
                       arep$+" super"
@@ -1803,9 +1951,12 @@ Procedure HandleAOCommand(ClientID)
         EndIf
         ;- Fuck OOC
         
-      Case "HP" 
-        bar=Val(StringField(rawreceive$,3,"#"))
+      Case "HP"         
         If *usagePointer\CID>=0
+          If *usagePointer\type=#VNO
+            
+          Else            
+          bar=Val(StringField(rawreceive$,3,"#"))
           If bar>=0 And bar<=10
             WriteLog("["+GetCharacterName(*usagePointer)+"] changed the bars",*usagePointer)
             If StringField(rawreceive$,2,"#")="1"
@@ -1820,6 +1971,7 @@ Procedure HandleAOCommand(ClientID)
             WriteLog("["+GetCharacterName(*usagePointer)+"] fucked up the bars",*usagePointer)
             *usagePointer\hack=1
             rf=1
+          EndIf
           EndIf
         EndIf
         
@@ -2057,6 +2209,7 @@ Procedure HandleAOCommand(ClientID)
           SendTarget(Str(ClientID),ReadyMusic(0),Server)
         EndIf
         
+        
       Case "AM" ;music list
         start=Val(StringField(rawreceive$,2,"#"))
         If start<=musicpage And start>=0 
@@ -2107,6 +2260,33 @@ Procedure HandleAOCommand(ClientID)
           SendTarget(Str(ClientID),"LCA#"+*usagePointer\username+"#$NO#%",Server)
         EndIf
         
+       Case "PE"
+        If *usagePointer\perm>=#ANIM
+          If eeid>=0 And eeid<=EviNumber
+            eepar$=StringField(rawreceive$,2,"#")
+            EviNumber+1
+            ReDim Evidences(EviNumber)
+            Evidences(EviNumber)\name=StringField(eepar$,1,"&")
+            Evidences(EviNumber)\desc=StringField(eepar$,2,"&")
+            Evidences(EviNumber)\type=0
+            Evidences(EviNumber)\image=StringField(eepar$,3,"&")
+            SendUpdatedEvi("*")
+          EndIf
+          EndIf
+        
+         Case "DE"
+        If *usagePointer\perm>=#ANIM
+          eeid=Val(StringField(rawreceive$,2,"#"))
+          If 0
+            eepar$=StringField(rawreceive$,3,"#")
+            Evidences(eeid)\name=StringField(eepar$,1,"&")
+            Evidences(eeid)\desc=StringField(eepar$,2,"&")
+            Evidences(eeid)\type=Val(StringField(eepar$,3,"&"))
+            Evidences(eeid)\image=StringField(eepar$,4,"&")
+            SendUpdatedEvi("*")
+          EndIf
+        EndIf
+        
       Case "EE"
         If *usagePointer\perm>=#ANIM
           eeid=Val(StringField(rawreceive$,2,"#"))
@@ -2116,7 +2296,7 @@ Procedure HandleAOCommand(ClientID)
             Evidences(eeid)\desc=StringField(eepar$,2,"&")
             Evidences(eeid)\type=Val(StringField(eepar$,3,"&"))
             Evidences(eeid)\image=StringField(eepar$,4,"&")
-            ;SendUpdatedEvi()
+            SendUpdatedEvi("*")
           EndIf
         EndIf
         
@@ -2194,8 +2374,8 @@ Procedure HandleAOCommand(ClientID)
           Wend
           UnlockMutex(ListMutex)                      
           
-          SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)
-          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#deskmod#%",Server)
+          SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)          
+          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#deskmod#evidence#%",Server)
         EndIf
         rf=1
         
@@ -2436,7 +2616,7 @@ Procedure Network(var)
           Clients()\ignoremc=0
           Clients()\type=cType
           Clients()\username=""
-          
+          SendTarget(Str(ClientID),"PC#"+Str(players)+"#"+slots$+"#"+Str(CharacterNumber)+"#"+Str(tracks)+"#"+Str(ChannelCount)+"#"+Str(EviNumber)+"#%",Server)
           LockMutex(ActionMutex)
           ResetList(Actions())
           While NextElement(Actions())
@@ -2643,7 +2823,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 251
-; FirstLine = 208
+; CursorPosition = 2298
+; FirstLine = 2268
 ; Folding = ---
 ; EnableXP
