@@ -859,7 +859,7 @@ EndProcedure
 
 Procedure SendUpdatedEvi(target$)
   evilist$="LE#"
-    For k=0 To EviNumber
+    For loadevi=0 To EviNumber
 
     evilist$+Evidences(loadevi)\name+"&"+Evidences(loadevi)\desc+"&"+Evidences(loadevi)\image+"#"
     
@@ -2823,7 +2823,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2298
-; FirstLine = 2268
+; CursorPosition = 861
+; FirstLine = 859
 ; Folding = ---
 ; EnableXP
