@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2017-04-01 18:30" user="Sven" host="SPC"/>
+    <lastopen date="2017-06-10 18:54" user="Sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -16,19 +16,19 @@
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="00a1fec2370fe0dab6aa4bcfac2410ab"/>
+      <fingerprint md5="b8c237a4bff713382d329f05bcb81b70"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="7a0203ba5d1600ff2859fc8df50ebf3e"/>
+      <fingerprint md5="46dc275b58dee261ac84cbb760693221"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="439986b522e598dd663b73a4da1a26e9"/>
+      <fingerprint md5="ace70aceceb4ff2137f8d058f87e3704"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="3cb0a916ab5eb82cca683c18d41cb101"/>
+      <fingerprint md5="fad64bb265ad9906c414be6c996904a5"/>
     </file>
   </section>
   <section name="targets">
@@ -41,7 +41,7 @@
       <icon enable="1">sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1339"/>
+      <compilecount enable="1" value="1359"/>
       <buildcount enable="1" value="151"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>

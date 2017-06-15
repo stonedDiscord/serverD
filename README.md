@@ -1,9 +1,10 @@
 # serverD
-## It's *ST*
-You can find the downloads in the release tab
+## It's *SD*
+FOR THE SERVER SOFTWARE DOWNLOAD SEE THE "RELEASE" TAB ABOVE
 
 ### changelog
 * General system stability improvements to enhance the user's experience
+* Evidence
  
 ### minimal setup (console version)
 > OS
@@ -163,4 +164,4 @@ by default it's running on port 27016
 - A: :joy: :joy: :joy:
  
 ## Configuration
-See the comments in the files at this repository or check out the config editor i made on my github page
+See the comments in the files at this repository or [check out the config editor i made](https://github.com/stonedDiscord/confgen)

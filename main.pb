@@ -70,6 +70,7 @@ Global MOTDevi=0
 Global ExpertLog=0
 Global tracks=0
 Global msthread=0
+Global msvthread=0
 Global LoginReply$="CT#$HOST#Successfully connected as mod#%"
 Global motd$="Take that!"
 Global musicpage=0
@@ -854,7 +855,7 @@ Procedure MasterAdvertVNO(port)
     CloseNetworkConnection(msID)
   EndIf
   FreeMemory(*null)
-  msthread=0
+  msvthread=0
 EndProcedure
 
 Procedure SendUpdatedEvi(target$)
@@ -955,6 +956,7 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
       send$ = send$ + "#%"
       SendTarget("*",send$,Server)
     Else
+      WriteLog("Switched Area to Default",*usagePointer)
       SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(0)\good)+"#%",Server)
       SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(0)\evil)+"#%",Server)
@@ -985,6 +987,7 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
             send$ = send$ + "#%"
             SendTarget("*",send$,Server)
           Else
+            WriteLog("Switched Area to "+GetAreaName(*usagePointer),*usagePointer)
             SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
@@ -1743,9 +1746,12 @@ Procedure HandleAOCommand(ClientID)
               Else
                 If *usagePointer\perm>#MOD
                   public=Val(StringField(ctparam$,2," "))
-                  If public
+                  If public=2
+                    msvthread=CreateThread(@MasterAdvertVNO(),Port)
+                    SendTarget(Str(ClientID),"CT#$HOST#published server on VNO#%",Server)
+                    ElseIf public
                     msthread=CreateThread(@MasterAdvert(),Port)
-                    SendTarget(Str(ClientID),"CT#$HOST# published server#%",Server)
+                    SendTarget(Str(ClientID),"CT#$HOST#published server#%",Server)
                   EndIf
                   CompilerIf #CONSOLE=0
                     SetGadgetState(#CheckBox_MS,public)
@@ -2116,6 +2122,7 @@ Procedure HandleAOCommand(ClientID)
         SwitchChannels(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
         
       Case "RT"
+        WriteLog("WT/CE "+Mid(rawreceive$,coff),*usagePointer)
         If *usagePointer\CID>=0
           If rt=1
             Sendtarget("Area"+Str(*usagePointer\area),"RT#"+Mid(rawreceive$,coff),*usagePointer)
@@ -2262,27 +2269,29 @@ Procedure HandleAOCommand(ClientID)
         
        Case "PE"
         If *usagePointer\perm>=#ANIM
-          If eeid>=0 And eeid<=EviNumber
-            eepar$=StringField(rawreceive$,2,"#")
+          WriteLog("Add Evidence "+StringField(rawreceive$,2,"#"),*usagePointer)
             EviNumber+1
             ReDim Evidences(EviNumber)
-            Evidences(EviNumber)\name=StringField(eepar$,1,"&")
-            Evidences(EviNumber)\desc=StringField(eepar$,2,"&")
-            Evidences(EviNumber)\type=0
-            Evidences(EviNumber)\image=StringField(eepar$,3,"&")
+            Evidences(eeid)\name=StringField(rawreceive$,2,"#")
+            Evidences(eeid)\desc=StringField(rawreceive$,3,"#")
+            Evidences(eeid)\type=0
+            Evidences(eeid)\image=StringField(rawreceive$,4,"#")
             SendUpdatedEvi("*")
-          EndIf
           EndIf
         
          Case "DE"
         If *usagePointer\perm>=#ANIM
           eeid=Val(StringField(rawreceive$,2,"#"))
-          If 0
+          WriteLog("Delete Evidence "+Str(eeid),*usagePointer)
+          If eeid>=0 And eeid<EviNumber
             eepar$=StringField(rawreceive$,3,"#")
-            Evidences(eeid)\name=StringField(eepar$,1,"&")
-            Evidences(eeid)\desc=StringField(eepar$,2,"&")
-            Evidences(eeid)\type=Val(StringField(eepar$,3,"&"))
-            Evidences(eeid)\image=StringField(eepar$,4,"&")
+            Evidences(eeid)\name=""
+            Evidences(eeid)\desc=""
+            Evidences(eeid)\type=0
+            Evidences(eeid)\image=""
+            If EviNumber=eeid
+            EviNumber-1
+            EndIf
             SendUpdatedEvi("*")
           EndIf
         EndIf
@@ -2290,12 +2299,11 @@ Procedure HandleAOCommand(ClientID)
       Case "EE"
         If *usagePointer\perm>=#ANIM
           eeid=Val(StringField(rawreceive$,2,"#"))
+          WriteLog("Edit Evidence "+Str(eeid),*usagePointer)
           If eeid>=0 And eeid<=EviNumber
-            eepar$=StringField(rawreceive$,3,"#")
-            Evidences(eeid)\name=StringField(eepar$,1,"&")
-            Evidences(eeid)\desc=StringField(eepar$,2,"&")
-            Evidences(eeid)\type=Val(StringField(eepar$,3,"&"))
-            Evidences(eeid)\image=StringField(eepar$,4,"&")
+            Evidences(eeid)\name=StringField(rawreceive$,3,"#")
+            Evidences(eeid)\desc=StringField(rawreceive$,4,"#")
+            Evidences(eeid)\image=StringField(rawreceive$,6,"#")
             SendUpdatedEvi("*")
           EndIf
         EndIf
@@ -2823,7 +2831,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 861
-; FirstLine = 859
+; CursorPosition = 1752
+; FirstLine = 1740
 ; Folding = ---
 ; EnableXP
