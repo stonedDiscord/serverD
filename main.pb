@@ -1271,13 +1271,25 @@ Procedure HandleAOCommand(ClientID)
             nmes\emote=StringField(rawreceive$,3,"#")
             nmes\message=StringField(rawreceive$,4,"#")
             nmes\showname=StringField(rawreceive$,5,"#")
+            nmes\color=Val(StringField(rawreceive$,6,"#"))
+            ;7 is charid
             nmes\background=StringField(rawreceive$,8,"#")
-            nmes\color=Val(StringField(rawreceive$,10,"#"))
+            Select Val(StringField(rawreceive$,9,"#"))
+                Case 1
+                  nmes\position="def"
+                Case 2
+                  nmes\position="pro"
+                Default
+                  nmes\position="wit"
+              EndSelect
+              nmes\flip=Val(StringField(rawreceive$,10,"#"))
+              nmes\sfx=StringField(rawreceive$,11,"#")
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
             nmes\deskmod=StringField(rawreceive$,2,"#")
             nmes\preemote=StringField(rawreceive$,3,"#")
             nmes\char=StringField(rawreceive$,4,"#")
+            nmes\showname="char"
             nmes\emote=StringField(rawreceive$,5,"#")
             nmes\message=StringField(rawreceive$,6,"#")
             If *usagePointer\pos=""
@@ -1293,9 +1305,11 @@ Procedure HandleAOCommand(ClientID)
             nmes\flip=Val(StringField(rawreceive$,14,"#"))
             nmes\realization=Val(StringField(rawreceive$,15,"#"))
             nmes\color=Val(StringField(rawreceive$,16,"#"))
+            nmes\background="[Default]"
         EndSelect
         If ReplayMode=0 Or *usagePointer\perm=#SERVER
           SendChatMessage(nmes,*usagePointer)
+          WriteReplay(rawreceive$)
         Else
           Select Trim(nmes\message)
             Case "<"
@@ -2398,7 +2412,7 @@ Procedure HandleAOCommand(ClientID)
         WriteLog("freed char",*usagePointer)
         
       Case "ARC"
-        SwitchChannels(*usagePointer,StringField(rawreceive$,2,"#"),StringField(rawreceive$,3,"#"))
+        SwitchChannels(*usagePointer,Str(Val(StringField(rawreceive$,2,"#"))-1),StringField(rawreceive$,3,"#"))
         
       Case "CA"
         If *usagePointer\perm
@@ -2823,7 +2837,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 861
-; FirstLine = 859
-; Folding = ---
+; CursorPosition = 1285
+; FirstLine = 1269
+; Folding = ------
 ; EnableXP

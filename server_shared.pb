@@ -493,6 +493,8 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
         vpos=1;left
       Case "pro"
         vpos=2;right
+      Case "wit"
+        vpos=3
     EndSelect
     If CharLimit
       oldCID = *seUser\CID % 100
@@ -514,7 +516,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
               Websocket_SendTextFrame(Clients()\ClientID,message$)
             CompilerEndIf
           Case #VNO
-            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
+            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\color+"#"+Str(*seUser\CID+1)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\flip)+"#"+*ntmes\sfx+"#%"
             sresult=SendString(Clients()\ClientID,message$)
             If sresult=-1
               WriteLog("CLIENT DIED",Clients())
@@ -578,7 +580,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 571
-; FirstLine = 527
-; Folding = ----
+; CursorPosition = 519
+; FirstLine = 502
+; Folding = ------
 ; EnableXP
