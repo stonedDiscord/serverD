@@ -516,7 +516,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
               Websocket_SendTextFrame(Clients()\ClientID,message$)
             CompilerEndIf
           Case #VNO
-            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID+1)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
+            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\color+"#"+Str(*seUser\CID+1)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\flip)+"#"+*ntmes\sfx+"#%"
             sresult=SendString(Clients()\ClientID,message$)
             Debug message$
             If sresult=-1
@@ -581,7 +581,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 120
-; FirstLine = 105
+; CursorPosition = 518
+; FirstLine = 484
 ; Folding = ------
 ; EnableXP
