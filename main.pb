@@ -639,17 +639,17 @@ EndProcedure
 Procedure ListIPSI(ClientID)
   Define iplist$
   Define charname$
-  iplist$="CT#"
+  iplist$="CT#$HOST#"
   LockMutex(ListMutex)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
     charname$=GetCharacterName(Clients())+GetRankName(Clients()\perm)+" in "+GetAreaName(Clients())
-    iplist$=iplist$+Clients()\IP+" "+charname$+" "+Str(Clients()\CID)+#CRLF$
+    iplist$=iplist$+"IP: "+Clients()\IP+" "+charname$+" ID: "+Str(Clients()\CID)+" HDID: "+Clients()\HD+#CRLF$
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
-  iplist$=iplist$+"%"
+  iplist$=iplist$+"#%"
   SendTarget(Str(ClientID),iplist$,Server) 
 EndProcedure
 
@@ -661,7 +661,7 @@ ProcedureDLL MasterAdvert(Port)
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/masterserver.ini")
   PreferenceGroup("list")
-  master$=ReadPreferenceString("0","51.255.160.217")
+  master$=ReadPreferenceString("0","master.aceattorneyonline.com")
   msPort=ReadPreferenceInteger("Port",27016)
   ClosePreferences()
   
@@ -1322,19 +1322,24 @@ Procedure HandleAOCommand(ClientID)
             Case "Q"
               ReplayMode=0
             Default
-              SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#EEK! Valid: <,>,Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              SendTarget("*","MS#chat#dolanangry#Dolan#dolanangry#Invalid command! Valid: <,>,Q#jud#1#2#"+Str(characternumber-1)+"#0#3#0#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
           EndSelect
         EndIf
         
       Case "MC"
         replaymusicfix:
+        If *usagePointer\type=#VNO
+          mcparam$=StringField(rawreceive$,3,"#")
+          Else
+            mcparam$=StringField(rawreceive$,2,"#")
+            EndIf
         If *usagePointer\perm=#SERVER
           Sendtarget("*","MC#"+Mid(rawreceive$,coff),*usagePointer)
         Else
           music=0
           LockMutex(musicmutex)
           ForEach Music()
-            If StringField(rawreceive$,2,"#")=Music()\TrackName
+            If mcparam$=Music()\TrackName
               music=1
               mdur=Music()\Length
               Debug Music()\Length
@@ -1344,15 +1349,15 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(musicmutex)
           
           If music=1
-            If Left(StringField(rawreceive$,2,"#"),1)=">"              
-              SwitchChannels(*usagePointer,Mid(StringField(rawreceive$,2,"#"),2),"")
+            If Left(mcparam$,1)=">"              
+              SwitchChannels(*usagePointer,Mid(mcparam$,2),"")
             Else
               If *usagePointer\ignoremc=0 And *usagePointer\CID>=0 And *usagePointer\CID<=CharacterNumber
                 If Characters(*usagePointer\CID)\dj
                   
-                  If GetExtensionPart(StringField(rawreceive$,2,"#"))="m3u"
+                  If GetExtensionPart(mcparam$)="m3u"
                     
-                    If ReadFile(23,"base\"+GetFilePart(StringField(rawreceive$,2,"#"))) 
+                    If ReadFile(23,"base\"+GetFilePart(mcparam$))
                       
                       Repeat
                         playliststring$=ReadString(23)
@@ -1372,7 +1377,7 @@ Procedure HandleAOCommand(ClientID)
                       NextElement(Channels(*usagePointer\area)\Playlist())
                       Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
                       Channels(*usagePointer\area)\trackwait=Channels(*usagePointer\area)\Playlist()\Length
-                      Channels(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
+                      Channels(*usagePointer\area)\track=mcparam$
                       Sendtarget("Area"+Str(*usagePointer\area),"MC#"+Channels(*usagePointer\area)\Playlist()\TrackName+"#"+Str(CharacterNumber)+"#%",*usagePointer)                      
                     EndIf                    
                     
@@ -1380,10 +1385,10 @@ Procedure HandleAOCommand(ClientID)
                     Debug mdur
                     Channels(*usagePointer\area)\trackstart=ElapsedMilliseconds()
                     Channels(*usagePointer\area)\trackwait=mdur
-                    Channels(*usagePointer\area)\track=StringField(rawreceive$,2,"#")
-                    Sendtarget("Area"+Str(*usagePointer\area),"MC#"+StringField(rawreceive$,2,"#")+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
+                    Channels(*usagePointer\area)\track=mcparam$
+                    Sendtarget("Area"+Str(*usagePointer\area),"MC#"+mcparam$+"#"+Str(*usagePointer\CID)+"#%",*usagePointer)
                   EndIf
-                  WriteLog("changed music to "+StringField(rawreceive$,2,"#"),*usagePointer)
+                  WriteLog("changed music to "+mcparam$,*usagePointer)
                   WriteReplay(rawreceive$)
                 EndIf
               EndIf
@@ -1391,7 +1396,7 @@ Procedure HandleAOCommand(ClientID)
           Else
             *usagePointer\hack=1
             rf=1
-            WriteLog("tried changing music to "+StringField(rawreceive$,2,"#"),*usagePointer)
+            WriteLog("tried changing music to "+mcparam$,*usagePointer)
           EndIf 
         EndIf
         
@@ -2270,7 +2275,8 @@ Procedure HandleAOCommand(ClientID)
        Case "PE"
         If *usagePointer\perm>=#ANIM
           WriteLog("Add Evidence "+StringField(rawreceive$,2,"#"),*usagePointer)
-            EviNumber+1
+          EviNumber+1
+          eeid=EviNumber
             ReDim Evidences(EviNumber)
             Evidences(eeid)\name=StringField(rawreceive$,2,"#")
             Evidences(eeid)\desc=StringField(rawreceive$,3,"#")
@@ -2283,7 +2289,7 @@ Procedure HandleAOCommand(ClientID)
         If *usagePointer\perm>=#ANIM
           eeid=Val(StringField(rawreceive$,2,"#"))
           WriteLog("Delete Evidence "+Str(eeid),*usagePointer)
-          If eeid>=0 And eeid<EviNumber
+          If eeid>=0 And eeid<=EviNumber
             eepar$=StringField(rawreceive$,3,"#")
             Evidences(eeid)\name=""
             Evidences(eeid)\desc=""
@@ -2303,7 +2309,7 @@ Procedure HandleAOCommand(ClientID)
           If eeid>=0 And eeid<=EviNumber
             Evidences(eeid)\name=StringField(rawreceive$,3,"#")
             Evidences(eeid)\desc=StringField(rawreceive$,4,"#")
-            Evidences(eeid)\image=StringField(rawreceive$,6,"#")
+            Evidences(eeid)\image=StringField(rawreceive$,5,"#")
             SendUpdatedEvi("*")
           EndIf
         EndIf
@@ -2773,7 +2779,7 @@ EndProcedure
 
 ;-  PROGRAM START    
 
-If ReceiveHTTPFile("https://raw.githubusercontent.com/stonedDiscord/serverD/master/version.txt","version.txt")
+If ReceiveHTTPFile("http://raw.githubusercontent.com/stonedDiscord/serverD/master/version.txt","version.txt")
   OpenPreferences("version.txt")
   PreferenceGroup("Version")
   newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
@@ -2831,7 +2837,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1752
-; FirstLine = 1740
-; Folding = ---
+; CursorPosition = 647
+; FirstLine = 629
+; Folding = ------
 ; EnableXP

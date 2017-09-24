@@ -117,7 +117,8 @@ EndProcedure
 
 Procedure.s GetAreaName(*nclient.Client)
   Define name$
-  If *nclient\area>=0 And *nclient\area<=AreaNumber
+  Debug *nclient\area
+  If *nclient\area>=0 And *nclient\area<=ChannelCount
     name$=Channels(*nclient\area)\name
   ElseIf *nclient\area=-3
     name$="RAM"
@@ -490,6 +491,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
     
     Select *ntmes\position
       Case "def"
+        Case "hld"
         vpos=1;left
       Case "pro"
         vpos=2;right
@@ -514,8 +516,9 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
               Websocket_SendTextFrame(Clients()\ClientID,message$)
             CompilerEndIf
           Case #VNO
-            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
+            message$="MS#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\showname+"#"+*ntmes\emotemod+"#"+Str(*seUser\CID+1)+"#"+*ntmes\background+"#"+Str(vpos)+"#"+Str(*ntmes\color)+"##%"
             sresult=SendString(Clients()\ClientID,message$)
+            Debug message$
             If sresult=-1
               WriteLog("CLIENT DIED",Clients())
               RemoveDisconnect(Clients()\ClientID)
@@ -578,7 +581,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 571
-; FirstLine = 527
-; Folding = ----
+; CursorPosition = 120
+; FirstLine = 105
+; Folding = ------
 ; EnableXP

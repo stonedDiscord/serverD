@@ -1,5 +1,5 @@
 [Version]
-Compile=1380
-Build=151
+Compile=1377
+Build=152
 0.0.0.0
      WD-WX21EA45MECN
