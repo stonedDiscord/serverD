@@ -2486,30 +2486,7 @@ Procedure HandleAOCommand(ClientID)
         Case "GET"
           *usagePointer\type=#WEBBROWSER
           RequestedFile$=StringField(StringField(rawreceive$,2," "),1,"?")
-          Debug "rfile"
-          Debug RequestedFile$
-          If RequestedFile$ = "" Or RequestedFile$ = "/"
-            RequestedFile$ = "index.html"
-          EndIf
-          
-          If ReadFile(0,"cbase/"+RequestedFile$)
-            
-            FileLength = Lof(0)
-            ContentType$ = MIME(RequestedFile$)
-            RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
-            RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+","+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
-            *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
-            HLength=PokeS(*FileBuffer,RHeader$)  
-            *BufferOffset = *FileBuffer+HLength
-            WriteLog(ip$+" requested file "+RequestedFile$,Server)
-            ReadData(0,*BufferOffset,FileLength)
-            Debug "headerlength"
-            Debug HLength
-            CloseFile(0)
-            Debug PeekS(*FileBuffer,HLength+FileLength)
-            SendNetworkData(ClientID,*FileBuffer,HLength+FileLength)
-            FreeMemory(*FileBuffer)
-          EndIf     
+          GETrequest(RequestedFile$,ClientID)
         CompilerEndIf
       Default
         WriteLog(rawreceive$,*usagePointer)
@@ -2557,47 +2534,12 @@ Procedure Network(var)
             Debug "wotf"
             rawreceive$=PeekS(*Buffer,length)
             Debug rawreceive$
-            If ExpertLog
-              WriteLog(rawreceive$,Clients())
-            EndIf
             If length>=0
-              For i = 1 To CountString(rawreceive$,#CRLF$)
-                headeririda$ = StringField(rawreceive$,i,#CRLF$)
-                headeririda$ = RemoveString(headeririda$,#CR$)
-                headeririda$ = RemoveString(headeririda$,#LF$)
-                If Left(headeririda$,3) = "GET"
-                  Debug "getline"
-                  RequestedFile$=StringField(StringField(headeririda$,2," "),1,"?")
-                  Debug "rfile"
-                  Debug RequestedFile$
-                  If RequestedFile$ = ""
-                    Break
-                  EndIf
-                  cType=#WEBBROWSER
-                  If ReadFile(0,"cbase/"+RequestedFile$)
-                    
-                    FileLength = Lof(0)
-                    
-                    ContentType$=MIME(RequestedFile$)
-                    RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
-                    RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Date: "+DayInText(RFileDate)+","+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+#CRLF$
-                    *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
-                    HLength=PokeS(*FileBuffer,RHeader$)  
-                    *BufferOffset = *FileBuffer+HLength
-                    WriteLog(ip$+" requested file "+RequestedFile$,Server)
-                    ReadData(0,*BufferOffset,FileLength)
-                    Debug "headerlength"
-                    Debug HLength
-                    CloseFile(0)
-                    Debug PeekS(*FileBuffer,HLength+FileLength)
-                    SendNetworkData(ClientID,*FileBuffer,HLength+FileLength)
-                    FreeMemory(*FileBuffer)
-                    CloseNetworkConnection(ClientID)
-                    send=0
-                  EndIf
-                ElseIf Left(headeririda$,17) = "Sec-WebSocket-Key"
+              headeririda$ = StringField(rawreceive$,1,#CRLF$)
+              wkeypos=FindString(rawreceive$,"Sec-WebSocket-Key")
+                If wkeypos
                   cType=#WEBSOCKET
-                  wkey$ = Right(headeririda$,Len(headeririda$) - 19)
+                  wkey$ = Mid(rawreceive$,wkeypos+19,24)
                   Debug wkey$
                   rkey$ = SecWebsocketAccept(wkey$)
                   Debug rkey$
@@ -2608,9 +2550,16 @@ Procedure Network(var)
                   vastus$ = vastus$ + "Upgrade: websocket"+ #CRLF$ + #CRLF$
                   Debug vastus$
                   send=1
+                  Debug vastus$
                   SendNetworkString(ClientID,vastus$)
+                ElseIf Left(rawreceive$,3) = "GET"
+                  Debug "getline"
+                  cType=#WEBBROWSER
+                  RequestedFile$=StringField(StringField(headeririda$,2," "),1,"?")
+                  GETrequest(RequestedFile$,ClientID)
+                  CloseNetworkConnection(ClientID)
+                  send=0
                 EndIf
-              Next
             EndIf
           Else
             SendNetworkString(ClientID,"decryptor#"+decryptor$+"#%")
@@ -2850,7 +2799,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1313
-; FirstLine = 1265
+; CursorPosition = 2535
+; FirstLine = 2517
 ; Folding = ------
 ; EnableXP

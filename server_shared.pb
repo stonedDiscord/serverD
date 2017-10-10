@@ -421,6 +421,38 @@ Procedure RemoveDisconnect(ClientID)
   UnlockMutex(ListMutex)  
 EndProcedure
 
+Procedure GETrequest(requestedFile$,ClientID)
+  Debug "rfile"
+  Debug RequestedFile$
+  If RequestedFile$ = "" Or RequestedFile$ = "/"
+    RequestedFile$ = "index.html"
+  EndIf
+  
+  If ReadFile(0,"cbase/"+RequestedFile$)
+    
+    FileLength = Lof(0)
+    ContentType$ = MIME(RequestedFile$)
+    RFileDate=GetFileDate("cbase/"+RequestedFile$,#PB_Date_Modified)
+    RHeader$="HTTP/1.0 200 OK"+#CRLF$+"Last-Modified: "+DayInText(RFileDate)+", "+Day(RFileDate)+" "+MonthInText(RFileDate)+" "+FormatDate("%yyyy %hh:%ii:%ss",RFileDate)+" GMT"+#CRLF$+"Content-Type: "+ContentType$+#CRLF$+"Content-Length: "+Str(FileLength)+#CRLF$+"Cache-Control: max-age=2628000, public"+#CRLF$+#CRLF$
+    *FileBuffer   = AllocateMemory(FileLength+Len(RHeader$)+20)
+    HLength=PokeS(*FileBuffer,RHeader$,#PB_String_NoZero)  
+    *BufferOffset = *FileBuffer+HLength
+    WriteLog(ip$+" requested file "+RequestedFile$,Server)
+    ReadData(0,*BufferOffset,FileLength)
+    Debug "headerlength"
+    Debug HLength
+    CloseFile(0)
+    Debug PeekS(*FileBuffer,HLength+FileLength)
+    SendNetworkData(ClientID,*FileBuffer,HLength+FileLength)
+    FreeMemory(*FileBuffer)
+  Else
+    RHeader$="HTTP/1.0 404 NOT FOUND"+#CRLF$+#CRLF$
+    SendNetworkString(ClientID,RHeader$)
+  EndIf
+  Debug "not funny"                    
+  
+EndProcedure
+
 Procedure SendString(ClientID,message$)
   Select Clients()\type
     Case #WEBSOCKET
@@ -491,7 +523,7 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
     
     Select *ntmes\position
       Case "def"
-        Case "hld"
+      Case "hld"
         vpos=1;left
       Case "pro"
         vpos=2;right
@@ -581,7 +613,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 518
-; FirstLine = 484
+; CursorPosition = 435
+; FirstLine = 417
 ; Folding = ------
 ; EnableXP
