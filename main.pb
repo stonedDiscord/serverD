@@ -1105,20 +1105,21 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
               Clients()\ignore=0
               actionn$="undignored"
               akck+1
-              ResetList(Actions())
-              While NextElement(Actions())
-                If Actions()\IP=Clients()\IP And Actions()\type=#CIGNORE
-                  DeleteElement(Actions())
-                EndIf
-              Wend
+              
+            Case #SILENCE
+              Clients()\silence=1
+              actionn$="ignored"
+              akck+1
+              
+            Case #UNSILENCE
+              Clients()\silence=0
+              actionn$="unsilenced"
+              akck+1
               
             Case #UNDJ
               Clients()\ignoremc=1
               actionn$="undj'd"
               akck+1
-              AddElement(Actions())
-              Actions()\IP=Clients()\IP
-              Actions()\type=#UNDJ
               
             Case #DJ
               Clients()\ignoremc=0
@@ -1480,6 +1481,7 @@ Procedure HandleAOCommand(ClientID)
             Case "/bg"
               If *usagePointer\perm                            
                 bgcomm$=Mid(ctparam$,5)
+                Debug bgcomm$
                 Channels(*usagePointer\area)\bg=bgcomm$
                 Sendtarget("Area"+Str(*usagePointer\area),"BN#"+bgcomm$+"#%",*usagePointer)                      
               EndIf
@@ -1488,8 +1490,10 @@ Procedure HandleAOCommand(ClientID)
               npos$=Mid(ctparam$,6)
               If npos$="def" Or npos$="pro" Or npos$="hlp" Or npos$="hld" Or npos$="wit" Or npos$="jud"
                 *usagePointer\pos=npos$
+                SendTarget(Str(ClientID),"CT#$HOST#Your position is now: "+*usagePointer\pos+"#%",Server)
               Else
                 *usagePointer\pos=""
+                SendTarget(Str(ClientID),"CT#$HOST#You're back in the default position#%",Server)
               EndIf
               
             Case "/g"
@@ -1660,11 +1664,13 @@ Procedure HandleAOCommand(ClientID)
             Case "/skip"
               If *usagePointer\perm
                 *usagePointer\skip=1
+                SendTarget(Str(ClientID),"CT#$HOST#You can now skip others#%",Server)
               EndIf
               
             Case "/noskip"
               If *usagePointer\perm
                 *usagePointer\skip=0
+                SendTarget(Str(ClientID),"CT#$HOST#You can no longer skip others#%",Server)
               EndIf
               
             Case "/toggle"
@@ -1934,6 +1940,18 @@ Procedure HandleAOCommand(ClientID)
                 SendTarget(Str(ClientID),"CT#$HOST#unmuted "+Str(akck)+" clients#%",Server)
               EndIf
               
+              Case "/silence"
+              If *usagePointer\perm>=#MOD
+                akck=KickBan(Mid(ctparam$,10),StringField(ctparam$,3," "),#SILENCE,*usagePointer)
+                SendTarget(Str(ClientID),"CT#$HOST#silenced "+Str(akck)+" clients#%",Server)
+              EndIf
+              
+              
+            Case "/unsilence"
+              If *usagePointer\perm>=#MOD
+                akck=KickBan(Mid(ctparam$,12),StringField(ctparam$,3," "),#UNSILENCE,*usagePointer)
+                SendTarget(Str(ClientID),"CT#$HOST#unsilenced "+Str(akck)+" clients#%",Server)
+              EndIf
               
             Case "/undj"
               If *usagePointer\perm>=#MOD
@@ -2626,7 +2644,7 @@ Procedure Network(var)
     Case #PB_NetworkEvent_Data ;- Received Data
       *usagePointer.Client=FindMapElement(Clients(),Str(ClientID))
       If *usagePointer
-        length=ReceiveNetworkData(ClientID,*Buffer,1024)
+        length=ReceiveNetworkData(ClientID,*Buffer,2048)
         If length
           rawreceive$=PeekS(*Buffer,length)
           Debug rawreceive$
@@ -2694,7 +2712,8 @@ Procedure Network(var)
           
           sc=1
           While StringField(rawreceive$,sc,"%")<>""
-            subcommand$=ValidateChars(StringField(rawreceive$,sc,"%")+"%")
+            subcommand$=ValidateChars(StringField(rawreceive$,sc,"%"))
+            Debug subcommand$
             length=Len(subcommand$)
             
             If ExpertLog
@@ -2761,7 +2780,7 @@ CompilerElse
   success=CreateNetworkServer(0,Port,#PB_Network_TCP)
   If success
     
-    *Buffer = AllocateMemory(1024)
+    *Buffer = AllocateMemory(2048)
     
     WriteLog("Server started",Server)
     
@@ -2799,7 +2818,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2535
-; FirstLine = 2517
+; CursorPosition = 1483
+; FirstLine = 1466
 ; Folding = ------
 ; EnableXP

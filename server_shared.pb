@@ -535,10 +535,13 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
     EndIf
     Channels(*seUser\area)\waitstart=ElapsedMilliseconds()
     Channels(*seUser\area)\waitdur=Len(*ntmes\message)*40
+    If Channels(*seUser\area)\waitdur>600
+      Channels(*seUser\area)\waitdur=1
+    EndIf
     LockMutex(ListMutex)  
     ResetMap(Clients())
     While NextMapElement(Clients())
-      If Clients()\area=*seUser\area
+      If Clients()\area=*seUser\area And (*seUser\silence=0 Or *seUser=Clients())
         Select Clients()\type
             CompilerIf #WEB
             Case #WEBSOCKET  
@@ -613,7 +616,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 435
-; FirstLine = 417
+; CursorPosition = 539
+; FirstLine = 503
 ; Folding = ------
 ; EnableXP

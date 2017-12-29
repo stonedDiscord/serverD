@@ -108,6 +108,7 @@ Structure Client
   type.b
   perm.w
   ignore.b
+  silence.b
   ignoremc.b
   hack.b
   gimp.b
@@ -172,6 +173,8 @@ Enumeration
   #UNMUTE
   #CIGNORE
   #UNIGNORE
+  #SILENCE
+  #UNSILENCE
   #UNDJ
   #DJ
   #GIMP
@@ -180,6 +183,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 71
-; FirstLine = 54
+; CursorPosition = 176
+; FirstLine = 129
 ; EnableXP
