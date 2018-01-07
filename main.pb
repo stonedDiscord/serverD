@@ -1028,7 +1028,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
     Debug kick$
     Debug kclid
     If Clients()\ClientID
-      If kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=ReplaceString(GetCharacterName(Clients())," ","_") Or kick$=Clients()\HD Or kick$=Clients()\IP Or kick$="Area"+Str(Clients()\area) Or everybody
+      If ((kick$=Str(kcid) Or kick$=Str(kclid) Or kick$=ReplaceString(GetCharacterName(Clients())," ","_")) And Clients()\area=*usagePointer\area) Or kick$=Clients()\HD Or kick$=Clients()\IP Or kick$="Area"+Str(Clients()\area) Or everybody
         If Clients()\perm<*usagePointer\perm Or (*usagePointer\perm And Clients()=*usagePointer)
           LockMutex(ActionMutex)
           Select action
@@ -2818,7 +2818,7 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1483
-; FirstLine = 1466
+; CursorPosition = 1030
+; FirstLine = 1010
 ; Folding = ------
 ; EnableXP
