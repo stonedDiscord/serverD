@@ -1271,13 +1271,13 @@ Procedure HandleAOCommand(ClientID)
         nmes.ChatMessage
         Select *usagePointer\type
           Case #VNO
-            nmes\char=StringField(rawreceive$,2,"#")
-            nmes\emote=StringField(rawreceive$,3,"#")
-            nmes\message=StringField(rawreceive$,4,"#")
-            nmes\showname=StringField(rawreceive$,5,"#")
+            nmes\char=Encode(StringField(rawreceive$,2,"#"))
+            nmes\emote=Encode(StringField(rawreceive$,3,"#"))
+            nmes\message=Encode(StringField(rawreceive$,4,"#"))
+            nmes\showname=Encode(StringField(rawreceive$,5,"#"))
             nmes\color=Val(StringField(rawreceive$,6,"#"))
             ;7 is charid
-            nmes\background=StringField(rawreceive$,8,"#")
+            nmes\background=Encode(StringField(rawreceive$,8,"#"))
             Select Val(StringField(rawreceive$,9,"#"))
               Case 1
                 nmes\position="def"
@@ -1287,21 +1287,21 @@ Procedure HandleAOCommand(ClientID)
                 nmes\position="wit"
             EndSelect
             nmes\flip=Val(StringField(rawreceive$,10,"#"))
-            nmes\sfx=StringField(rawreceive$,11,"#")
+            nmes\sfx=Encode(StringField(rawreceive$,11,"#"))
           Default
             ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
-            nmes\deskmod=StringField(rawreceive$,2,"#")
-            nmes\preemote=StringField(rawreceive$,3,"#")
-            nmes\char=StringField(rawreceive$,4,"#")
+            nmes\deskmod=Encode(StringField(rawreceive$,2,"#"))
+            nmes\preemote=Encode(StringField(rawreceive$,3,"#"))
+            nmes\char=Encode(StringField(rawreceive$,4,"#"))
             nmes\showname="char"
-            nmes\emote=StringField(rawreceive$,5,"#")
-            nmes\message=StringField(rawreceive$,6,"#")
+            nmes\emote=Encode(StringField(rawreceive$,5,"#"))
+            nmes\message=Encode(StringField(rawreceive$,6,"#"))
             If *usagePointer\pos=""
-              nmes\position=StringField(rawreceive$,7,"#")
+              nmes\position=Encode(StringField(rawreceive$,7,"#"))
             Else
               nmes\position=*usagePointer\pos
             EndIf
-            nmes\sfx=StringField(rawreceive$,8,"#")
+            nmes\sfx=Encode(StringField(rawreceive$,8,"#"))
             nmes\emotemod=Val(StringField(rawreceive$,9,"#"))
             nmes\animdelay=Val(StringField(rawreceive$,11,"#"))
             nmes\objmod=Val(StringField(rawreceive$,12,"#"))
@@ -2712,7 +2712,7 @@ Procedure Network(var)
           
           sc=1
           While StringField(rawreceive$,sc,"%")<>""
-            subcommand$=ValidateChars(StringField(rawreceive$,sc,"%"))
+            subcommand$=ValidateChars(StringField(rawreceive$,sc,"%")+"%")
             Debug subcommand$
             length=Len(subcommand$)
             
@@ -2780,7 +2780,7 @@ CompilerElse
   success=CreateNetworkServer(0,Port,#PB_Network_TCP)
   If success
     
-    *Buffer = AllocateMemory(2048)
+    *Buffer = AllocateMemory(2050)
     
     WriteLog("Server started",Server)
     
@@ -2818,7 +2818,12 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
+<<<<<<< HEAD
 ; CursorPosition = 1030
 ; FirstLine = 1010
+=======
+; CursorPosition = 1365
+; FirstLine = 1338
+>>>>>>> 277c579562bbca60b1051eba8e181fc28dd1dc2b
 ; Folding = ------
 ; EnableXP

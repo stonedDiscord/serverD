@@ -49,19 +49,7 @@ Global NewMap Clients.Client()
 Global NewList Actions.Action()
 
 Procedure.s ValidateChars(source.s)
-  Protected i, *ptrChar.Character, length = Len(source), result.s
-  *ptrChar = @source
-  For i = 1 To length
-    If *ptrChar\c > 31
-      If *ptrChar\c<>127
-        result + Chr(*ptrChar\c)
-      Else
-        Debug *ptrChar\c
-      EndIf
-    EndIf
-    *ptrChar + SizeOf(Character)
-  Next
-  ProcedureReturn result 
+  ProcedureReturn source.s
 EndProcedure
 
 Procedure.s Encode(smes$)
@@ -616,7 +604,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 539
-; FirstLine = 503
+; CursorPosition = 52
+; FirstLine = 47
 ; Folding = ------
 ; EnableXP
