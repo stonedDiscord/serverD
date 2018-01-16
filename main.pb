@@ -86,7 +86,7 @@ Global ChannelCount=1
 Global decryptor$
 Global key
 Global newbuild
-Global *Buffer
+Global *Buffer = AllocateMemory(4096)
 Global NewList HDmods.s()
 Global NewList gimps.s()
 Global NewList PReplay.s()
@@ -656,7 +656,7 @@ EndProcedure
 ProcedureDLL MasterAdvert(Port)
   Define msID=0,msinfo,NEvent,msPort=27016,retries,tick
   Define sr=-1
-  Define  *null=AllocateMemory(512)
+  Define *null=AllocateMemory(512)
   Define master$,msrec$
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/masterserver.ini")
@@ -729,7 +729,7 @@ EndProcedure
 Procedure MasterAdvertVNO(port)
   Define msID=0,msinfo,NEvent,MVNO=0,msport=6543,retries
   Define sr=-1
-  Define  *null=AllocateMemory(100)
+  Define *null=AllocateMemory(100)
   Define master$,msrec$,mspass$,mscpass$,msuser$
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/AS.ini")
@@ -2764,6 +2764,7 @@ If ReceiveHTTPFile("http://raw.githubusercontent.com/stonedDiscord/serverD/maste
   OpenPreferences("version.txt")
   PreferenceGroup("Version")
   newbuild=ReadPreferenceInteger("Build",#PB_Editor_BuildCount)
+  Debug newbuild
   If newbuild>#PB_Editor_BuildCount
     update=1
   EndIf
@@ -2779,8 +2780,6 @@ CompilerElse
   killed=0
   success=CreateNetworkServer(0,Port,#PB_Network_TCP)
   If success
-    
-    *Buffer = AllocateMemory(2050)
     
     WriteLog("Server started",Server)
     
@@ -2818,12 +2817,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-<<<<<<< HEAD
-; CursorPosition = 1030
-; FirstLine = 1010
-=======
-; CursorPosition = 1365
-; FirstLine = 1338
->>>>>>> 277c579562bbca60b1051eba8e181fc28dd1dc2b
+; CursorPosition = 353
+; FirstLine = 323
 ; Folding = ------
+; EnableUnicode
 ; EnableXP

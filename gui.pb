@@ -47,7 +47,6 @@ If OpenWindow(2,#PB_Ignore,#PB_Ignore,420,263,"serverD",#PB_Window_BorderLess|#P
   CatchImage(2,?hacker)
   Icons(2)=ImageID(2)
   WindowEvent()
-  *Buffer = AllocateMemory(1024)
   Open_Window_0()
   LoadSettings(0)
   Delay(100)
@@ -256,7 +255,7 @@ DataSection
   bannerend:
 EndDataSection
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 256
-; FirstLine = 208
+; CursorPosition = 255
+; FirstLine = 204
 ; Folding = -
 ; EnableXP
