@@ -19,6 +19,7 @@ Structure Evidence
   image.s
 EndStructure
 
+;- Global variables
 #C1 = 53761
 #C2 = 32618
 Global version$=Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
@@ -145,6 +146,7 @@ Procedure WriteReplay(string$)
   EndIf
 EndProcedure
 
+; used for fantacrypt
 ProcedureDLL.s HexToString(hex.s)
   Define str.s="",i
   For i = 1 To Len(hex.s) Step 2
@@ -195,7 +197,7 @@ ProcedureDLL.s DecryptStr(S.s,Key.u)
   ProcedureReturn Result.s
 EndProcedure
 
-;- Load Settings function
+;- Load Settings
 Procedure LoadSettings(reload)
   Define loadchars,loadcharsettings,loaddesc,loadevi,loadareas
   Define InitChannel,charpage,page,dur,ltracks,nplg
@@ -224,6 +226,7 @@ Procedure LoadSettings(reload)
       WritePreferenceString("case","AAOPublic2")
     EndIf
   EndIf
+  
   PreferenceGroup("net")
   opppass$=Encode(ReadPreferenceString("oppassword","change_me_people_can_use_this_to_take_passworded_chars"))
   Port=ReadPreferenceInteger("Port",27016)
@@ -311,6 +314,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf  
   
+  ; Load scene file
   OpenPreferences("base/scene/"+scene$+"/init.ini")
   
   CompilerIf #CONSOLE
@@ -331,6 +335,8 @@ Procedure LoadSettings(reload)
     Channels(InitChannel)\good=10
     Channels(InitChannel)\evil=10
   Next
+  
+; Load Characters
   PreferenceGroup("chars")
   characternumber=ReadPreferenceInteger("number",1)
   If ReadPreferenceInteger("slots",characternumber)=-1
@@ -349,6 +355,8 @@ Procedure LoadSettings(reload)
   For loaddesc=0 To characternumber
     Characters(loaddesc)\desc=Encode(ReadPreferenceString(Str(loadchars),""))
   Next
+  
+  ; Load Evidence
   ReDim Evidences(EviNumber)
   ReDim ReadyEvidence(EviNumber)
   For loadevi=0 To EviNumber
@@ -363,6 +371,7 @@ Procedure LoadSettings(reload)
   Next
   ClosePreferences()
   
+  ; Load Character Files and prepare Speedloading
   ready$="CI#"
   newcready$="SC#"
   charpage=0
@@ -400,6 +409,7 @@ Procedure LoadSettings(reload)
   Next
   newcready$=newcready$+"%"
   
+  ; Load music
   If ReadFile(2,"base/musiclist.txt")
     tracks=0
     ltracks=0
@@ -411,8 +421,7 @@ Procedure LoadSettings(reload)
       trackn$=ReadString(2) 
       track$=StringField(trackn$,1,"*")
       dur=Val(StringField(trackn$,2,"*"))
-      track$ = ReplaceString(track$,"#","<num>")
-      track$ = ReplaceString(track$,"%","<percent>")
+      track$ = Encode(track$)
       Music()\TrackName = track$
       Music()\Length = dur*1000
       ready$ = ready$ + Str(tracks) + "#" + track$ + "#"
@@ -459,6 +468,7 @@ Procedure LoadSettings(reload)
     tracks=1
   EndIf
   
+  ; these IP/HDs are mods when they log on
   If ReadFile(2,"base/op.txt")
     ClearList(HDmods())
     While Eof(2) = 0
@@ -476,6 +486,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf
   
+  ; funny meme sentences
   If ReadFile(2,"base/gimp.txt")
     ClearList(gimps())
     While Eof(2) = 0
@@ -493,6 +504,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf
   
+  ; Load areas
   If OpenPreferences( "base/scene/"+scene$+"/areas.ini")
     PreferenceGroup("Areas")
     ChannelCount=ReadPreferenceInteger("number",1)
@@ -532,24 +544,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf
   
-  If ReadFile(2,"serverd.txt")
-    ReadString(2)
-    ReadString(2)
-    ReadString(2)
-    ClearList(SDbans())
-    While Eof(2) = 0
-      hdban$=ReadString(2)
-      If hdban$<>""
-        AddElement(SDbans())
-        SDbans()\banned=StringField(hdban$,1,"#")
-        SDbans()\time=Val(StringField(hdban$,2,"#"))
-        SDbans()\reason=StringField(hdban$,3,"#")
-        SDbans()\type=Val(StringField(hdban$,4,"#"))
-      EndIf
-    Wend  
-    CloseFile(2)
-  EndIf
-  
+; HDbans 
   If ReadFile(2,"base/HDbanlist.txt")
     ClearList(HDbans())
     While Eof(2) = 0
@@ -569,6 +564,7 @@ Procedure LoadSettings(reload)
     EndIf
   EndIf
   
+  ;  IPbans
   If ReadFile(2,"base/banlist.txt")
     ClearList(IPbans())
     While Eof(2) = 0
@@ -584,6 +580,7 @@ Procedure LoadSettings(reload)
     CloseFile(2)
   EndIf
   
+  ; Load plugins
   CloseLibrary(#PB_All)
   If ExamineDirectory(0,"plugins/","*"+libext$)  
     While NextDirectoryEntry(0)
@@ -618,7 +615,8 @@ Procedure LoadSettings(reload)
   
   
 EndProcedure
-
+; IP list for old clients
+; the list disappears on the client once you switch between server and master chat
 Procedure ListIP(ClientID)
   Define iplist$
   Define charname$
@@ -636,6 +634,7 @@ Procedure ListIP(ClientID)
   SendTarget(Str(ClientID),iplist$,Server) 
 EndProcedure
 
+; AO2 doesn't know that command
 Procedure ListIPSI(ClientID)
   Define iplist$
   Define charname$
@@ -653,10 +652,11 @@ Procedure ListIPSI(ClientID)
   SendTarget(Str(ClientID),iplist$,Server) 
 EndProcedure
 
+;masterserver stuff
 ProcedureDLL MasterAdvert(Port)
   Define msID=0,msinfo,NEvent,msPort=27016,retries,tick
   Define sr=-1
-  Define *null=AllocateMemory(512)
+  Define *aom=AllocateMemory(512)
   Define master$,msrec$
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/masterserver.ini")
@@ -680,11 +680,11 @@ ProcedureDLL MasterAdvert(Port)
         If NEvent=#PB_NetworkEvent_Disconnect
           msID=0
         ElseIf NEvent=#PB_NetworkEvent_Data
-          msinfo=ReceiveNetworkData(msID,*null,512)
+          msinfo=ReceiveNetworkData(msID,*aom,512)
           If msinfo=-1
             msID=0
           Else
-            msrec$=PeekS(*null,msinfo)
+            msrec$=PeekS(*aom,msinfo)
             Debug msrec$
             If msrec$="NOSERV#%"
               WriteLog("Fell off the serverlist,fixing...",Server)
@@ -722,14 +722,14 @@ ProcedureDLL MasterAdvert(Port)
   If msID
     CloseNetworkConnection(msID)
   EndIf
-  FreeMemory(*null)
+  FreeMemory(*aom)
   msthread=0
 EndProcedure
 
 Procedure MasterAdvertVNO(port)
   Define msID=0,msinfo,NEvent,MVNO=0,msport=6543,retries
   Define sr=-1
-  Define *null=AllocateMemory(100)
+  Define *vnom=AllocateMemory(512)
   Define master$,msrec$,mspass$,mscpass$,msuser$
   WriteLog("Masterserver adverter thread started",Server)
   OpenPreferences("base/AS.ini")
@@ -756,13 +756,13 @@ Procedure MasterAdvertVNO(port)
         msID=0
         Server\ClientID=msID
       ElseIf NEvent=#PB_NetworkEvent_Data
-        msinfo=ReceiveNetworkData(msID,*null,100)
+        msinfo=ReceiveNetworkData(msID,*vnom,100)
         If msinfo=-1
           sr=-1
         Else
           tick=0
           retries=0
-          mrawreceive$=PeekS(*null,msinfo)
+          mrawreceive$=PeekS(*vnom,msinfo)
           If ExpertLog
             WriteLog(msrec$,Server)
           EndIf
@@ -854,10 +854,11 @@ Procedure MasterAdvertVNO(port)
     CompilerEndIf
     CloseNetworkConnection(msID)
   EndIf
-  FreeMemory(*null)
+  FreeMemory(*vnom)
   msvthread=0
 EndProcedure
 
+;send a list of evidence to everyone once it updates
 Procedure SendUpdatedEvi(target$)
   evilist$="LE#"
     For loadevi=0 To EviNumber
@@ -869,6 +870,7 @@ Procedure SendUpdatedEvi(target$)
   SendTarget(target$,evilist$,Server)
 EndProcedure
 
+; this triggers the charselect on clients
 Procedure SendDone(*usagePointer.Client)
   Define send$
   Define sentchar
@@ -904,6 +906,7 @@ Procedure SendDone(*usagePointer.Client)
   SendTarget(Str(*usagePointer\ClientID),"DONE#%",Server)
 EndProcedure
 
+; switching areas
 Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
   Define sendd=0
   Define ir
@@ -1008,6 +1011,7 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
   EndIf
 EndProcedure
 
+; handle mod operations
 Procedure KickBan(kick$,param$,action,*usagePointer.Client)
   Define actionn$
   Define akck,newchar=-1
@@ -1108,7 +1112,7 @@ Procedure KickBan(kick$,param$,action,*usagePointer.Client)
               
             Case #SILENCE
               Clients()\silence=1
-              actionn$="ignored"
+              actionn$="silenced"
               akck+1
               
             Case #UNSILENCE
@@ -1463,7 +1467,7 @@ Procedure HandleAOCommand(ClientID)
             Case "/cmds"
               SendTarget(Str(ClientID),"CT#$HOST#help,cmds,login,g,pos,change,switch,online,area,evi,roll,pm,version,smokeweed#%",Server)
               If *usagePointer\perm
-                SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(un)dj,(un)gimp#%",Server)
+                SendTarget(Str(ClientID),"CT#$HOST#ip,bg,move,lock,(no)skip,play,hd,(un)ban,kick,disconnect,(un)mute,(un)ignore,(unsilence),(un)dj,(un)gimp#%",Server)
               EndIf
               If *usagePointer\perm>=#ADMIN
                 SendTarget(Str(ClientID),"CT#$HOST#public,send,sendall,reload,toggle,decryptor,snapshot,stop,loadreplay#%",Server)
@@ -2354,6 +2358,7 @@ Procedure HandleAOCommand(ClientID)
         EndIf
         
       Case "ID"
+        Debug rawreceive$
         If StringField(rawreceive$,2,"#")="AO2"
           *usagePointer\type=#AOTWO
         EndIf
@@ -2817,8 +2822,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 353
-; FirstLine = 323
+; CursorPosition = 2360
+; FirstLine = 2327
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
