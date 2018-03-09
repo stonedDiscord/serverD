@@ -395,6 +395,7 @@ Procedure RemoveDisconnect(ClientID)
         CloseFile(7)
       EndIf
     CompilerEndIf
+    CompilerIf #PLUGINS
     If ListSize(Plugins())
       ResetList(Plugins())
       While NextElement(Plugins())
@@ -403,6 +404,7 @@ Procedure RemoveDisconnect(ClientID)
         CallFunctionFast(Plugins()\rawfunction,Clients())
       Wend
     EndIf
+    CompilerEndIf
     DeleteMapElement(Clients(),Str(ClientID))
     rf=1
   EndIf
@@ -604,7 +606,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 19
-; FirstLine = 51
+; CursorPosition = 406
+; FirstLine = 403
 ; Folding = ------
 ; EnableXP

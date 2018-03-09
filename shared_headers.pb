@@ -5,6 +5,7 @@ Structure Action
   type.i  
 EndStructure
 
+CompilerIf #PLUGINS
 Structure Plugin
   ID.i
   version.i
@@ -17,6 +18,15 @@ Structure Plugin
   active.b
 EndStructure
 
+Enumeration ;plugin status
+  #NODATA
+  #DATA
+  #CONN
+  #DISC
+  #SEND
+EndEnumeration
+CompilerEndIf
+
 Structure Track
   TrackName.s
   Length.i
@@ -28,14 +38,6 @@ Enumeration ;ranks
   #MOD
   #ADMIN
   #SERVER  
-EndEnumeration
-
-Enumeration ;plugin status
-  #NODATA
-  #DATA
-  #CONN
-  #DISC
-  #SEND
 EndEnumeration
 
 Enumeration ;client type
@@ -183,6 +185,6 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 176
-; FirstLine = 129
+; CursorPosition = 7
+; Folding = -
 ; EnableXP
