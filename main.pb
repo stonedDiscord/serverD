@@ -67,13 +67,12 @@ Global replayopen.b
 Global modcol=0
 Global BlockINI.b=0
 Global BlockTaken.b=1
-Global MOTDevi=0
 Global ExpertLog=0
 Global tracks=0
 Global msthread=0
 Global msvthread=0
 Global LoginReply$="CT#$HOST#Successfully connected as mod#%"
-Global motd$="Take that!"
+Global motd$="CT#$SERVER#Running serverD version "+version$+"#%"
 Global musicpage=0
 Global EviNumber=0
 Global ListMutex = CreateMutex()
@@ -266,8 +265,7 @@ Procedure LoadSettings(reload)
       WritePreferenceInteger("BlockTaken",1)
       WritePreferenceInteger("BlockINI",0)
       WritePreferenceInteger("ModColor",0)
-      WritePreferenceInteger("MOTDevi",0)
-      WritePreferenceString("MOTD","Take that!")
+      WritePreferenceString("MOTD","")
       WritePreferenceInteger("LoopMusic",0)
       WritePreferenceInteger("MultiChar",1)
       WritePreferenceInteger("CharLimit",1)
@@ -287,7 +285,6 @@ Procedure LoadSettings(reload)
   BlockTaken=ReadPreferenceInteger("BlockTaken",1)
   modcol=ReadPreferenceInteger("ModColor",0)
   LoopMusic=ReadPreferenceInteger("LoopMusic",0)
-  MOTDevi=ReadPreferenceInteger("MOTDevi",0)
   MultiChar=ReadPreferenceInteger("MultiChar",1)
   CharLimit=ReadPreferenceInteger("CharLimit",1)
   rt=ReadPreferenceInteger("WTCE",1)
@@ -297,7 +294,7 @@ Procedure LoadSettings(reload)
   LoginReply$=ReadPreferenceString("LoginReply","CT#$HOST#Successfully connected as mod#%")
   LogFile$=ReadPreferenceString("LogFile","base/serverlog.log")
   decryptor$=ReadPreferenceString("decryptor","34")
-  motd$=ReadPreferenceString("MOTD","Take that!")
+  motd$=ReadPreferenceString("MOTD","CT#$SERVER#Running serverD version "+version$+"#%")
   key=Val(DecryptStr(HexToString(decryptor$),322))
   If Logging
     CloseFile(1)
@@ -321,7 +318,7 @@ Procedure LoadSettings(reload)
     PrintN("OOC pass:"+oppass$)
     PrintN("Block INI edit:"+Str(BlockINI))
     PrintN("Moderator color:"+Str(modcol))
-    PrintN("MOTD evidence:"+Str(MOTDevi))
+    PrintN("MOTD:"+motd$)
     PrintN("Login reply:"+LoginReply$)
     PrintN("Logfile:"+LogFile$)
     PrintN("Logging:"+Str(Logging))
@@ -382,12 +379,8 @@ Procedure LoadSettings(reload)
     Characters(loadcharsettings)\desc=Encode(ReadPreferenceString("text",""))
     Characters(loadcharsettings)\dj=ReadPreferenceInteger("dj",musicmode)
     Characters(loadcharsettings)\evinumber=ReadPreferenceInteger("evinumber",0)
-    If MOTDevi
-      Characters(loadcharsettings)\evidence=Encode(Str(MOTDevi)+","+ReadPreferenceString("evi",""))
-      Characters(loadcharsettings)\evinumber+1
-    Else
-      Characters(loadcharsettings)\evidence=Encode(ReadPreferenceString("evi",""))
-    EndIf
+    Characters(loadcharsettings)\evidence=Encode(ReadPreferenceString("evi",""))
+
     Characters(loadcharsettings)\pw=Encode(ReadPreferenceString("pass",""))
     If Characters(loadcharsettings)\pw<>""
       passworded$="1"
@@ -581,6 +574,7 @@ Procedure LoadSettings(reload)
   EndIf
   
   ; Load plugins
+  CompilerIf #PLUGINS
   CloseLibrary(#PB_All)
   If ExamineDirectory(0,"plugins/","*"+libext$)  
     While NextDirectoryEntry(0)
@@ -612,7 +606,7 @@ Procedure LoadSettings(reload)
     Wend
     FinishDirectory(0)
   EndIf
-  
+  CompilerEndIf
   
 EndProcedure
 ; IP list for old clients
@@ -2053,8 +2047,8 @@ Procedure HandleAOCommand(ClientID)
               WriteLog("chose character: "+GetCharacterName(*usagePointer),*usagePointer)
               SendTarget(Str(ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
               SendTarget(Str(ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
-              If (MOTDevi And Characters(char)\evinumber<2 ) Or motd$<>"Take that!"
-                SendTarget(Str(ClientID),"MS#chat#dolannormal#Dolan#dolannormal#"+motd$+"#jud#0#0#"+Str(characternumber-1)+"#0#0#"+Str(MOTDevi)+"#"+Str(characternumber-1)+"#0#"+Str(modcol)+"#%",Server)
+              If motd$<>""
+                SendTarget(Str(ClientID),motd$,Server)
               EndIf
               rf=1
             EndIf          
@@ -2634,6 +2628,7 @@ Procedure Network(var)
           CompilerIf #CONSOLE=0
             AddGadgetItem(#Listview_0,-1,ip$,Icons(0))
           CompilerEndIf
+          CompilerIf #PLUGINS
           If ListSize(Plugins())
             ResetList(Plugins())
             While NextElement(Plugins())
@@ -2642,6 +2637,7 @@ Procedure Network(var)
               CallFunctionFast(Plugins()\rawfunction,Clients())
             Wend
           EndIf
+          CompilerEndIf
           UnlockMutex(ListMutex)
         EndIf
       EndIf
@@ -2732,6 +2728,7 @@ Procedure Network(var)
               Else
                 HandleAOCommand(ClientID)
               EndIf
+              CompilerIf #PLUGINS
               If ListSize(Plugins())
                 ResetList(Plugins())
                 While NextElement(Plugins())
@@ -2747,6 +2744,7 @@ Procedure Network(var)
                   EndSelect
                 Wend
               EndIf
+              CompilerEndIf
             EndIf
             sc+1
           Wend
@@ -2822,8 +2820,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2360
-; FirstLine = 2327
+; CursorPosition = 74
+; FirstLine = 71
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP

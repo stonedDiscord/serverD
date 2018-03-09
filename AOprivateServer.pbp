@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2017-12-29 21:36" user="sven" host="DESKTOP-I7MA5HM"/>
+    <lastopen date="2018-02-06 20:05" user="sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -16,18 +16,18 @@
     </file>
     <file name="gui.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="00a1fec2370fe0dab6aa4bcfac2410ab"/>
+      <fingerprint md5="a2f4dae588ed67edd5feb4fc2d083c1e"/>
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="c24bb3cb668621fddc029cb0db9e2823"/>
+      <fingerprint md5="7b461cb4ad1b1409d69a5937254a5d43"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="932cd11b8d61dae4627b623e395c556d"/>
+      <fingerprint md5="f71994db53d01f151170dfc730f8eaa8"/>
     </file>
     <file name="shared_headers.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <config load="0" scan="1" panel="1" warn="1" lastopen="0" panelstate="+"/>
       <fingerprint md5="78ad892a1f3925789f2a2af1eb627d5a"/>
     </file>
   </section>
@@ -38,10 +38,10 @@
       <executable value="serverD.exe"/>
       <options thread="1" xpskin="1" debug="1"/>
       <purifier enable="1" granularity="1,1,1,1"/>
-      <icon enable="1">sD.ico</icon>
+      <icon enable="1">H:\AOVanilla1.7.3\owner.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1363"/>
+      <compilecount enable="1" value="1384"/>
       <buildcount enable="1" value="154"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -53,6 +53,9 @@
         <field6 value="serverD AO custom server software"/>
         <field7 value="MITM II"/>
         <field8 value="serverD.exe"/>
+        <field9 value="(c) stonedDiscord"/>
+        <field13 value="stoned@derpymail.org"/>
+        <field14 value="https://github.com/stonedDiscord/serverD"/>
         <field15 value="VOS_NT_WINDOWS32"/>
         <field16 value="VFT_APP"/>
         <field17 value="2009 English (Jamaica)"/>
@@ -76,7 +79,7 @@
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1363"/>
+      <compilecount enable="1" value="1380"/>
       <buildcount enable="1" value="154"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -88,7 +91,10 @@
         <field6 value="serverD AO custom server software"/>
         <field7 value="MITM II"/>
         <field8 value="serverDco.exe"/>
+        <field9 value="(c) stonedDiscord"/>
         <field12 value="true"/>
+        <field13 value="stoned@derpymail.org"/>
+        <field14 value="https://github.com/stonedDiscord/serverD"/>
         <field15 value="VOS_NT_WINDOWS32"/>
         <field16 value="VFT_APP"/>
         <field17 value="2009 English (Jamaica)"/>
