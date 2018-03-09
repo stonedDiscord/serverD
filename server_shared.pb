@@ -6,18 +6,18 @@ CompilerElse
 CompilerEndIf
 
 XIncludeFile "../serverD/shared_headers.pb"
-
+CompilerIf #PLUGINS
 Global NewList Plugins.Plugin()
 
 Prototype.i PPluginVersion()
 Prototype.l PPluginName()
 Prototype.l PPluginDescription()
 Prototype.i PPluginRAW()
+CompilerEndIf
 
-
-Global Dim Channels.Channel(100)
+Global Dim Channels.Channel(200)
 Define InitChannel
-For InitChannel=0 To 100
+For InitChannel=0 To 200
   Channels(InitChannel)\waitstart=ElapsedMilliseconds()
   Channels(InitChannel)\waitdur=0
   Channels(InitChannel)\lock=0
@@ -25,7 +25,7 @@ For InitChannel=0 To 100
 Next
 
 
-Global Dim Characters.ACharacter(100)
+Global Dim Characters.ACharacter(200)
 
 Global NewList Music.Track()
 
@@ -604,7 +604,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 52
-; FirstLine = 47
+; CursorPosition = 19
+; FirstLine = 51
 ; Folding = ------
 ; EnableXP

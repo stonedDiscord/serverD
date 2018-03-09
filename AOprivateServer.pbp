@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2018-02-06 20:05" user="sven" host="SPC"/>
+    <lastopen date="2018-03-09 20:27" user="sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,14 +20,14 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="7b461cb4ad1b1409d69a5937254a5d43"/>
+      <fingerprint md5="d295033e8fd7835cfe97c943754f7f68"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="f71994db53d01f151170dfc730f8eaa8"/>
+      <fingerprint md5="529893f97adc9d5f58f89b2b7263d556"/>
     </file>
     <file name="shared_headers.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="0" panelstate="+"/>
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
       <fingerprint md5="78ad892a1f3925789f2a2af1eb627d5a"/>
     </file>
   </section>
@@ -41,7 +41,7 @@
       <icon enable="1">H:\AOVanilla1.7.3\owner.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1384"/>
+      <compilecount enable="1" value="1386"/>
       <buildcount enable="1" value="154"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
@@ -63,12 +63,10 @@
       <constants>
         <constant value="#SPAM = 0" enable="1"/>
         <constant value="#EASYLOG = 1" enable="1"/>
-        <constant value="#REGEX = 0" enable="1"/>
-        <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 0" enable="1"/>
-        <constant value="#ServerSideMasking = 0" enable="1"/>
         <constant value="#WEB=1" enable="1"/>
         <constant value="#NICE=0" enable="1"/>
+        <constant value="#PLUGINS=0" enable="1"/>
       </constants>
     </target>
     <target name="serverDco" enabled="1" default="0">
@@ -102,12 +100,10 @@
       <constants>
         <constant value="#SPAM = 0" enable="1"/>
         <constant value="#EASYLOG = 0" enable="1"/>
-        <constant value="#REGEX = 0" enable="1"/>
-        <constant value="#NOPERM = 0" enable="1"/>
         <constant value="#CONSOLE = 1" enable="1"/>
-        <constant value="#ServerSideMasking = 0" enable="1"/>
         <constant value="#WEB=1" enable="1"/>
         <constant value="#NICE=0" enable="1"/>
+        <constant value="#PLUGINS=0" enable="1"/>
       </constants>
     </target>
   </section>

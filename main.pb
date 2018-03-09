@@ -90,16 +90,16 @@ Global *Buffer = AllocateMemory(4096)
 Global NewList HDmods.s()
 Global NewList gimps.s()
 Global NewList PReplay.s()
-Global Dim Evidences.Evidence(100)
+Global Dim Evidences.Evidence(1000)
 Global Dim Icons.l(2)
-Global Dim ReadyChar.s(100)
+Global Dim ReadyChar.s(1000)
 Global newcready$="SC#%"
 Global newmready$="SM#%"
 Global newaready$="SA#%"
-Global Dim ReadyVItem.s(100)
+Global Dim ReadyVItem.s(1000)
 Global Dim ReadyVMusic.s(1000)
-Global Dim ReadyEvidence.s(100)
-Global Dim ReadyMusic.s(500)
+Global Dim ReadyEvidence.s(1000)
+Global Dim ReadyMusic.s(5000)
 
 ;- Include files
 
@@ -2820,8 +2820,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 74
-; FirstLine = 71
+; CursorPosition = 98
+; FirstLine = 9
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
