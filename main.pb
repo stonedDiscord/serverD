@@ -2385,7 +2385,7 @@ Procedure HandleAOCommand(ClientID)
         If hdbanned=0
           ForEach HDbans()
             If *usagePointer\HD = HDbans()\banned
-              WriteLog("HD: "+*usagePointer\HD+" is banned,reason: "+HDbans()\reason,*usagePointer)
+              WriteLog("HD: "+*usagePointer\HD+" is banned, reason: "+HDbans()\reason,*usagePointer)
               SendTarget(Str(ClientID),"BD#%",Server)
               LockMutex(ListMutex)
               CloseNetworkConnection(ClientID)
@@ -2495,9 +2495,9 @@ Procedure HandleAOCommand(ClientID)
         ResetMap(Clients())
         While NextMapElement(Clients())
           If Clients()\perm
-            SendTarget(Str(Clients()\ClientID),"ZZ#"+*usagePointer\IP+" in "+GetAreaName(*usagePointer)+"#%",*usagePointer)  
+            SendTarget(Str(Clients()\ClientID),"ZZ#"+*usagePointer\IP+" in "+GetAreaName(*usagePointer)+", reason: "+StringField(rawreceive$,2,"#")+"#%",*usagePointer)  
           Else
-            SendTarget(Str(Clients()\ClientID),"ZZ#someone in "+GetAreaName(*usagePointer)+"#%",*usagePointer)  
+            SendTarget(Str(Clients()\ClientID),"ZZ#someone#%",*usagePointer)
           EndIf
         Wend   
         UnlockMutex(ListMutex)
@@ -2822,8 +2822,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2188
-; FirstLine = 2170
+; CursorPosition = 2497
+; FirstLine = 2275
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
