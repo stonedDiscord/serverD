@@ -580,7 +580,7 @@ Procedure TrackWait(a)
   cw=1000
   Debug "looping enabled"
   Repeat
-    For k=0 To AreaNumber
+    For k=0 To ChannelCount
       If Channels(k)\trackwait>1
         If (Channels(k)\trackstart+Channels(k)\trackwait)<ElapsedMilliseconds()
           Channels(k)\trackstart=ElapsedMilliseconds()
@@ -606,7 +606,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 406
-; FirstLine = 403
+; CursorPosition = 582
+; FirstLine = 555
 ; Folding = ------
 ; EnableXP
