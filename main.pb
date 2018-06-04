@@ -2184,7 +2184,9 @@ Procedure HandleAOCommand(ClientID)
         SendTarget(Str(ClientID),ReadyChar(0),Server)
         
       Case "RC"
-        *usagePointer\type=#AOTWO
+        If *usagePointer\type=#NOTYPE
+          *usagePointer\type=#AOTWO
+          EndIf
         SendTarget(Str(ClientID),newcready$,Server)
 ;         Dim APlayers(characternumber)
 ;         send$="TC"
@@ -2528,7 +2530,7 @@ Procedure Network(var)
       RemoveDisconnect(ClientID)
       
     Case #PB_NetworkEvent_Connect
-      cType=0
+      cType=#NOTYPE
       If ClientID
         send=1
         ip$=IPString(GetClientIP(ClientID))
@@ -2820,8 +2822,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 98
-; FirstLine = 9
+; CursorPosition = 2188
+; FirstLine = 2170
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
