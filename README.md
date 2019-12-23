@@ -8,7 +8,7 @@ FOR THE SERVER SOFTWARE DOWNLOAD SEE THE "RELEASE" TAB ABOVE
  
 ### minimal setup (console version)
 > OS
-![Windows 95](http://www.fermimn.gov.it/inform/materiali/evarchi/cyrix.dir/win95-lg.gif)
+> Windows 95
 > Linux Kernel 2.3 and libc6 2.13
 
 > CPU
