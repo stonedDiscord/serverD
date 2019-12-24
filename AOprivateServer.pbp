@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2018-03-09 20:27" user="sven" host="SPC"/>
+    <lastopen date="2019-12-24 03:17" user="sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,15 +20,15 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="d295033e8fd7835cfe97c943754f7f68"/>
+      <fingerprint md5="ceca45f3d99c46e497398156f52a24d5"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="529893f97adc9d5f58f89b2b7263d556"/>
+      <fingerprint md5="891b144db0764fc9f1a614eb6a76ac71"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="78ad892a1f3925789f2a2af1eb627d5a"/>
+      <fingerprint md5="9da53d117065b853987d7dc33f6ea6c2"/>
     </file>
   </section>
   <section name="targets">
@@ -36,12 +36,12 @@
       <inputfile value="main.pb"/>
       <outputfile value="serverD.exe"/>
       <executable value="serverD.exe"/>
-      <options thread="1" xpskin="1" debug="1"/>
+      <options thread="1" debug="1"/>
       <purifier enable="1" granularity="1,1,1,1"/>
-      <icon enable="1">H:\AOVanilla1.7.3\owner.ico</icon>
+      <icon enable="1">.\sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1386"/>
+      <compilecount enable="1" value="1387"/>
       <buildcount enable="1" value="154"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
