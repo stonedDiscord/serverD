@@ -975,20 +975,16 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
           Else
             SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(*usagePointer\area)\bg+"#%",Server)
           EndIf
-          If *usagePointer\type>=#AOTWO
-            SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#0#%",Server)
-            send$="TA"
+            send$="ARUP#0"
             For carea=0 To ChannelCount
               send$ = send$ + "#"+Str(Channels(carea)\players)
             Next
             send$ = send$ + "#%"
             SendTarget("*",send$,Server)
-          Else
             WriteLog("Switched Area to "+GetAreaName(*usagePointer),*usagePointer)
             SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
             SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
-          EndIf
         Else
           If *usagePointer\type>=#AOTWO
             SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#1#%",Server)
@@ -2822,8 +2818,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2497
-; FirstLine = 2275
+; CursorPosition = 987
+; FirstLine = 963
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
