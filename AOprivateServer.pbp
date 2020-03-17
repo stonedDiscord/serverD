@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="" pattern="8"/>
     <log show="1"/>
-    <lastopen date="2019-12-24 03:17" user="sven" host="SPC"/>
+    <lastopen date="2020-03-17 20:35" user="sven" host="SPC"/>
   </section>
   <section name="files">
     <file name="Common.pb">
@@ -20,15 +20,15 @@
     </file>
     <file name="main.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="ceca45f3d99c46e497398156f52a24d5"/>
+      <fingerprint md5="23d0af47b869f4a8570ef38c1c8d0b02"/>
     </file>
     <file name="server_shared.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="891b144db0764fc9f1a614eb6a76ac71"/>
+      <fingerprint md5="840dde2d65b92168406a476e8e12222a"/>
     </file>
     <file name="shared_headers.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="9da53d117065b853987d7dc33f6ea6c2"/>
+      <fingerprint md5="cc91793e602a24387b2c8f5b6aa4c02c"/>
     </file>
   </section>
   <section name="targets">
@@ -41,8 +41,8 @@
       <icon enable="1">.\sD.ico</icon>
       <format exe="default" cpu="2"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1387"/>
-      <buildcount enable="1" value="154"/>
+      <compilecount enable="1" value="1396"/>
+      <buildcount enable="1" value="155"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2.%COMPILECOUNT.%BUILDCOUNT,0"/>
@@ -77,8 +77,8 @@
       <icon enable="0">owner.ico</icon>
       <format exe="console" cpu="0"/>
       <debugger custom="1" type="ide"/>
-      <compilecount enable="1" value="1380"/>
-      <buildcount enable="1" value="154"/>
+      <compilecount enable="1" value="1381"/>
+      <buildcount enable="1" value="155"/>
       <versioninfo enable="1">
         <field0 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
         <field1 value="2,%COMPILECOUNT,%BUILDCOUNT,0"/>
