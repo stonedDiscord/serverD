@@ -1,117 +1,8 @@
 ; yes this is the legit serverD source code please report bugfixes/modifications/feature requests to sD/trtukz on skype
 
-CompilerIf #PB_Compiler_Debugger=0
-  OnErrorGoto(?start)
-CompilerEndIf
-
-;- Defining Structure
-Structure CharacterArray
-  StructureUnion
-    c.c[0]
-    s.s{1}[0]
-  EndStructureUnion
-EndStructure
-
-Structure Evidence
-  type.w
-  name.s
-  desc.s
-  image.s
-EndStructure
-
-;- Global variables
-#C1 = 53761
-#C2 = 32618
-Global version$=Str(#PB_Editor_CompileCount)+"."+Str(#PB_Editor_BuildCount)
-Global CommandThreading=0
-Global Dim MaskKey.a(3)
-Global Quit=0
-Global ReplayMode=0
-Global ReplayLength=0
-Global ReplayFile$=""
-Global LoopMusic=0
-Global MultiChar=1
-Global error=0
-Global lasterror=0
-Global WebSockets=1
-Global Logging.b=0
-Global LagShield=10
-Global public.b=0
-Global LogFile$="poker.log"
-Global oppass$=""
-Global killed=0
-Global success=0
-Global adminpass$=""
-Global opppass$=""
-Global Quit=0
-Global Port=27016
-Global scene$="AAOPublic2"
-Global CharacterNumber=0
-Global slots$="100"
-Global oBG.s="gs4"
-Global rt.b=1
-Global loghd.b=0
-Global AllowCutoff.b=0
-Global CharLimit=1
-Global background.s
-Global PV=1
-Global msname$="serverD"
-Global desc$="Default serverD "+version$
-Global www$
-Global rf.b=0
-Global msip$="127.0.0.1"
-Global Replays.b=0
-Global rline=0
-Global replayline=0
-Global replayopen.b
-Global modcol=0
-Global BlockINI.b=0
-Global BlockTaken.b=1
-Global ExpertLog=0
-Global tracks=0
-Global msthread=0
-Global msvthread=0
-Global LoginReply$="CT#$HOST#Successfully connected as mod#%"
-Global motd$="CT#$SERVER#Running serverD version "+version$+"#%"
-Global musicpage=0
-Global EviNumber=0
-Global ListMutex = CreateMutex()
-Global EviMutex = CreateMutex()
-Global MusicMutex = CreateMutex()
-Global RefreshMutex = CreateMutex()
-Global ActionMutex = CreateMutex()
-Global musicmode=1
-Global update=0
-Global ChannelCount=1
-Global decryptor$
-Global key
-Global newbuild
-Global *Buffer = AllocateMemory(4096)
-Global NewList HDmods.s()
-Global NewList gimps.s()
-Global NewList PReplay.s()
-Global Dim Evidences.Evidence(1000)
-Global Dim Icons.l(2)
-Global Dim ReadyChar.s(1000)
-Global newcready$="SC#%"
-Global newmready$="SM#%"
-Global newaready$="SA#%"
-Global Dim ReadyVItem.s(1000)
-Global Dim ReadyVMusic.s(1000)
-Global Dim ReadyEvidence.s(1000)
-Global Dim ReadyMusic.s(5000)
-
 ;- Include files
 
-CompilerIf #CONSOLE=0
-  IncludeFile "Common.pb"
-CompilerEndIf
-
 IncludeFile "server_shared.pb"
-
-Global NewList HDbans.TempBan()
-Global NewList IPbans.TempBan()
-Global NewList SDbans.TempBan()
 
 ; Initialize The Network
 If InitNetwork() = 0
@@ -120,7 +11,6 @@ If InitNetwork() = 0
   CompilerEndIf
   End
 EndIf
-
 
 ;- Define Functions
 ; yes after the network init and include code
@@ -2818,8 +2708,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 987
-; FirstLine = 963
+; CursorPosition = 448
+; FirstLine = 432
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP

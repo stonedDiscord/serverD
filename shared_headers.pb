@@ -93,6 +93,13 @@ Structure ACharacter
   pw.s
 EndStructure
 
+Structure Evidence
+  type.w
+  name.s
+  desc.s
+  image.s
+EndStructure
+
 Structure ItemData
   name.s
   price.w
@@ -185,6 +192,7 @@ Enumeration
   #MOVE
 EndEnumeration
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 7
+; CursorPosition = 100
+; FirstLine = 78
 ; Folding = -
 ; EnableXP
