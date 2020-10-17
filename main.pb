@@ -791,42 +791,68 @@ Procedure SendDone(*usagePointer.Client)
 EndProcedure
 
 ; switching areas
-Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
-  Define sendd=0
-  Define ir
-  Debug narea$
-  For ir=0 To ChannelCount
+Procedure AreaSelected(*usagePointer.Client)
+  WriteLog("Switched Area to "+GetAreaName(*usagePointer),*usagePointer)
+  
+  SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
+  SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
+  SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
+  
+  players$="ARUP#0"
+  status$ ="ARUP#1"
+  cm$     ="ARUP#2"
+  locked$ ="ARUP#3"
+  For carea=0 To ChannelCount
+    players$ = players$ + "#"+Str(Channels(carea)\players)
+    status$  = status$  + "#IDLE"
+    cm$      = cm$      + "#FREE"
+    locked$  = locked$  + "#FREE"
+  Next
+  players$ = players$ + "#%"
+  status$  = status$  + "#%"
+  cm$      = cm$      + "#%"
+  locked$  = locked$ + "#%"
+  SendTarget("*",players$,Server)
+  SendTarget("*",status$,Server)
+  SendTarget("*",cm$,Server)
+  SendTarget("*",locked$,Server)
+EndProcedure
+
+Procedure UpdateAreaPlayercount()
+  ;reset all to zero
+  For ir=0 To ChannelCount-1
     Channels(ir)\players=0
-    Debug Channels(ir)\name
-    If Channels(ir)\name = narea$
-      narea$ = Str(ir)
-      Break
-    EndIf
   Next
   
   LockMutex(ListMutex)
   PushMapPosition(Clients())
   ResetMap(Clients())
   While NextMapElement(Clients())
-    If Clients()\CID=*usagePointer\CID And Clients()\ClientID<>*usagePointer\ClientID
-      If Clients()\area=Val(narea$) Or MultiChar=0
-        sendd=1
-      EndIf
-    EndIf
     If Clients()\area>=0
       Channels(Clients()\area)\players+1
     EndIf
   Wend
   PopMapPosition(Clients())
   UnlockMutex(ListMutex)
+EndProcedure
+
+Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
+  Define sendd=0
+  Define newarea
+  For ir=0 To ChannelCount
+    If Channels(ir)\name = narea$
+      newarea = ir
+      Break
+    EndIf
+  Next
   
-  If narea$="0"
+  If newarea=0 ;bypass almost all checks for the default area
     If Channels(*usagePointer\area)\lock=*usagePointer\ClientID
       Channels(*usagePointer\area)\lock=0
       Channels(*usagePointer\area)\mlock=0
     EndIf
     Channels(*usagePointer\area)\players-1
-    *usagePointer\area=0
+    *usagePointer\area=0 ; set area to 0
     Channels(0)\players+1
     If sendd=1
       *usagePointer\CID=-1
@@ -834,30 +860,17 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
     Else
       SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(0)\bg+"#%",Server)      
     EndIf
-    If *usagePointer\type>=#AOTWO
-      SendTarget(Str(*usagePointer\ClientID),"OA#0#0#%",Server)
-      send$="TA"
-      For carea=0 To ChannelCount
-        send$ = send$ + "#"+Str(Channels(carea)\players)
-      Next
-      send$ = send$ + "#%"
-      SendTarget("*",send$,Server)
-    Else
-      WriteLog("Switched Area to Default",*usagePointer)
-      SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area 0 selected#%",Server)
-      SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(0)\good)+"#%",Server)
-      SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(0)\evil)+"#%",Server)
-    EndIf
+    AreaSelected(*usagePointer)
   Else
-    If Val(narea$)<=ChannelCount-1 And Val(narea$)>=0
-      If Not Channels(Val(narea$))\lock Or *usagePointer\perm>Channels(Val(narea$))\mlock
-        If Channels(Val(narea$))\pw="" Or Channels(Val(narea$))\pw=apass$ Or *usagePointer\perm
+    If newarea<=ChannelCount-1 And newarea>=0
+      If Not Channels(newarea)\lock Or *usagePointer\perm>Channels(newarea)\mlock
+        If Channels(newarea)\pw="" Or Channels(newarea)\pw=apass$ Or *usagePointer\perm
           If Channels(*usagePointer\area)\lock=*usagePointer\ClientID
             Channels(*usagePointer\area)\lock=0
             Channels(*usagePointer\area)\mlock=0
           EndIf
           Channels(*usagePointer\area)\players-1
-          *usagePointer\area=Val(narea$)
+          *usagePointer\area=newarea  ; set the players area
           Channels(*usagePointer\area)\players+1
           If sendd=1
             *usagePointer\CID=-1
@@ -865,22 +878,9 @@ Procedure SwitchChannels(*usagePointer.Client,narea$,apass$)
           Else
             SendTarget(Str(*usagePointer\ClientID),"BN#"+Channels(*usagePointer\area)\bg+"#%",Server)
           EndIf
-            send$="ARUP#0"
-            For carea=0 To ChannelCount
-              send$ = send$ + "#"+Str(Channels(carea)\players)
-            Next
-            send$ = send$ + "#%"
-            SendTarget("*",send$,Server)
-            WriteLog("Switched Area to "+GetAreaName(*usagePointer),*usagePointer)
-            SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area "+Str(*usagePointer\area)+" selected#%",Server)
-            SendTarget(Str(*usagePointer\ClientID),"HP#1#"+Str(Channels(*usagePointer\area)\good)+"#%",Server)
-            SendTarget(Str(*usagePointer\ClientID),"HP#2#"+Str(Channels(*usagePointer\area)\evil)+"#%",Server)
+          AreaSelected(*usagePointer)
         Else
-          If *usagePointer\type>=#AOTWO
-            SendTarget(Str(*usagePointer\ClientID),"OA#"+narea$+"#1#%",Server)
-          Else
-            SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#wrong password#%",Server)
-          EndIf
+          SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#wrong password#%",Server)
         EndIf
       Else
         SendTarget(Str(*usagePointer\ClientID),"CT#$HOST#area locked#%",Server)
@@ -1450,20 +1450,7 @@ Procedure HandleAOCommand(ClientID)
               
             Case "/area"
               If *usagePointer\perm
-                For ir=0 To ChannelCount-1
-                  Channels(ir)\players=0
-                Next
-                
-                LockMutex(ListMutex)
-                PushMapPosition(Clients())
-                ResetMap(Clients())
-                While NextMapElement(Clients())
-                  If Clients()\area>=0
-                    Channels(Clients()\area)\players+1
-                  EndIf
-                Wend
-                PopMapPosition(Clients())
-                UnlockMutex(ListMutex)
+                UpdateAreaPlayercount()
               EndIf
               
               narea$=StringField(ctparam$,2," ")
@@ -2307,7 +2294,7 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(ListMutex)                      
           
           SendTarget(Str(ClientID),"PN#"+Str(players)+"#"+slots$+"#%",Server)          
-          SendTarget(Str(ClientID),"FL#yellowtext#customobjections#flipping#fastloading#noencryption#deskmod#evidence#%",Server)
+          SendTarget(Str(ClientID),"FL#noencryption#yellowtext#arup#customobjections#flipping#fastloading#deskmod#evidence#%",Server)
         EndIf
         rf=1
         
@@ -2708,8 +2695,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 448
-; FirstLine = 432
+; CursorPosition = 1453
+; FirstLine = 1447
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
