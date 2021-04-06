@@ -762,6 +762,34 @@ Procedure SendUpdatedEvi(target$)
   SendTarget(target$,evilist$,Server)
 EndProcedure
 
+; switching areas
+Procedure AreaSelected(*thisClient.Client)
+  WriteLog("Switched Area to "+GetAreaName(*thisClient),*thisClient)
+  
+  SendTarget(Str(*thisClient\ClientID),"CT#$HOST#area "+Str(*thisClient\area)+" selected#%",Server)
+  SendTarget(Str(*thisClient\ClientID),"HP#1#"+Str(Channels(*thisClient\area)\good)+"#%",Server)
+  SendTarget(Str(*thisClient\ClientID),"HP#2#"+Str(Channels(*thisClient\area)\evil)+"#%",Server)
+  
+  players$="ARUP#0"
+  status$ ="ARUP#1"
+  cm$     ="ARUP#2"
+  locked$ ="ARUP#3"
+  For carea=0 To ChannelCount
+    players$ = players$ + "#"+Str(Channels(carea)\players)
+    status$  = status$  + "#IDLE"
+    cm$      = cm$      + "#FREE"
+    locked$  = locked$  + "#FREE"
+  Next
+  players$ = players$ + "#%"
+  status$  = status$  + "#%"
+  cm$      = cm$      + "#%"
+  locked$  = locked$ + "#%"
+  SendTarget("*",players$,Server)
+  SendTarget("*",status$,Server)
+  SendTarget("*",cm$,Server)
+  SendTarget("*",locked$,Server)
+EndProcedure
+
 ; this triggers the charselect on clients
 Procedure SendDone(*thisClient.Client)
   Define send$
@@ -796,34 +824,7 @@ Procedure SendDone(*thisClient.Client)
   SendTarget(Str(*thisClient\ClientID),"MM#"+Str(musicmode)+"#%",Server)
   SendUpdatedEvi(Str(*thisClient\ClientID))
   SendTarget(Str(*thisClient\ClientID),"DONE#%",Server)
-EndProcedure
-
-; switching areas
-Procedure AreaSelected(*thisClient.Client)
-  WriteLog("Switched Area to "+GetAreaName(*thisClient),*thisClient)
-  
-  SendTarget(Str(*thisClient\ClientID),"CT#$HOST#area "+Str(*thisClient\area)+" selected#%",Server)
-  SendTarget(Str(*thisClient\ClientID),"HP#1#"+Str(Channels(*thisClient\area)\good)+"#%",Server)
-  SendTarget(Str(*thisClient\ClientID),"HP#2#"+Str(Channels(*thisClient\area)\evil)+"#%",Server)
-  
-  players$="ARUP#0"
-  status$ ="ARUP#1"
-  cm$     ="ARUP#2"
-  locked$ ="ARUP#3"
-  For carea=0 To ChannelCount
-    players$ = players$ + "#"+Str(Channels(carea)\players)
-    status$  = status$  + "#IDLE"
-    cm$      = cm$      + "#FREE"
-    locked$  = locked$  + "#FREE"
-  Next
-  players$ = players$ + "#%"
-  status$  = status$  + "#%"
-  cm$      = cm$      + "#%"
-  locked$  = locked$ + "#%"
-  SendTarget("*",players$,Server)
-  SendTarget("*",status$,Server)
-  SendTarget("*",cm$,Server)
-  SendTarget("*",locked$,Server)
+  AreaSelected(*thisClient)
 EndProcedure
 
 Procedure UpdateAreaPlayercount()
@@ -1212,7 +1213,7 @@ Procedure HandleAOCommand(ClientID)
               nmes\nointerrupt=Val(StringField(rawreceive$,20,"#"))
             Else
               nmes\showname="char"
-              nmes\pairchar=""
+              nmes\pairchar=-1
               nmes\pairoffset=0
               nmes\nointerrupt=0
             EndIf
@@ -2718,8 +2719,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1216
-; FirstLine = 1176
+; CursorPosition = 2321
+; FirstLine = 2312
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
