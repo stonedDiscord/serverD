@@ -1255,8 +1255,10 @@ Procedure HandleAOCommand(ClientID)
           UnlockMutex(musicmutex)
           
           If music=1
-            If Left(mcparam$,1)=">" Or Left(mcparam$,4)="&gt;"
+            If Left(mcparam$,1)=">"
               SwitchChannels(*thisClient,Mid(mcparam$,2),"")
+            ElseIf Left(mcparam$,4)="&gt;"
+              SwitchChannels(*thisClient,Mid(mcparam$,5),"")
             Else
               If *thisClient\ignoremc=0 And *thisClient\CID>=0 And *thisClient\CID<=CharacterNumber
                 If Characters(*thisClient\CID)\dj
@@ -2702,8 +2704,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1257
-; FirstLine = 1228
+; CursorPosition = 1260
+; FirstLine = 1240
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
