@@ -637,12 +637,13 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
     ResetMap(Clients())
     While NextMapElement(Clients())
       If Clients()\area=*seUser\area And (*seUser\silence=0 Or *seUser=Clients())
+        message$="MS#"+*ntmes\deskmod+"#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
+        message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*ntmes\flip)+"#"
+        message$=message$+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#"+*ntmes\showname+"#"+*ntmes\pairchar+"###"+*ntmes\pairoffset+"#0#0#"+*ntmes\nointerrupt+"#%"
+        
         Select Clients()\type
             CompilerIf #WEB
             Case #WEBSOCKET  
-              message$="MS#chat#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
-              message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*ntmes\flip)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#%"
-              
               Websocket_SendTextFrame(Clients()\ClientID,message$)
             CompilerEndIf
           Case #VNO
@@ -654,10 +655,6 @@ Procedure SendChatMessage(*ntmes.ChatMessage,*seUser.Client)
               RemoveDisconnect(Clients()\ClientID)
             EndIf
           Case #AOTWO
-            ;MS#chat#<pre-emote>#<char>#<emote>#<mes>#<pos>#<sfx>#<zoom>#<cid>#<animdelay>#<objection-state>#<evi>#<cid>#<bling>#<color>#%%
-            message$="MS#"+*ntmes\deskmod+"#"+*ntmes\preemote+"#"+*ntmes\char+"#"+*ntmes\emote+"#"+*ntmes\message+"#"+*ntmes\position+"#"+*ntmes\sfx+"#"
-            message$=message$+Str(*ntmes\emotemod)+"#"+Str(*seUser\CID)+"#"+Str(*ntmes\animdelay)+"#"+Str(*ntmes\objmod)+"#"+Str(*ntmes\evidence)+"#"+Str(*ntmes\flip)+"#"+Str(*ntmes\realization)+"#"+Str(*ntmes\color)+"#"+*ntmes\showname+"#%"
-            
             sresult=SendString(Clients()\ClientID,message$)
             If sresult=-1
               WriteLog("CLIENT DIED",Clients())
@@ -711,7 +708,7 @@ Procedure TrackWait(a)
   Until LoopMusic=0
 EndProcedure
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 658
-; FirstLine = 648
+; CursorPosition = 641
+; FirstLine = 627
 ; Folding = -------
 ; EnableXP
