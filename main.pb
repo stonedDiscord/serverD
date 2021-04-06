@@ -847,6 +847,7 @@ EndProcedure
 Procedure SwitchChannels(*thisClient.Client,narea$,apass$)
   Define sendd=0
   Define newarea
+  Debug narea$
   For ir=0 To ChannelCount
     If Channels(ir)\name = narea$
       newarea = ir
@@ -1236,30 +1237,30 @@ Procedure HandleAOCommand(ClientID)
         replaymusicfix:
         If *thisClient\type=#VNO
           mcparam$=StringField(rawreceive$,3,"#")
-          Else
-            mcparam$=StringField(rawreceive$,2,"#")
-            EndIf
+        Else
+          mcparam$=StringField(rawreceive$,2,"#")
+        EndIf
         If *thisClient\perm=#SERVER
           Sendtarget("*","MC#"+Mid(rawreceive$,coff),*thisClient)
         Else
-          music=0
-          LockMutex(musicmutex)
-          ForEach Music()
-            If mcparam$=Music()\TrackName
-              music=1
-              mdur=Music()\Length
-              Debug Music()\Length
-              Break
-            EndIf
-          Next
-          UnlockMutex(musicmutex)
-          
-          If music=1
-            If Left(mcparam$,1)=">"
-              SwitchChannels(*thisClient,Mid(mcparam$,2),"")
-            ElseIf Left(mcparam$,4)="&gt;"
-              SwitchChannels(*thisClient,Mid(mcparam$,5),"")
-            Else
+          If Left(mcparam$,1)=">"
+            SwitchChannels(*thisClient,Mid(mcparam$,2),"")
+          ElseIf Left(mcparam$,4)="&gt;"
+            SwitchChannels(*thisClient,Mid(mcparam$,5),"")
+          Else
+            music=0
+            LockMutex(musicmutex)
+            ForEach Music()
+              If mcparam$=Music()\TrackName
+                music=1
+                mdur=Music()\Length
+                Debug Music()\Length
+                Break
+              EndIf
+            Next
+            UnlockMutex(musicmutex)
+            
+            If music=1
               If *thisClient\ignoremc=0 And *thisClient\CID>=0 And *thisClient\CID<=CharacterNumber
                 If Characters(*thisClient\CID)\dj
                   
@@ -1300,12 +1301,12 @@ Procedure HandleAOCommand(ClientID)
                   WriteReplay(rawreceive$)
                 EndIf
               EndIf
-            EndIf
-          Else
-            *thisClient\hack=1
-            rf=1
-            WriteLog("tried changing music to "+mcparam$,*thisClient)
-          EndIf 
+            Else
+              *thisClient\hack=1
+              rf=1
+              WriteLog("tried changing music to "+mcparam$,*thisClient)
+            EndIf 
+          EndIf
         EndIf
         
         ;- ooc commands
@@ -2566,7 +2567,6 @@ Procedure Network(var)
                 n = 0
                 For i = Ptr To Ptr + 3
                   MaskKey(n) = PeekA(*Buffer + i)
-                  Debug "MaskKey " + Str(n + 1) + ": " + RSet(Hex(MaskKey(n)),2,"0")
                   n + 1
                 Next i
                 Ptr + 4
@@ -2704,8 +2704,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1260
-; FirstLine = 1240
+; CursorPosition = 1262
+; FirstLine = 1251
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
