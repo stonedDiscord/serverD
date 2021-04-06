@@ -1190,7 +1190,6 @@ Procedure HandleAOCommand(ClientID)
             nmes\deskmod=Encode(StringField(rawreceive$,2,"#"))
             nmes\preemote=Encode(StringField(rawreceive$,3,"#"))
             nmes\char=Encode(StringField(rawreceive$,4,"#"))
-            nmes\showname="char"
             nmes\emote=Encode(StringField(rawreceive$,5,"#"))
             nmes\message=Encode(StringField(rawreceive$,6,"#"))
             If *thisClient\pos=""
@@ -1206,6 +1205,17 @@ Procedure HandleAOCommand(ClientID)
             nmes\flip=Val(StringField(rawreceive$,14,"#"))
             nmes\realization=Val(StringField(rawreceive$,15,"#"))
             nmes\color=Val(StringField(rawreceive$,16,"#"))
+            If StringField(rawreceive$,17,"#")<>"%"
+              nmes\showname=StringField(rawreceive$,17,"#")
+              nmes\pairchar=Val(StringField(rawreceive$,18,"#"))
+              nmes\pairoffset=Val(StringField(rawreceive$,19,"#"))
+              nmes\nointerrupt=Val(StringField(rawreceive$,20,"#"))
+            Else
+              nmes\showname="char"
+              nmes\pairchar=""
+              nmes\pairoffset=0
+              nmes\nointerrupt=0
+            EndIf
             nmes\background="[Default]"
         EndSelect
         If ReplayMode=0 Or *thisClient\perm=#SERVER
@@ -2708,8 +2718,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 858
-; FirstLine = 834
+; CursorPosition = 1216
+; FirstLine = 1176
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
