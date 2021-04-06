@@ -2287,7 +2287,6 @@ Procedure HandleAOCommand(ClientID)
           If StringField(rawreceive$,4,"#")<>"" Or Left(*thisClient\HD,2)="2."
             *thisClient\type=#AOTWO
           EndIf
-          SendTarget(Str(ClientID),"HI#serverD#"+version$+"#%",Server)
           
           SendTarget(Str(ClientID),"ID#"+Str(*thisClient\AID)+"#serverD&"+version$+"#%",Server)
           players=0
@@ -2703,8 +2702,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 594
-; FirstLine = 563
+; CursorPosition = 2288
+; FirstLine = 2265
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
