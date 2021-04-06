@@ -572,6 +572,10 @@ ProcedureDLL MasterAdvert(Port)
             Debug msrec$
             If msrec$="NOSERV#%"
               WriteLog("Fell off the serverlist,fixing...",Server)
+              port$ = Str(Port)
+              If WebSockets
+                port$ = port$ + "&" + Str(Port)
+              EndIf
               sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#serverD "+version$+"#%"+Chr(0))
               WriteLog("Server published!",Server)
             EndIf
@@ -586,6 +590,10 @@ ProcedureDLL MasterAdvert(Port)
         msID=OpenNetworkConnection(master$,msPort)
         If msID
           Server\ClientID=msID
+          port$ = Str(Port)
+          If WebSockets
+            port$ = port$ + "&" + Str(Port)
+          EndIf
           sr=SendNetworkString(msID,"SCC#"+Str(Port)+"#"+msname$+"#"+desc$+"#serverD "+version$+"#%"+Chr(0))
           WriteLog("Server published!",Server)
         EndIf
@@ -2695,8 +2703,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 2611
-; FirstLine = 2613
+; CursorPosition = 594
+; FirstLine = 563
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
