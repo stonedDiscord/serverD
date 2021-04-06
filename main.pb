@@ -846,7 +846,7 @@ EndProcedure
 
 Procedure SwitchChannels(*thisClient.Client,narea$,apass$)
   Define sendd=0
-  Define newarea
+  Define newarea=0
   Debug narea$
   For ir=0 To ChannelCount
     If Channels(ir)\name = narea$
@@ -854,6 +854,10 @@ Procedure SwitchChannels(*thisClient.Client,narea$,apass$)
       Break
     EndIf
   Next
+  
+  If Val(narea$)>0 And newarea=0
+    newarea = Val(narea$)
+  EndIf
   
   If newarea=0 ;bypass almost all checks for the default area
     If Channels(*thisClient\area)\lock=*thisClient\ClientID
@@ -2704,8 +2708,8 @@ CompilerEndIf
 
 End
 ; IDE Options = PureBasic 5.31 (Windows - x86)
-; CursorPosition = 1262
-; FirstLine = 1251
+; CursorPosition = 858
+; FirstLine = 834
 ; Folding = ------
 ; EnableUnicode
 ; EnableXP
