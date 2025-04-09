@@ -38,13 +38,7 @@ FOR THE SERVER SOFTWARE DOWNLOAD SEE THE "RELEASE" TAB ABOVE
 > 400 KB + a few MB of logs
 
 ### setup
-1. Drop your copy of serverD in an empty folder
-2. Start serverD
-3. ur done lol
-by default it's running on port 27016
-
-## Congratulations, your new serverD is now kurwa!
-[This guide](https://docs.google.com/document/d/1NWOQxmxZ4BKN0W1ApAr-5Z386T259qC3T97RNRA5udA/edit) can help you if you need more help
+1. Don't
 
 ### commands
 - /area
