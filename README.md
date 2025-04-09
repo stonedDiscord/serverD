@@ -1,3 +1,7 @@
+# THIS IS OUTDATED
+# DO NOT USE WITH CURRENT AO
+# MIGHT WORK IF YOU'RE TRYIN TO HOST RETRO AO
+
 # serverD
 ## It's *SD*
 FOR THE SERVER SOFTWARE DOWNLOAD SEE THE "RELEASE" TAB ABOVE
@@ -149,19 +153,8 @@ by default it's running on port 27016
 **:warning:Mods can only be kicked by admins**
 
 ## FAQ
-- Q: Will this change my server files?
-- A: only poker.ini
-- Q: Are there any backdoors/malicious code?
-- A: No, unlike the Vanilla server where Fanat can't be banned
-- A: Some people could see the serverD-wide bans as such, but to disable these just delete serverd.txt and reload
-- Q: Then why is the result 3/52 on kurwaTotal?
-- A: False positives. Google the virus names and you'll see.
-- Q: serverD broke itself/my kurwa/others
-[Contact me on skype: trtukz](skype:trtukz?chat)
-- Q: I have another question
-[Contact me on skype: trtukz](skype:trtukz?chat)
-- Q: kurwa?
-- A: :joy: :joy: :joy:
+- Q: Can I still use this?
+- A: No
  
 ## Configuration
 See the comments in the files at this repository or [check out the config editor i made](https://github.com/stonedDiscord/confgen)
